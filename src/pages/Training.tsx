@@ -185,17 +185,17 @@ const Training = () => {
           return (
             <Card key={item.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
               <CardHeader className="pb-4">
-                <div className="flex items-start justify-between">
-                  <div className="flex items-center space-x-3 flex-1">
-                    <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
-                      <MediaIcon className="h-6 w-6 text-primary" />
-                    </div>
-                    <div className="flex-1 min-w-0">
-                      <CardTitle className="text-lg truncate">{item.title}</CardTitle>
-                      <CardDescription className="text-sm line-clamp-2">
-                        {item.description}
-                      </CardDescription>
-                    </div>
+                <div className="flex items-start gap-3 w-full">
+                  <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center flex-shrink-0">
+                    <MediaIcon className="h-6 w-6 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0 overflow-hidden">
+                    <CardTitle className="text-base sm:text-lg leading-tight line-clamp-2 mb-1">
+                      {item.title}
+                    </CardTitle>
+                    <CardDescription className="text-sm line-clamp-2">
+                      {item.description}
+                    </CardDescription>
                   </div>
                 </div>
               </CardHeader>
