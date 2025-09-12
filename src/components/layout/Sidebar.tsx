@@ -43,9 +43,9 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-64 transform bg-white border-r transition-transform duration-300 ease-in-out",
+          "fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-64 transform bg-white border-r transition-transform duration-300 ease-in-out md:relative md:top-0 md:z-0",
           isOpen ? "translate-x-0" : "-translate-x-full",
-          "md:translate-x-0 md:static md:z-0"
+          "md:translate-x-0"
         )}
       >
         <div className="flex items-center justify-between p-4 md:hidden">
