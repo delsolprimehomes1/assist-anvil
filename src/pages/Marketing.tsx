@@ -1,0 +1,340 @@
+import { useState } from "react";
+import { Megaphone, Copy, ExternalLink, Download, Palette, Mail, MessageSquare } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { Input } from "@/components/ui/input";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { useToast } from "@/hooks/use-toast";
+
+const templates = [
+  {
+    id: 1,
+    title: "Life Insurance Consultation Flyer",
+    type: "canva_template",
+    description: "Professional flyer for promoting consultation services",
+    url: "https://canva.com/template/123",
+    tags: ["flyer", "consultation", "life_insurance"]
+  },
+  {
+    id: 2,
+    title: "Final Expense Social Media Post",
+    type: "canva_template", 
+    description: "Engaging social media graphics for FE products",
+    url: "https://canva.com/template/456",
+    tags: ["social_media", "final_expense"]
+  },
+  {
+    id: 3,
+    title: "Term Life Email Template",
+    type: "email_script",
+    description: "Professional email template for term life prospects",
+    content: "Subject: Protect Your Family's Future Today\n\nDear [Name],\n\nI hope this email finds you well. As someone who cares about their family's financial security, I wanted to reach out about an important topic - life insurance protection.\n\nTerm life insurance can provide:\n• Affordable premiums\n• Flexible coverage amounts\n• Peace of mind for your loved ones\n\nI'd love to schedule a brief 15-minute call to discuss your specific needs and see how I can help.\n\nBest regards,\n[Your Name]",
+    tags: ["email", "term_life", "prospecting"]
+  },
+  {
+    id: 4,
+    title: "Follow-up SMS Script",
+    type: "sms_script",
+    description: "Friendly follow-up message for warm leads",
+    content: "Hi [Name]! Thanks for your interest in life insurance. I have some great options that could save you money while providing better coverage. When would be a good time for a quick 10-minute call? - [Your Name]",
+    tags: ["sms", "follow_up", "warm_leads"]
+  }
+];
+
+const brandAssets = [
+  {
+    id: 1,
+    title: "Company Logo Pack",
+    type: "brand_asset",
+    description: "High-resolution logos in various formats",
+    downloadUrl: "/brand/logos.zip",
+    tags: ["logo", "branding"]
+  },
+  {
+    id: 2,
+    title: "Brand Guidelines",
+    type: "brand_asset",
+    description: "Official brand colors, fonts, and usage guidelines",
+    downloadUrl: "/brand/guidelines.pdf",
+    tags: ["guidelines", "branding"]
+  }
+];
+
+const Marketing = () => {
+  const [searchTerm, setSearchTerm] = useState("");
+  const [selectedType, setSelectedType] = useState("all");
+  const { toast } = useToast();
+
+  const allAssets = [...templates, ...brandAssets];
+  const filteredAssets = allAssets.filter(asset => {
+    const matchesSearch = asset.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         asset.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
+    const matchesType = selectedType === "all" || asset.type === selectedType;
+    return matchesSearch && matchesType;
+  });
+
+  const copyToClipboard = (content: string) => {
+    navigator.clipboard.writeText(content);
+    toast({
+      title: "Copied to clipboard",
+      description: "Content copied successfully",
+    });
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case "canva_template": return Palette;
+      case "email_script": return Mail;
+      case "sms_script": return MessageSquare;
+      case "brand_asset": return Download;
+      default: return Megaphone;
+    }
+  };
+
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case "canva_template": return "bg-purple-100 text-purple-800";
+      case "email_script": return "bg-blue-100 text-blue-800";
+      case "sms_script": return "bg-green-100 text-green-800";
+      case "brand_asset": return "bg-orange-100 text-orange-800";
+      default: return "bg-gray-100 text-gray-800";
+    }
+  };
+
+  return (
+    <div className="space-y-6 animate-fade-in">
+      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+        <div>
+          <h1 className="text-3xl font-bold flex items-center gap-2">
+            <Megaphone className="h-8 w-8 text-primary" />
+            Marketing Center
+          </h1>
+          <p className="text-muted-foreground">Templates, scripts, and brand assets to grow your business</p>
+        </div>
+      </div>
+
+      <Tabs defaultValue="templates" className="w-full">
+        <TabsList className="grid w-full grid-cols-4">
+          <TabsTrigger value="templates">Templates</TabsTrigger>
+          <TabsTrigger value="scripts">Scripts</TabsTrigger>
+          <TabsTrigger value="brand">Brand Kit</TabsTrigger>
+          <TabsTrigger value="funnels">Funnels</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="templates" className="space-y-6">
+          {/* Search */}
+          <Card className="stat-card">
+            <CardContent className="pt-6">
+              <Input
+                placeholder="Search templates..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Canva Templates */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {templates.filter(t => t.type === "canva_template").map((template, index) => {
+              const Icon = getTypeIcon(template.type);
+              return (
+                <Card key={template.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CardHeader className="pb-4">
+                    <div className="flex items-start justify-between">
+                      <div className="flex items-center space-x-3 flex-1">
+                        <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
+                          <Icon className="h-6 w-6 text-primary" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                          <CardTitle className="text-lg truncate">{template.title}</CardTitle>
+                          <CardDescription className="text-sm">
+                            {template.description}
+                          </CardDescription>
+                        </div>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex flex-wrap gap-1">
+                      {template.tags.map(tag => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag.replace('_', ' ')}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <Button className="w-full" asChild>
+                      <a href={template.url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Open in Canva
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="scripts" className="space-y-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {templates.filter(t => t.type === "email_script" || t.type === "sms_script").map((script, index) => {
+              const Icon = getTypeIcon(script.type);
+              return (
+                <Card key={script.id} className="stat-card" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CardHeader>
+                    <CardTitle className="flex items-center gap-2">
+                      <Icon className="h-5 w-5 text-primary" />
+                      {script.title}
+                    </CardTitle>
+                    <CardDescription>{script.description}</CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="bg-muted/50 p-4 rounded-lg">
+                      <pre className="text-sm whitespace-pre-wrap font-sans">
+                        {script.content}
+                      </pre>
+                    </div>
+                    
+                    <div className="flex flex-wrap gap-1">
+                      {script.tags.map(tag => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag.replace('_', ' ')}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <Button 
+                      onClick={() => copyToClipboard(script.content || "")}
+                      className="w-full"
+                      variant="outline"
+                    >
+                      <Copy className="mr-2 h-4 w-4" />
+                      Copy Script
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="brand" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {brandAssets.map((asset, index) => {
+              const Icon = getTypeIcon(asset.type);
+              return (
+                <Card key={asset.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CardHeader className="pb-4">
+                    <div className="flex items-center space-x-3">
+                      <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
+                        <Icon className="h-6 w-6 text-primary" />
+                      </div>
+                      <div className="flex-1">
+                        <CardTitle className="text-lg">{asset.title}</CardTitle>
+                        <CardDescription className="text-sm">
+                          {asset.description}
+                        </CardDescription>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    <div className="flex flex-wrap gap-1">
+                      {asset.tags.map(tag => (
+                        <Badge key={tag} variant="outline" className="text-xs">
+                          {tag.replace('_', ' ')}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    <Button className="w-full" asChild>
+                      <a href={asset.downloadUrl} download>
+                        <Download className="mr-2 h-4 w-4" />
+                        Download
+                      </a>
+                    </Button>
+                  </CardContent>
+                </Card>
+              );
+            })}
+          </div>
+
+          {/* Brand Colors */}
+          <Card className="stat-card">
+            <CardHeader>
+              <CardTitle>Brand Colors</CardTitle>
+              <CardDescription>Official color palette for all marketing materials</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="w-full h-20 bg-gradient-primary rounded-lg mb-2"></div>
+                  <p className="text-sm font-medium">Primary</p>
+                  <p className="text-xs text-muted-foreground">#6366F1</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-full h-20 bg-secondary rounded-lg mb-2"></div>
+                  <p className="text-sm font-medium">Secondary</p>
+                  <p className="text-xs text-muted-foreground">#F1F5F9</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-full h-20 bg-success rounded-lg mb-2"></div>
+                  <p className="text-sm font-medium">Success</p>
+                  <p className="text-xs text-muted-foreground">#10B981</p>
+                </div>
+                <div className="text-center">
+                  <div className="w-full h-20 bg-foreground rounded-lg mb-2"></div>
+                  <p className="text-sm font-medium">Text</p>
+                  <p className="text-xs text-muted-foreground">#0F172A</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="funnels" className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <Card className="stat-card">
+              <CardHeader>
+                <CardTitle>Life Insurance Landing Page</CardTitle>
+                <CardDescription>High-converting landing page for life insurance leads</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-sm"><strong>Conversion Rate:</strong> 12.5%</p>
+                  <p className="text-sm"><strong>Traffic Source:</strong> Facebook Ads, Google Ads</p>
+                  <p className="text-sm"><strong>Best For:</strong> Ages 25-55, Term Life prospects</p>
+                </div>
+                <Button className="w-full">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View Funnel
+                </Button>
+              </CardContent>
+            </Card>
+
+            <Card className="stat-card">
+              <CardHeader>
+                <CardTitle>Final Expense Quiz Funnel</CardTitle>
+                <CardDescription>Interactive quiz to qualify FE prospects</CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="space-y-2">
+                  <p className="text-sm"><strong>Conversion Rate:</strong> 8.3%</p>
+                  <p className="text-sm"><strong>Traffic Source:</strong> Social Media, Email</p>
+                  <p className="text-sm"><strong>Best For:</strong> Ages 50+, Final Expense prospects</p>
+                </div>
+                <Button className="w-full">
+                  <ExternalLink className="mr-2 h-4 w-4" />
+                  View Funnel
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  );
+};
+
+export default Marketing;
