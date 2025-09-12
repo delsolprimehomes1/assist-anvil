@@ -18,21 +18,21 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 15%;
 
-    /* Professional purple-pink gradient brand */
-    --primary: 260 85% 45%;
+    /* LIFECO brand colors - teal blue primary */
+    --primary: 180 60% 45%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 260 85% 65%;
-    --primary-dark: 260 85% 35%;
+    --primary-light: 180 60% 65%;
+    --primary-dark: 180 60% 35%;
 
-    /* Soft gray accents */
-    --secondary: 220 15% 97%;
-    --secondary-foreground: 220 15% 25%;
+    /* LIFECO orange accent */
+    --secondary: 30 70% 55%;
+    --secondary-foreground: 0 0% 100%;
 
     --muted: 220 15% 96%;
     --muted-foreground: 220 10% 50%;
 
-    --accent: 220 15% 95%;
-    --accent-foreground: 220 15% 25%;
+    --accent: 180 60% 95%;
+    --accent-foreground: 180 60% 25%;
 
     /* Success and error states */
     --success: 142 85% 45%;
@@ -45,18 +45,18 @@ All colors MUST be HSL.
     /* Borders and inputs */
     --border: 220 15% 90%;
     --input: 220 15% 95%;
-    --ring: 260 85% 45%;
+    --ring: 180 60% 45%;
 
-    /* Gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(260 85% 45%), hsl(320 85% 55%));
-    --gradient-secondary: linear-gradient(135deg, hsl(220 15% 97%), hsl(220 15% 95%));
-    --gradient-accent: linear-gradient(135deg, hsl(260 85% 65%), hsl(280 85% 65%));
+    /* LIFECO gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(180 60% 45%), hsl(30 70% 55%));
+    --gradient-secondary: linear-gradient(135deg, hsl(180 60% 95%), hsl(180 60% 90%));
+    --gradient-accent: linear-gradient(135deg, hsl(180 60% 65%), hsl(30 70% 65%));
 
     /* Shadows */
     --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-strong: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
-    --shadow-glow: 0 0 20px hsl(260 85% 45% / 0.15);
+    --shadow-glow: 0 0 20px hsl(180 60% 45% / 0.15);
 
     /* Animations */
     --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -67,12 +67,12 @@ All colors MUST be HSL.
     /* Sidebar */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 15% 25%;
-    --sidebar-primary: 260 85% 45%;
+    --sidebar-primary: 180 60% 45%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 220 15% 97%;
-    --sidebar-accent-foreground: 220 15% 25%;
-    --sidebar-border: 220 15% 90%;
-    --sidebar-ring: 260 85% 45%;
+    --sidebar-accent: 180 60% 97%;
+    --sidebar-accent-foreground: 180 60% 25%;
+    --sidebar-border: 180 60% 90%;
+    --sidebar-ring: 180 60% 45%;
   }
 
   .dark {

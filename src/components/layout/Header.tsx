@@ -1,4 +1,5 @@
 import { Search, Menu, Bell, User } from "lucide-react";
+import lifecoLogo from "@/assets/lifeco-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -31,8 +32,12 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
           </Button>
           
           <div className="flex items-center space-x-2">
-            <div className="h-8 w-8 rounded-lg bg-gradient-primary"></div>
-            <span className="font-bold text-xl text-foreground">AgentHub</span>
+            <img 
+              src={lifecoLogo} 
+              alt="LIFECO Logo" 
+              className="h-8 w-8 object-contain"
+            />
+            <span className="font-bold text-xl text-foreground">LIFECO</span>
           </div>
         </div>
 
