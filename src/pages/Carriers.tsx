@@ -42,7 +42,7 @@ const carriers = [
     niches: ["fast_approval"],
     turnaround: "fast",
     logoUrl: "/carriers/ff.png",
-    portalUrl: "https://portal.foresters.com",
+    portalUrl: "https://www.forestersmobile.com/",
     quotesUrl: "https://quotes.foresters.com",
     illustrationUrl: "https://illustrations.foresters.com"
   },
