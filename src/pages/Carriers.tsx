@@ -45,6 +45,19 @@ const carriers = [
     portalUrl: "https://portal.foresters.com",
     quotesUrl: "https://quotes.foresters.com",
     illustrationUrl: "https://illustrations.foresters.com"
+  },
+  {
+    id: 4,
+    name: "Americo",
+    shortCode: "AMR",
+    amBestRating: "A-",
+    products: ["Term", "WL", "FE"],
+    niches: ["senior", "fast_approval"],
+    turnaround: "avg",
+    logoUrl: "/carriers/americo.png",
+    portalUrl: "https://account.americoagent.com/Identity/Account/Login/?returnUrl=https%3a%2f%2ftools.americoagent.com%2f",
+    quotesUrl: "https://quotes.americo.com",
+    illustrationUrl: "https://illustrations.americo.com"
   }
 ];
 
