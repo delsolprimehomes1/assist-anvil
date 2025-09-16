@@ -3,7 +3,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-import { StatsCards } from "@/components/dashboard/StatsCards";
 
 import { motion, useScroll, useTransform } from "framer-motion";
 
@@ -121,11 +120,6 @@ const Dashboard = () => {
             </motion.div>
           </motion.div>
         </div>
-      </motion.div>
-
-      {/* Quick Stats */}
-      <motion.div variants={sectionVariants}>
-        <StatsCards />
       </motion.div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-6 md:gap-8 w-full">
