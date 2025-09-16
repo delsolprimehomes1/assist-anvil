@@ -1,10 +1,11 @@
 import { useState } from "react";
-import { Search, Filter, Building2, ExternalLink, Star } from "lucide-react";
+import { Search, Filter, Building2, ExternalLink, Star, Info } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import CarrierDetailsModal from "@/components/CarrierDetailsModal";
 
 const carriers = [
   {
@@ -18,7 +19,26 @@ const carriers = [
     logoUrl: "/carriers/ag.png",
     portalUrl: "https://portal.ag.com",
     quotesUrl: "https://quotes.ag.com",
-    illustrationUrl: "https://illustrations.ag.com"
+    illustrationUrl: "https://illustrations.ag.com",
+    headquarters: "175 Water Street, New York, NY 10038",
+    phone: "1-800-225-5244",
+    founded: 1960,
+    employees: "45,000+",
+    description: "American General Life Insurance Company is part of American International Group (AIG), one of the world's largest insurance organizations. We provide a broad range of life insurance and retirement products to individuals and businesses.",
+    website: "https://www.aig.com",
+    specialProducts: [
+      "Term Life Insurance with conversion options",
+      "Whole Life Insurance with flexible premiums", 
+      "Final Expense Insurance with simplified underwriting",
+      "Indexed Universal Life with market upside potential"
+    ],
+    underwritingStrengths: [
+      "Competitive rates for smokers and diabetics",
+      "Simplified underwriting for final expense products", 
+      "Fast processing with electronic applications",
+      "Liberal underwriting guidelines for standard risks"
+    ],
+    companyHistory: "Founded as part of AIG's expansion into life insurance, American General has been serving American families for over 60 years, building a reputation for financial stability and customer service excellence."
   },
   {
     id: 2,
@@ -31,7 +51,26 @@ const carriers = [
     logoUrl: "/carriers/moo.png",
     portalUrl: "https://portal.moo.com",
     quotesUrl: "https://quotes.moo.com",
-    illustrationUrl: "https://illustrations.moo.com"
+    illustrationUrl: "https://illustrations.moo.com",
+    headquarters: "3300 Mutual of Omaha Plaza, Omaha, NE 68175",
+    phone: "1-402-351-1685",
+    founded: 1909,
+    employees: "6,000+",
+    description: "Mutual of Omaha is a Fortune 500 mutual company that has been helping secure the financial future of individuals, families and businesses for over 115 years. We focus on life insurance, annuities, and supplemental health products.",
+    website: "https://www.mutualofomaha.com",
+    specialProducts: [
+      "Term Life Insurance up to age 80",
+      "Guaranteed Issue Whole Life for seniors",
+      "Final Expense coverage with graded benefits",
+      "Fixed and indexed annuities for retirement planning"
+    ],
+    underwritingStrengths: [
+      "Senior market expertise (ages 50-85)",
+      "Guaranteed issue products available",
+      "Fast approval process for simplified issue",
+      "Strong financial ratings and stability"
+    ],
+    companyHistory: "Founded in 1909 as Mutual Benefit Health & Accident Association, Mutual of Omaha has grown to become one of America's most trusted insurance companies, famous for supporting families through life's uncertainties."
   },
   {
     id: 3,
@@ -44,7 +83,26 @@ const carriers = [
     logoUrl: "/carriers/ff.png",
     portalUrl: "https://www.forestersmobile.com/",
     quotesUrl: "https://quotes.foresters.com",
-    illustrationUrl: "https://illustrations.foresters.com"
+    illustrationUrl: "https://illustrations.foresters.com",
+    headquarters: "789 Don Mills Road, Toronto, ON M3C 1T9, Canada",
+    phone: "1-800-828-1540",
+    founded: 1874,
+    employees: "1,500+",
+    description: "Foresters Financial is an international financial services provider with over 150 years of helping families achieve financial security. We offer life insurance and investment products with a focus on member benefits and community giving.",
+    website: "https://www.foresters.com",
+    specialProducts: [
+      "Term Life Insurance with return of premium options",
+      "Whole Life Insurance with participating dividends",
+      "AcceleratedSM Underwriting for faster approvals",
+      "Member benefits including scholarships and grants"
+    ],
+    underwritingStrengths: [
+      "Accelerated underwriting with same-day decisions",
+      "Competitive rates for healthy applicants",
+      "Simplified application process",
+      "Strong focus on family protection needs"
+    ],
+    companyHistory: "Founded in 1874 as the Independent Order of Foresters, we have been helping families do more of the good they want to do for over 150 years, combining insurance protection with member benefits and community support."
   },
   {
     id: 4,
@@ -57,7 +115,26 @@ const carriers = [
     logoUrl: "/carriers/americo.png",
     portalUrl: "https://account.americoagent.com/Identity/Account/Login/?returnUrl=https%3a%2f%2ftools.americoagent.com%2f",
     quotesUrl: "https://quotes.americo.com",
-    illustrationUrl: "https://illustrations.americo.com"
+    illustrationUrl: "https://illustrations.americo.com",
+    headquarters: "300 West 11th Street, Kansas City, MO 64105",
+    phone: "1-800-231-6786",
+    founded: 1947,
+    employees: "800+",
+    description: "Americo Financial Life and Annuity Insurance Company is dedicated to helping Americans achieve financial security through innovative life insurance and annuity products designed for today's market needs.",
+    website: "https://www.americo.com",
+    specialProducts: [
+      "SimplicitySM Term Life with streamlined underwriting",
+      "Whole Life Insurance with flexible payment options",
+      "Final Expense coverage for burial and funeral costs",
+      "Fixed and indexed annuities for retirement income"
+    ],
+    underwritingStrengths: [
+      "Simplified underwriting for senior applicants",
+      "Competitive rates for the 50+ market",
+      "Fast processing with minimal requirements",
+      "Expertise in final expense and burial insurance"
+    ],
+    companyHistory: "Founded in 1947, Americo has built a solid reputation for serving the insurance needs of American families, with particular expertise in products designed for older adults and retirees seeking affordable protection."
   },
   {
     id: 5,
@@ -70,13 +147,34 @@ const carriers = [
     logoUrl: "/carriers/fg.png",
     portalUrl: "https://saleslink.fglife.com/login/portallogin",
     quotesUrl: "https://quotes.fglife.com",
-    illustrationUrl: "https://illustrations.fglife.com"
+    illustrationUrl: "https://illustrations.fglife.com",
+    headquarters: "601 Locust Street, Des Moines, IA 50309",
+    phone: "1-855-800-7237",
+    founded: 1959,
+    employees: "1,200+",
+    description: "F&G is a leading provider of annuity and life insurance solutions, helping Americans turn their aspirations into reality. We specialize in retirement planning products and innovative life insurance solutions.",
+    website: "https://www.fglife.com",
+    specialProducts: [
+      "Fixed and indexed annuities for retirement income",
+      "Term Life Insurance with competitive rates",
+      "Indexed Universal Life with market participation",
+      "Pension risk transfer solutions for institutions"
+    ],
+    underwritingStrengths: [
+      "Leading annuity provider with competitive rates",
+      "Innovative product design and features",
+      "Strong financial backing from Fidelity National Financial",
+      "Expertise in retirement and pension solutions"
+    ],
+    companyHistory: "Founded in 1959, F&G has evolved into a major player in the annuity market, becoming publicly traded in 2021 and continuing to innovate in retirement and life insurance solutions for American families."
   }
 ];
 
 const Carriers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("all");
+  const [selectedCarrier, setSelectedCarrier] = useState<typeof carriers[0] | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
 
   const filteredCarriers = carriers.filter(carrier => {
     const matchesSearch = carrier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -183,15 +281,22 @@ const Carriers = () => {
               </div>
 
               <div className="flex space-x-2 pt-4">
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="flex-1"
+                  onClick={() => {
+                    setSelectedCarrier(carrier);
+                    setIsModalOpen(true);
+                  }}
+                >
+                  <Info className="h-3 w-3 mr-1" />
+                  Details
+                </Button>
                 <Button size="sm" className="flex-1" asChild>
                   <a href={carrier.portalUrl} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-3 w-3 mr-1" />
                     Portal
-                  </a>
-                </Button>
-                <Button size="sm" variant="outline" className="flex-1" asChild>
-                  <a href={carrier.quotesUrl} target="_blank" rel="noopener noreferrer">
-                    Quotes
                   </a>
                 </Button>
               </div>
@@ -209,6 +314,15 @@ const Carriers = () => {
           </CardContent>
         </Card>
       )}
+
+      <CarrierDetailsModal 
+        carrier={selectedCarrier}
+        isOpen={isModalOpen}
+        onClose={() => {
+          setIsModalOpen(false);
+          setSelectedCarrier(null);
+        }}
+      />
     </div>
   );
 };
