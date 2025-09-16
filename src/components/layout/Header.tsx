@@ -35,7 +35,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             <img 
               src={lifecoLogo} 
               alt="LIFECO Logo" 
-              className="h-8 w-8 object-contain"
+              className="h-8 w-auto object-contain"
             />
             <span className="font-bold text-xl text-foreground">LIFECO</span>
           </div>
