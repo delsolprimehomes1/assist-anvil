@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { StatsCards } from "@/components/dashboard/StatsCards";
-import { LeaderboardCard } from "@/components/dashboard/LeaderboardCard";
+
 import { motion, useScroll, useTransform } from "framer-motion";
 
 const Dashboard = () => {
@@ -217,7 +217,7 @@ const Dashboard = () => {
           variants={sectionVariants}
         >
           {/* Leaderboard */}
-          <LeaderboardCard />
+          
 
           {/* Quick Links */}
           <motion.div
