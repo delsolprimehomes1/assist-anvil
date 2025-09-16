@@ -58,6 +58,19 @@ const carriers = [
     portalUrl: "https://account.americoagent.com/Identity/Account/Login/?returnUrl=https%3a%2f%2ftools.americoagent.com%2f",
     quotesUrl: "https://quotes.americo.com",
     illustrationUrl: "https://illustrations.americo.com"
+  },
+  {
+    id: 5,
+    name: "Fidelity & Guaranty Life",
+    shortCode: "F&G",
+    amBestRating: "A",
+    products: ["Term", "WL", "Annuity"],
+    niches: ["annuity", "senior"],
+    turnaround: "avg",
+    logoUrl: "/carriers/fg.png",
+    portalUrl: "https://saleslink.fglife.com/login/portallogin",
+    quotesUrl: "https://quotes.fglife.com",
+    illustrationUrl: "https://illustrations.fglife.com"
   }
 ];
 
