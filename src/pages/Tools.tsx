@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Calculator, FileText, Search, BookOpen } from "lucide-react";
+import { Calculator, FileText, Search, BookOpen, ExternalLink } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -53,6 +53,16 @@ const resources = [
     tags: ["final_expense", "underwriting"],
     carrier: "Multiple",
     lastUpdated: "2024-01-22"
+  },
+  {
+    id: 6,
+    title: "Illustration Link",
+    type: "tool",
+    description: "Access WinFlexWeb to run client illustrations and proposals",
+    tags: ["illustrations", "proposals", "sales"],
+    carrier: "Universal",
+    lastUpdated: "2024-01-25",
+    url: "https://www.winflexweb.com/"
   }
 ];
 
@@ -70,6 +80,7 @@ const Tools = () => {
       case "calculator": return Calculator;
       case "guide": return BookOpen;
       case "cheat_sheet": return FileText;
+      case "tool": return ExternalLink;
       default: return FileText;
     }
   };
@@ -79,6 +90,7 @@ const Tools = () => {
       case "calculator": return "bg-blue-100 text-blue-800";
       case "guide": return "bg-green-100 text-green-800";
       case "cheat_sheet": return "bg-purple-100 text-purple-800";
+      case "tool": return "bg-orange-100 text-orange-800";
       default: return "bg-gray-100 text-gray-800";
     }
   };
@@ -158,7 +170,15 @@ const Tools = () => {
                       <span>Updated: {resource.lastUpdated}</span>
                     </div>
 
-                    <Button className="w-full" size="sm">
+                    <Button 
+                      className="w-full" 
+                      size="sm"
+                      onClick={() => {
+                        if (resource.url) {
+                          window.open(resource.url, '_blank');
+                        }
+                      }}
+                    >
                       Open Tool
                     </Button>
                   </CardContent>
