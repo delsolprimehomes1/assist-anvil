@@ -31,13 +31,12 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             <Menu className="h-5 w-5" />
           </Button>
           
-          <div className="flex items-center space-x-2">
+          <div className="flex items-center">
             <img 
               src={lifecoLogo} 
               alt="LIFECO Logo" 
               className="h-8 w-auto object-contain"
             />
-            <span className="font-bold text-xl text-foreground">LIFECO</span>
           </div>
         </div>
 
