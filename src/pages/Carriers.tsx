@@ -334,7 +334,7 @@ const Carriers = () => {
                 </Button>
                 {(carrier as any).underwritingGuideUrl && (
                   <Button size="sm" variant="secondary" className="col-span-2" asChild>
-                    <a href={(carrier as any).underwritingGuideUrl} download>
+                    <a href={(carrier as any).underwritingGuideUrl} target="_blank" rel="noopener noreferrer">
                       <Download className="h-3 w-3 mr-1" />
                       Download Underwriting Guide
                     </a>
