@@ -234,6 +234,40 @@ const carriers = [
     ],
     companyHistory: "Founded in 1935 as CUNA Mutual Group, TruStage has been the trusted insurance partner of credit unions for nearly 90 years, helping millions of credit union members achieve financial security.",
     underwritingGuideUrl: "/carriers/trustage-underwriting-guide.pdf"
+  },
+  {
+    id: 8,
+    name: "Royal Neighbors of America",
+    shortCode: "RNA",
+    amBestRating: "A",
+    products: ["FE", "Term", "WL"],
+    niches: ["senior", "final_expense", "women_focused"],
+    turnaround: "avg",
+    logoUrl: "/carriers/rna.png",
+    portalUrl: "https://www.royalneighbors.org",
+    quotesUrl: "https://quotes.royalneighbors.org",
+    illustrationUrl: "https://illustrations.royalneighbors.org",
+    headquarters: "230 16th Street, Rock Island, IL 61201",
+    phone: "1-800-627-4762",
+    founded: 1895,
+    employees: "500+",
+    description: "Royal Neighbors of America is one of the nation's largest women-led insurance organizations, founded to help protect women and families. We specialize in life insurance and annuity products with a focus on empowering women through financial security and community support.",
+    website: "https://www.royalneighbors.org",
+    specialProducts: [
+      "Ensured Legacy Final Expense Insurance",
+      "Term Life Insurance for family protection",
+      "Whole Life Insurance with guaranteed benefits",
+      "Women-focused member benefits and programs"
+    ],
+    underwritingStrengths: [
+      "Specialized in final expense insurance market",
+      "Simplified underwriting for senior applicants",
+      "130+ years of serving American families",
+      "Strong focus on women and family protection",
+      "Competitive rates for ages 50-85"
+    ],
+    companyHistory: "Founded in 1895 as one of the first fraternal benefit societies for women, Royal Neighbors of America has been empowering women and protecting families for over 130 years. Based in Rock Island, Illinois, we continue our mission of helping members achieve financial security while giving back to communities.",
+    underwritingGuideUrl: "/carriers/royal-neighbors-training-guide.pdf"
   }
 ];
 
