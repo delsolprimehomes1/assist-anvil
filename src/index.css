@@ -57,6 +57,10 @@ All colors MUST be HSL.
     --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-strong: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
     --shadow-glow: 0 0 20px hsl(180 60% 45% / 0.15);
+    
+    /* Gradient shadows and borders */
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(180, 60%, 45%, 0.3) 0%, hsla(30, 70%, 55%, 0.15) 50%, transparent 100%);
+    --gradient-border: linear-gradient(135deg, hsl(180 60% 45%), hsl(180 60% 55%), hsl(30 70% 55%));
 
     /* Animations */
     --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -241,14 +245,39 @@ All colors MUST be HSL.
       0 8px 32px rgba(0,0,0,0.08),
       0 4px 16px rgba(0,0,0,0.04),
       inset 0 1px 0 rgba(255,255,255,0.5);
+    will-change: transform;
+    transform: translateZ(0);
+  }
+
+  /* Gradient border effect */
+  .card-3d::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: var(--gradient-border);
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
   }
 
   .card-3d:hover {
     transform: translateY(-8px) rotateX(5deg) rotateY(5deg);
     box-shadow: 
-      0 20px 60px rgba(0,0,0,0.12),
-      0 10px 30px rgba(0,0,0,0.08),
+      0 20px 60px hsla(180, 60%, 45%, 0.25),
+      0 10px 30px hsla(30, 70%, 55%, 0.15),
+      0 4px 15px hsla(180, 60%, 45%, 0.1),
       inset 0 1px 0 rgba(255,255,255,0.7);
+  }
+
+  .card-3d:hover::before {
+    opacity: 1;
   }
 
   .card-3d:active {
@@ -298,6 +327,11 @@ All colors MUST be HSL.
 
   .stat-card:hover {
     transform: translateY(-12px) rotateX(8deg) rotateY(8deg) scale(1.02);
+    box-shadow: 
+      0 25px 70px hsla(180, 60%, 45%, 0.28),
+      0 12px 35px hsla(30, 70%, 55%, 0.18),
+      0 5px 18px hsla(180, 60%, 45%, 0.12),
+      inset 0 1px 0 rgba(255,255,255,0.8);
   }
 
   /* Interactive Elements */
@@ -308,8 +342,8 @@ All colors MUST be HSL.
   .hover-lift:hover {
     transform: translateY(-6px) translateZ(20px);
     box-shadow: 
-      0 25px 50px rgba(0,0,0,0.15),
-      0 12px 25px rgba(0,0,0,0.1);
+      0 25px 50px hsla(180, 60%, 45%, 0.22),
+      0 12px 25px hsla(30, 70%, 55%, 0.14);
   }
 
   .hover-scale {
@@ -342,14 +376,49 @@ All colors MUST be HSL.
   @media (max-width: 768px) {
     .card-3d {
       transform-style: flat;
+      padding: 1.25rem;
     }
     
     .card-3d:hover {
-      transform: translateY(-4px) scale(1.01);
+      transform: translateY(-6px) scale(1.01);
+      box-shadow: 
+        0 12px 40px hsla(180, 60%, 45%, 0.2),
+        0 6px 20px hsla(30, 70%, 55%, 0.12);
+    }
+    
+    .card-3d:active {
+      transform: translateY(-3px) scale(0.99);
+      transition-duration: 0.1s;
     }
     
     .perspective-container {
       perspective: 800px;
     }
+  }
+
+  /* Accessibility - Reduced Motion */
+  @media (prefers-reduced-motion: reduce) {
+    .card-3d,
+    .stat-card,
+    .hover-lift,
+    .hover-scale {
+      transition: opacity 0.2s ease;
+    }
+    
+    .card-3d:hover,
+    .stat-card:hover,
+    .hover-lift:hover,
+    .hover-scale:hover {
+      transform: none;
+      opacity: 0.9;
+    }
+  }
+
+  /* Gradient Shadow Utility */
+  .shadow-gradient-glow {
+    box-shadow: 
+      0 20px 60px hsla(180, 60%, 45%, 0.25),
+      0 10px 30px hsla(30, 70%, 55%, 0.15),
+      0 4px 15px hsla(180, 60%, 45%, 0.1);
   }
 }
