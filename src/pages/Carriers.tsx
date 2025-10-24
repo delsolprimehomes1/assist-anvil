@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Search, Filter, Building2, ExternalLink, Star, Info } from "lucide-react";
+import { Search, Filter, Building2, ExternalLink, Star, Info, Download } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -199,7 +199,8 @@ const carriers = [
       "100% digital application process",
       "Partners with A and A+ rated carriers"
     ],
-    companyHistory: "Founded in 2016, Ethos pioneered the use of technology and data science to make life insurance accessible and instant. As a digital-first platform partnering with established carriers, Ethos has helped thousands of families get covered in minutes rather than weeks."
+    companyHistory: "Founded in 2016, Ethos pioneered the use of technology and data science to make life insurance accessible and instant. As a digital-first platform partnering with established carriers, Ethos has helped thousands of families get covered in minutes rather than weeks.",
+    underwritingGuideUrl: "/carriers/ethos-underwriting-guide.pdf"
   }
 ];
 
@@ -313,11 +314,10 @@ const Carriers = () => {
                 </div>
               </div>
 
-              <div className="flex space-x-2 pt-4">
+              <div className="grid grid-cols-2 gap-2 pt-4">
                 <Button 
                   size="sm" 
                   variant="outline" 
-                  className="flex-1"
                   onClick={() => {
                     setSelectedCarrier(carrier);
                     setIsModalOpen(true);
@@ -326,12 +326,20 @@ const Carriers = () => {
                   <Info className="h-3 w-3 mr-1" />
                   Details
                 </Button>
-                <Button size="sm" className="flex-1" asChild>
+                <Button size="sm" asChild>
                   <a href={carrier.portalUrl} target="_blank" rel="noopener noreferrer">
                     <ExternalLink className="h-3 w-3 mr-1" />
                     Portal
                   </a>
                 </Button>
+                {(carrier as any).underwritingGuideUrl && (
+                  <Button size="sm" variant="secondary" className="col-span-2" asChild>
+                    <a href={(carrier as any).underwritingGuideUrl} download>
+                      <Download className="h-3 w-3 mr-1" />
+                      Download Underwriting Guide
+                    </a>
+                  </Button>
+                )}
               </div>
             </CardContent>
           </Card>
