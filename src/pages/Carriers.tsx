@@ -341,6 +341,43 @@ const carriers = [
       "Licensed in 49 states and DC"
     ],
     companyHistory: "Founded in 1882, Baltimore Life has been serving the middle market for over 140 years. As a mutual insurance company owned by its policyholders rather than shareholders, Baltimore Life maintains a strong reputation for integrity, financial stability, and exceptional service to both agents and policyholders."
+  },
+  {
+    id: 11,
+    name: "Assurity",
+    shortCode: "ASS",
+    amBestRating: "A-",
+    products: ["Term", "WL", "FE"],
+    niches: ["fast_approval", "accelerated_underwriting", "digital"],
+    turnaround: "fast",
+    logoUrl: "/carriers/assurity.png",
+    portalUrl: "https://www.assurity.com",
+    quotesUrl: "https://www.assurity.com/agent-resources",
+    illustrationUrl: "https://www.assurity.com/product-illustrations",
+    underwritingGuideUrl: "/carriers/assurity-term-underwriting-guide.pdf",
+    headquarters: "2000 Q Street, Lincoln, NE 68503",
+    phone: "1-800-276-7619",
+    founded: 1890,
+    employees: "600+",
+    description: "Assurity Life Insurance Company is a mutual holding company with over 130 years of experience providing life insurance and related financial products. Assurity specializes in term life insurance with accelerated underwriting options, offering fast approvals and simplified processes for agents and consumers.",
+    website: "https://www.assurity.com",
+    specialProducts: [
+      "Term Life Insurance with Accelerated Underwriting (AUW)",
+      "Whole Life Insurance with flexible premiums",
+      "Final Expense coverage with simplified issue",
+      "Disability Income Insurance for income protection",
+      "AcceleratedSM Underwriting for same-day decisions"
+    ],
+    underwritingStrengths: [
+      "Accelerated Underwriting (AUW) - no medical exam up to certain limits",
+      "Same-day decisions for qualified applicants",
+      "Preferred Plus rates available for healthy applicants",
+      "Ages 18-70 for term life products",
+      "Height/weight requirements more liberal than industry standard",
+      "Strong financial ratings (A.M. Best A-)",
+      "Licensed in all states except New York"
+    ],
+    companyHistory: "Founded in 1890 as the Bankers Life Association, Assurity has evolved into a trusted provider of life insurance and disability products. As a mutual holding company based in Lincoln, Nebraska, Assurity focuses on providing innovative insurance solutions with a strong emphasis on accelerated underwriting and digital processes to serve modern agents and consumers."
   }
 ];
 
