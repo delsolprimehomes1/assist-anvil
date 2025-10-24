@@ -318,6 +318,7 @@ const carriers = [
     portalUrl: "https://www.baltlife.com/experienced-agents",
     quotesUrl: "https://www.baltlife.com/iProvideQuote/default.aspx",
     illustrationUrl: "https://www.baltlife.com/product-portfolio",
+    underwritingGuideUrl: "/carriers/baltimore-life-apriority-guide.pdf",
     headquarters: "10075 Red Run Boulevard, Owings Mills, MD 21117",
     phone: "1-800-628-5433",
     founded: 1882,
