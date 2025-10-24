@@ -201,6 +201,39 @@ const carriers = [
     ],
     companyHistory: "Founded in 2016, Ethos pioneered the use of technology and data science to make life insurance accessible and instant. As a digital-first platform partnering with established carriers, Ethos has helped thousands of families get covered in minutes rather than weeks.",
     underwritingGuideUrl: "/carriers/ethos-underwriting-guide.pdf"
+  },
+  {
+    id: 7,
+    name: "TruStage",
+    shortCode: "TS",
+    amBestRating: "A",
+    products: ["Term", "WL", "FE", "Annuity"],
+    niches: ["senior", "credit_union", "member_benefits"],
+    turnaround: "avg",
+    logoUrl: "/carriers/trustage.png",
+    portalUrl: "https://agent.trustage.com",
+    quotesUrl: "https://quotes.trustage.com",
+    illustrationUrl: "https://illustrations.trustage.com",
+    headquarters: "5910 Mineral Point Road, Madison, WI 53705",
+    phone: "1-800-356-2644",
+    founded: 1935,
+    employees: "1,000+",
+    description: "TruStage is the marketing name for TruStage Financial Group, Inc., and its subsidiaries. We provide insurance and financial solutions exclusively through credit unions, helping members protect what matters most.",
+    website: "https://www.trustage.com",
+    specialProducts: [
+      "Term Life Insurance available through credit unions",
+      "Whole Life Insurance with member benefits",
+      "Final Expense coverage with simplified underwriting",
+      "Accidental Death & Dismemberment Insurance"
+    ],
+    underwritingStrengths: [
+      "Exclusive credit union distribution channel",
+      "Simplified underwriting for credit union members",
+      "Competitive rates for qualified members",
+      "Strong focus on member financial wellness"
+    ],
+    companyHistory: "Founded in 1935 as CUNA Mutual Group, TruStage has been the trusted insurance partner of credit unions for nearly 90 years, helping millions of credit union members achieve financial security.",
+    underwritingGuideUrl: "/carriers/trustage-underwriting-guide.pdf"
   }
 ];
 
