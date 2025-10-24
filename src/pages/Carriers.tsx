@@ -210,6 +210,15 @@ const Carriers = () => {
   const [selectedCarrier, setSelectedCarrier] = useState<typeof carriers[0] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  const handleDownload = (url: string, filename: string) => {
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = filename;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
   const filteredCarriers = carriers.filter(carrier => {
     const matchesSearch = carrier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          carrier.shortCode.toLowerCase().includes(searchTerm.toLowerCase());
@@ -333,11 +342,14 @@ const Carriers = () => {
                   </a>
                 </Button>
                 {(carrier as any).underwritingGuideUrl && (
-                  <Button size="sm" variant="secondary" className="col-span-2" asChild>
-                    <a href={(carrier as any).underwritingGuideUrl} target="_blank" rel="noopener noreferrer">
-                      <Download className="h-3 w-3 mr-1" />
-                      Download Underwriting Guide
-                    </a>
+                  <Button 
+                    size="sm" 
+                    variant="secondary" 
+                    className="col-span-2"
+                    onClick={() => handleDownload((carrier as any).underwritingGuideUrl, `${carrier.shortCode}_Underwriting_Guide.pdf`)}
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    Download Underwriting Guide
                   </Button>
                 )}
               </div>
