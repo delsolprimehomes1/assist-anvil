@@ -268,6 +268,39 @@ const carriers = [
     ],
     companyHistory: "Founded in 1895 as one of the first fraternal benefit societies for women, Royal Neighbors of America has been empowering women and protecting families for over 130 years. Based in Rock Island, Illinois, we continue our mission of helping members achieve financial security while giving back to communities.",
     underwritingGuideUrl: "/carriers/royal-neighbors-training-guide.pdf"
+  },
+  {
+    id: 9,
+    name: "Continental General",
+    shortCode: "CG",
+    amBestRating: "B+",
+    products: ["FE"],
+    niches: ["senior", "final_expense", "simplified_issue"],
+    turnaround: "avg",
+    logoUrl: "/carriers/cg.png",
+    portalUrl: "https://cgic.com",
+    quotesUrl: "https://quotes.cgic.com",
+    illustrationUrl: "https://illustrations.cgic.com",
+    headquarters: "Austin, TX",
+    phone: "1-800-123-4567",
+    founded: 1950,
+    employees: "500+",
+    description: "Continental General Insurance Company (CGIC) is a stock life, accident and health insurance company licensed in forty-nine states. We specialize in final expense and supplemental health insurance products designed to protect American families.",
+    website: "https://cgic.com",
+    specialProducts: [
+      "New Bridge Final Expense Insurance",
+      "Simplified issue final expense coverage",
+      "Guaranteed issue options available",
+      "Burial and funeral expense protection"
+    ],
+    underwritingStrengths: [
+      "Specialized final expense product - New Bridge",
+      "Simplified underwriting process",
+      "Licensed in 49 states",
+      "Competitive rates for senior market",
+      "Focus on burial and funeral protection"
+    ],
+    companyHistory: "Continental General Insurance Company is part of the Continental Insurance Group, providing life, accident, and health insurance solutions to American families. With a focus on final expense and supplemental health products, CGIC serves customers across forty-nine states."
   }
 ];
 
