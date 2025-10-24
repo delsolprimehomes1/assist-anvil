@@ -378,6 +378,46 @@ const carriers = [
       "Licensed in all states except New York"
     ],
     companyHistory: "Founded in 1890 as the Bankers Life Association, Assurity has evolved into a trusted provider of life insurance and disability products. As a mutual holding company based in Lincoln, Nebraska, Assurity focuses on providing innovative insurance solutions with a strong emphasis on accelerated underwriting and digital processes to serve modern agents and consumers."
+  },
+  {
+    id: 12,
+    name: "North American",
+    shortCode: "NAC",
+    amBestRating: "A+",
+    products: ["Term", "WL", "IUL", "FE"],
+    niches: ["preferred", "financial_underwriting", "high_net_worth"],
+    turnaround: "avg",
+    logoUrl: "/carriers/north-american.png",
+    portalUrl: "https://www.nacolah.com/producer",
+    quotesUrl: "https://www.nacolah.com/products",
+    illustrationUrl: "https://www.nacolah.com/illustrations",
+    underwritingGuideUrl: "/carriers/north-american-underwriting-guidelines.pdf",
+    headquarters: "525 W. Van Buren St., Chicago, IL 60607",
+    phone: "1-877-645-5433",
+    founded: 1886,
+    employees: "1,500+",
+    description: "North American Company for Life and Health Insurance® is a member of Sammons Financial Group®. With over 135 years of experience, North American uses a common sense approach to underwriting, offering competitive life insurance products with a holistic evaluation process that balances favorable and unfavorable risk factors on a case-by-case basis.",
+    website: "https://www.nacolah.com",
+    specialProducts: [
+      "Indexed Universal Life with market-linked growth potential",
+      "Term Life with competitive preferred rates",
+      "Whole Life with flexible premium options",
+      "Final Expense with simplified underwriting",
+      "WriteAway® Accelerated Underwriting for fast decisions",
+      "SimpleSubmit® electronic application system"
+    ],
+    underwritingStrengths: [
+      "Common sense holistic underwriting approach",
+      "Super Preferred and Preferred rate classes available",
+      "Competitive financial underwriting guidelines",
+      "Liberal build charts for height/weight requirements",
+      "WriteAway® accelerated underwriting program",
+      "SimpleSubmit® electronic application process",
+      "Case-by-case risk factor evaluation",
+      "Preferred cancer case consideration",
+      "Experienced underwriting team with medical expertise"
+    ],
+    companyHistory: "Founded in 1886, North American Company for Life and Health Insurance® has over 135 years of experience serving American families. As a member of Sammons Financial Group®, North American maintains strong financial stability with an A.M. Best A+ rating. The company is known for its innovative products, competitive underwriting, and commitment to making it easy for agents to do business."
   }
 ];
 
