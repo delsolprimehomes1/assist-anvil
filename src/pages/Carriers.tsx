@@ -276,31 +276,35 @@ const carriers = [
     amBestRating: "B+",
     products: ["FE"],
     niches: ["senior", "final_expense", "simplified_issue"],
-    turnaround: "avg",
+    turnaround: "fast",
     logoUrl: "/carriers/cg.png",
     portalUrl: "https://cgic.com",
     quotesUrl: "https://quotes.cgic.com",
     illustrationUrl: "https://illustrations.cgic.com",
+    underwritingGuideUrl: "/carriers/newbridge-producer-guide.pdf",
     headquarters: "Austin, TX",
     phone: "1-800-123-4567",
     founded: 1950,
     employees: "500+",
-    description: "Continental General Insurance Company (CGIC) is a stock life, accident and health insurance company licensed in forty-nine states. We specialize in final expense and supplemental health insurance products designed to protect American families.",
+    description: "Continental General Insurance Company (CGIC) is a stock life, accident and health insurance company licensed in forty-nine states, the District of Columbia, and the U.S. Virgin Islands. Their flagship NewBridge Final Expense product features 100% digital applications with instant decisions in most cases, making it easy to provide affordable coverage for funeral and end-of-life expenses.",
     website: "https://cgic.com",
     specialProducts: [
-      "New Bridge Final Expense Insurance",
-      "Simplified issue final expense coverage",
-      "Guaranteed issue options available",
-      "Burial and funeral expense protection"
+      "NewBridge Final Expense - 100% digital with instant decisions",
+      "Ages 50-85 | Coverage $2,000-$35,000",
+      "Level or Modified Death Benefit options",
+      "No medical exam required",
+      "Optional Accidental Death Benefit Rider",
+      "Optional Accelerated Death Benefit Rider for Terminal Illness"
     ],
     underwritingStrengths: [
-      "Specialized final expense product - New Bridge",
-      "Simplified underwriting process",
-      "Licensed in 49 states",
-      "Competitive rates for senior market",
-      "Focus on burial and funeral protection"
+      "Instant approval decisions in majority of cases",
+      "100% digital eApp process with eConsent and eSignature",
+      "No medical exam - simplified underwriting",
+      "Robust field underwriting information built into eApp",
+      "Licensed in 49 states, DC, and US Virgin Islands",
+      "Ages 50-85 with coverage up to $35,000"
     ],
-    companyHistory: "Continental General Insurance Company is part of the Continental Insurance Group, providing life, accident, and health insurance solutions to American families. With a focus on final expense and supplemental health products, CGIC serves customers across forty-nine states."
+    companyHistory: "Continental General Insurance Company is part of the Continental Insurance Group, providing life, accident, and health insurance solutions to American families. Their NewBridge Final Expense product revolutionizes the final expense market with intelligent, data-driven underwriting and a seamless digital application process that delivers instant decisions."
   },
   {
     id: 10,
