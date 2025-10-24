@@ -1,11 +1,9 @@
-import { useState } from "react";
-import { Search, Filter, Building2, ExternalLink, Star, Info, Download } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useState, useMemo } from "react";
+import { Building2 } from "lucide-react";
+import { Card, CardContent } from "@/components/ui/card";
 import CarrierDetailsModal from "@/components/CarrierDetailsModal";
+import { CarrierFilters } from "@/components/carriers/CarrierFilters";
+import { CarrierCard } from "@/components/carriers/CarrierCard";
 
 const carriers = [
   {
@@ -347,6 +345,7 @@ const carriers = [
 const Carriers = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("all");
+  const [sortBy, setSortBy] = useState("name");
   const [selectedCarrier, setSelectedCarrier] = useState<typeof carriers[0] | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
 
@@ -359,156 +358,86 @@ const Carriers = () => {
     document.body.removeChild(link);
   };
 
-  const filteredCarriers = carriers.filter(carrier => {
-    const matchesSearch = carrier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         carrier.shortCode.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesProduct = selectedProduct === "all" || carrier.products.includes(selectedProduct);
-    return matchesSearch && matchesProduct;
-  });
+  // Filter and sort carriers
+  const filteredCarriers = useMemo(() => {
+    let filtered = carriers.filter(carrier => {
+      const matchesSearch = 
+        carrier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        carrier.shortCode.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        carrier.description.toLowerCase().includes(searchTerm.toLowerCase()) ||
+        carrier.niches.some(niche => niche.toLowerCase().includes(searchTerm.toLowerCase()));
+      
+      const matchesProduct = selectedProduct === "all" || carrier.products.includes(selectedProduct);
+      
+      return matchesSearch && matchesProduct;
+    });
 
-  const getTurnaroundColor = (turnaround: string) => {
-    switch (turnaround) {
-      case "fast": return "bg-success text-success-foreground";
-      case "avg": return "bg-warning text-warning-foreground";
-      case "slow": return "bg-destructive text-destructive-foreground";
-      default: return "bg-muted text-muted-foreground";
+    // Sort carriers
+    if (sortBy === "name") {
+      filtered.sort((a, b) => a.name.localeCompare(b.name));
+    } else if (sortBy === "rating") {
+      const ratingOrder: Record<string, number> = { "A+": 1, "A": 2, "A-": 3, "B++": 4, "B+": 5, "B": 6 };
+      filtered.sort((a, b) => (ratingOrder[a.amBestRating] || 99) - (ratingOrder[b.amBestRating] || 99));
+    } else if (sortBy === "turnaround") {
+      const turnaroundOrder: Record<string, number> = { "fast": 1, "avg": 2, "slow": 3 };
+      filtered.sort((a, b) => (turnaroundOrder[a.turnaround] || 99) - (turnaroundOrder[b.turnaround] || 99));
     }
-  };
+
+    return filtered;
+  }, [searchTerm, selectedProduct, sortBy]);
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Insurance Carriers</h1>
-          <p className="text-muted-foreground">Browse carriers, access portals, and find the right fit for your clients</p>
-        </div>
+      {/* Header */}
+      <div className="flex flex-col gap-2">
+        <h1 className="text-3xl font-bold">Insurance Carriers</h1>
+        <p className="text-muted-foreground">
+          Browse carriers, access portals, and find the right fit for your clients
+        </p>
       </div>
 
       {/* Filters */}
-      <Card className="stat-card">
-        <CardContent className="pt-6">
-          <div className="flex flex-col sm:flex-row gap-4">
-            <div className="relative flex-1">
-              <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-              <Input
-                placeholder="Search carriers..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
-            <Select value={selectedProduct} onValueChange={setSelectedProduct}>
-              <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Product Type" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">All Products</SelectItem>
-                <SelectItem value="Term">Term Life</SelectItem>
-                <SelectItem value="WL">Whole Life</SelectItem>
-                <SelectItem value="FE">Final Expense</SelectItem>
-                <SelectItem value="Annuity">Annuity</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-        </CardContent>
-      </Card>
+      <CarrierFilters
+        searchTerm={searchTerm}
+        onSearchChange={setSearchTerm}
+        selectedProduct={selectedProduct}
+        onProductChange={setSelectedProduct}
+        sortBy={sortBy}
+        onSortChange={setSortBy}
+        totalCarriers={carriers.length}
+        filteredCount={filteredCarriers.length}
+      />
 
-      {/* Carriers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+      {/* Carriers Grid - Responsive Layout */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 md:gap-6">
         {filteredCarriers.map((carrier, index) => (
-          <Card key={carrier.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
-            <CardHeader className="pb-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
-                    <Building2 className="h-6 w-6 text-primary" />
-                  </div>
-                  <div>
-                    <CardTitle className="text-lg">{carrier.name}</CardTitle>
-                    <CardDescription>{carrier.shortCode}</CardDescription>
-                  </div>
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  A.M. Best: {carrier.amBestRating}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Turnaround</span>
-                <Badge className={`text-xs ${getTurnaroundColor(carrier.turnaround)}`}>
-                  {carrier.turnaround}
-                </Badge>
-              </div>
-
-              <div>
-                <span className="text-sm text-muted-foreground">Products</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {carrier.products.map(product => (
-                    <Badge key={product} variant="secondary" className="text-xs">
-                      {product}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div>
-                <span className="text-sm text-muted-foreground">Specialties</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {carrier.niches.map(niche => (
-                    <Badge key={niche} variant="outline" className="text-xs">
-                      {niche.replace('_', ' ')}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-4">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => {
-                    setSelectedCarrier(carrier);
-                    setIsModalOpen(true);
-                  }}
-                >
-                  <Info className="h-3 w-3 mr-1" />
-                  Details
-                </Button>
-                <Button size="sm" asChild>
-                  <a href={carrier.portalUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-3 w-3 mr-1" />
-                    Portal
-                  </a>
-                </Button>
-                {(carrier as any).underwritingGuideUrl && (
-                  <Button 
-                    size="sm" 
-                    variant="secondary" 
-                    className="col-span-2"
-                    onClick={() => handleDownload((carrier as any).underwritingGuideUrl, `${carrier.shortCode}_Underwriting_Guide.pdf`)}
-                  >
-                    <Download className="h-3 w-3 mr-1" />
-                    Download Underwriting Guide
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
+          <CarrierCard
+            key={carrier.id}
+            carrier={carrier}
+            onViewDetails={() => {
+              setSelectedCarrier(carrier);
+              setIsModalOpen(true);
+            }}
+            onDownload={handleDownload}
+          />
         ))}
       </div>
 
+      {/* Empty State */}
       {filteredCarriers.length === 0 && (
-        <Card className="stat-card">
-          <CardContent className="py-12 text-center">
-            <Building2 className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+        <Card className="shadow-md">
+          <CardContent className="py-16 text-center">
+            <Building2 className="h-16 w-16 text-muted-foreground mx-auto mb-4 opacity-50" />
             <h3 className="text-lg font-semibold mb-2">No carriers found</h3>
-            <p className="text-muted-foreground">Try adjusting your search or filter criteria</p>
+            <p className="text-muted-foreground mb-4">
+              Try adjusting your search or filter criteria
+            </p>
           </CardContent>
         </Card>
       )}
 
-      <CarrierDetailsModal 
+      {/* Carrier Details Modal */}
+      <CarrierDetailsModal
         carrier={selectedCarrier}
         isOpen={isModalOpen}
         onClose={() => {
