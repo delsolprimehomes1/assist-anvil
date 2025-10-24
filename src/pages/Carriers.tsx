@@ -167,6 +167,39 @@ const carriers = [
       "Expertise in retirement and pension solutions"
     ],
     companyHistory: "Founded in 1959, F&G has evolved into a major player in the annuity market, becoming publicly traded in 2021 and continuing to innovate in retirement and life insurance solutions for American families."
+  },
+  {
+    id: 6,
+    name: "Ethos",
+    shortCode: "ETH",
+    amBestRating: "N/A",
+    products: ["Term", "WL", "FE", "IUL"],
+    niches: ["fast_approval", "digital", "no_exam"],
+    turnaround: "fast",
+    logoUrl: "/carriers/ethos.png",
+    portalUrl: "https://agent.ethoslife.com",
+    quotesUrl: "https://quotes.ethoslife.com",
+    illustrationUrl: "https://illustrations.ethoslife.com",
+    headquarters: "101 Montgomery Street, San Francisco, CA 94104",
+    phone: "1-415-887-1477",
+    founded: 2016,
+    employees: "200+",
+    description: "Ethos is a modern insurtech platform revolutionizing life insurance with instant approvals and a fully digital experience. We partner with highly-rated carriers to offer fast, affordable coverage without medical exams.",
+    website: "https://www.ethoslife.com",
+    specialProducts: [
+      "Instant Term Life Insurance up to $2M without medical exam",
+      "Whole Life Insurance with simplified underwriting",
+      "Final Expense coverage with same-day approval",
+      "Indexed Universal Life with flexible premiums"
+    ],
+    underwritingStrengths: [
+      "AI-powered instant underwriting decisions",
+      "No medical exam required for most applicants",
+      "Same-day approval for qualified applicants",
+      "100% digital application process",
+      "Partners with A and A+ rated carriers"
+    ],
+    companyHistory: "Founded in 2016, Ethos pioneered the use of technology and data science to make life insurance accessible and instant. As a digital-first platform partnering with established carriers, Ethos has helped thousands of families get covered in minutes rather than weeks."
   }
 ];
 
