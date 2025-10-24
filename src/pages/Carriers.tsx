@@ -301,6 +301,41 @@ const carriers = [
       "Focus on burial and funeral protection"
     ],
     companyHistory: "Continental General Insurance Company is part of the Continental Insurance Group, providing life, accident, and health insurance solutions to American families. With a focus on final expense and supplemental health products, CGIC serves customers across forty-nine states."
+  },
+  {
+    id: 10,
+    name: "Baltimore Life",
+    shortCode: "BL",
+    amBestRating: "B++",
+    products: ["WL", "FE", "Term"],
+    niches: ["senior", "final_expense", "mutual_company"],
+    turnaround: "avg",
+    logoUrl: "/carriers/bl.png",
+    portalUrl: "https://www.baltlife.com/experienced-agents",
+    quotesUrl: "https://www.baltlife.com/iProvideQuote/default.aspx",
+    illustrationUrl: "https://www.baltlife.com/product-portfolio",
+    headquarters: "10075 Red Run Boulevard, Owings Mills, MD 21117",
+    phone: "1-800-628-5433",
+    founded: 1882,
+    employees: "500+",
+    description: "Baltimore Life Insurance Company is a mutual life insurance company with over 140 years of history serving American families. As a mutual insurer owned by policyholders, Baltimore Life prioritizes long-term stability and customer value, offering whole life, term life, and final expense products.",
+    website: "https://www.baltlife.com",
+    specialProducts: [
+      "A Priority WL - Whole Life Final Expense Insurance",
+      "Senior Life coverage for ages 45-89",
+      "Single Premium Whole Life",
+      "Generation Legacy whole life products",
+      "INSpeed® point-of-sale underwriting decisions"
+    ],
+    underwritingStrengths: [
+      "A Priority WL product for final expense market",
+      "INSpeed® NOW and INSpeed® Plus instant decisions",
+      "Simplified underwriting for seniors (45-89)",
+      "Coverage from $2,500 to $50,000",
+      "Mutual company structure focused on policyholders",
+      "Licensed in 49 states and DC"
+    ],
+    companyHistory: "Founded in 1882, Baltimore Life has been serving the middle market for over 140 years. As a mutual insurance company owned by its policyholders rather than shareholders, Baltimore Life maintains a strong reputation for integrity, financial stability, and exceptional service to both agents and policyholders."
   }
 ];
 
