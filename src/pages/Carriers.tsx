@@ -424,8 +424,8 @@ const carriers = [
     name: "American Amicable",
     shortCode: "AAIC",
     amBestRating: "A-",
-    products: ["WL", "FE", "IUL"],
-    niches: ["final_expense", "simplified_issue", "senior_market"],
+    products: ["WL", "FE", "IUL", "Term"],
+    niches: ["final_expense", "simplified_issue", "senior_market", "term_life"],
     turnaround: "fast",
     logoUrl: "/carriers/american-amicable.png",
     portalUrl: "https://www.insuranceapplication.com",
@@ -433,11 +433,12 @@ const carriers = [
     illustrationUrl: "https://www.aatx.com/illustrations",
     underwritingGuideUrl: "/carriers/american-amicable-senior-choice-guide.pdf",
     iulGuideUrl: "/carriers/american-amicable-intelligent-choice-iul-guide.pdf",
+    termGuideUrl: "/carriers/american-amicable-safecare-term-guide.pdf",
     headquarters: "425 Austin Ave., Waco, TX 76701",
     phone: "1-800-736-7311",
     founded: 1910,
     employees: "500+",
-    description: "American Amicable Life Insurance Company specializes in final expense, senior life insurance, and indexed universal life products. Their flagship products include Senior Choice whole life for ages 50-85 and Intelligent Choice IUL for ages 18-75, both featuring simplified underwriting and point-of-sale decision capabilities.",
+    description: "American Amicable Life Insurance Company offers a comprehensive portfolio including final expense, indexed universal life, and term life insurance products. Their flagship products include Senior Choice whole life (ages 50-85), Intelligent Choice IUL (ages 18-75), and SafeCare Term (ages 18-80+), all featuring modern underwriting with point-of-sale decision capabilities.",
     website: "https://www.aatx.com",
     specialProducts: [
       "Senior Choice Immediate Death Benefit (ages 50-85)",
@@ -445,6 +446,8 @@ const carriers = [
       "Senior Choice Return of Premium Benefit (ROP with interest)",
       "Intelligent Choice IUL (ages 18-75) with indexed growth",
       "IUL Multiple Index Options (S&P 500, Fixed Account)",
+      "SafeCare Term - Level Term to age 95 (10, 15, 20, 30-year terms)",
+      "SafeCare Term with Return of Premium option available",
       "Mobile Application with instant decision engine",
       "Grandchild Rider covering great-grandchildren",
       "Terminal Illness Accelerated Death Benefit (no-cost rider)",
@@ -453,15 +456,17 @@ const carriers = [
     underwritingStrengths: [
       "Simplified issue (Senior Choice: 8 Yes/No questions)",
       "IUL simplified underwriting (ages 18-75)",
+      "Full underwriting with competitive term rates (SafeCare Term)",
       "Point-of-sale underwriting decisions via mobile app",
       "Liberal build charts for all age ranges",
       "Senior market specialist (ages 50-85 for FE)",
       "Indexed growth potential with downside protection (IUL)",
+      "Term coverage to age 95 with convertibility options",
+      "Face amounts from $2,500 to $1,000,000 (product dependent)",
       "Three Senior Choice plan options for different health profiles",
-      "No phone interview for ages 50-70 (in most cases)",
+      "No phone interview for ages 50-70 (Senior Choice)",
       "Fast prescription database check process",
-      "Face amounts from $2,500 to $50,000 (Senior Choice)",
-      "Living benefits riders available on IUL products"
+      "Living benefits riders available on IUL and Term products"
     ],
     companyHistory: "American Amicable Life Insurance Company has been serving American families for over a century with a focus on accessible, affordable life insurance. Based in Waco, Texas, American Amicable specializes in the final expense and senior life insurance markets, offering innovative simplified issue products with modern technology including mobile applications and point-of-sale decision engines that make it easy for agents to serve clients quickly."
   }
@@ -608,7 +613,7 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
-                    className={(carrier as any).iulGuideUrl ? 'text-xs' : 'col-span-2 text-xs'}
+                    className="text-xs"
                     onClick={() => handleDownload(
                       (carrier as any).underwritingGuideUrl, 
                       `${carrier.shortCode}_Senior_Choice_Guide.pdf`
@@ -622,13 +627,28 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
+                    className="text-xs"
                     onClick={() => handleDownload(
                       (carrier as any).iulGuideUrl, 
                       `${carrier.shortCode}_IUL_Guide.pdf`
                     )}
                   >
                     <Download className="h-3 w-3 mr-1" />
-                    <span className="hidden sm:inline">Download </span>IUL Guide
+                    IUL
+                  </Button>
+                )}
+                {(carrier as any).termGuideUrl && (
+                  <Button 
+                    size="sm" 
+                    variant="secondary" 
+                    className="text-xs"
+                    onClick={() => handleDownload(
+                      (carrier as any).termGuideUrl, 
+                      `${carrier.shortCode}_Term_Guide.pdf`
+                    )}
+                  >
+                    <Download className="h-3 w-3 mr-1" />
+                    Term
                   </Button>
                 )}
               </div>
