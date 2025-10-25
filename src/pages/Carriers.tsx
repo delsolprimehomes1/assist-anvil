@@ -418,6 +418,47 @@ const carriers = [
       "Experienced underwriting team with medical expertise"
     ],
     companyHistory: "Founded in 1886, North American Company for Life and Health Insurance® has over 135 years of experience serving American families. As a member of Sammons Financial Group®, North American maintains strong financial stability with an A.M. Best A+ rating. The company is known for its innovative products, competitive underwriting, and commitment to making it easy for agents to do business."
+  },
+  {
+    id: 13,
+    name: "American Amicable",
+    shortCode: "AAIC",
+    amBestRating: "A-",
+    products: ["WL", "FE"],
+    niches: ["final_expense", "simplified_issue", "senior_market"],
+    turnaround: "fast",
+    logoUrl: "/carriers/american-amicable.png",
+    portalUrl: "https://www.insuranceapplication.com",
+    quotesUrl: "https://www.aatx.com/agent-portal",
+    illustrationUrl: "https://www.aatx.com/illustrations",
+    underwritingGuideUrl: "/carriers/american-amicable-senior-choice-guide.pdf",
+    headquarters: "425 Austin Ave., Waco, TX 76701",
+    phone: "1-800-736-7311",
+    founded: 1910,
+    employees: "500+",
+    description: "American Amicable Life Insurance Company specializes in final expense and senior life insurance products. Their flagship Senior Choice whole life insurance product features simplified underwriting with point-of-sale decision capabilities, making it easy for agents to serve the 50-85 age market with three flexible plan options.",
+    website: "https://www.aatx.com",
+    specialProducts: [
+      "Senior Choice Immediate Death Benefit (100% immediate coverage)",
+      "Senior Choice Graded Death Benefit (graded payout: 30%/70%/100%)",
+      "Senior Choice Return of Premium Benefit (ROP with 10% interest)",
+      "Mobile Application with instant decision engine",
+      "Grandchild Rider covering great-grandchildren",
+      "Terminal Illness Accelerated Death Benefit (no-cost rider)",
+      "Nursing Home Waiver of Premium Rider"
+    ],
+    underwritingStrengths: [
+      "Simplified issue with only 8 Yes/No health questions",
+      "Point-of-sale underwriting decisions via mobile app",
+      "Liberal build charts for height/weight requirements",
+      "Ages 50-85 coverage (senior market specialist)",
+      "Three plan options for different health profiles",
+      "No phone interview for ages 50-70 (in most cases)",
+      "Fast prescription database check process",
+      "Face amounts from $2,500 to $50,000",
+      "Multiple no-cost riders included (Terminal Illness ADB, Confined Care ADB)"
+    ],
+    companyHistory: "American Amicable Life Insurance Company has been serving American families for over a century with a focus on accessible, affordable life insurance. Based in Waco, Texas, American Amicable specializes in the final expense and senior life insurance markets, offering innovative simplified issue products with modern technology including mobile applications and point-of-sale decision engines that make it easy for agents to serve clients quickly."
   }
 ];
 
