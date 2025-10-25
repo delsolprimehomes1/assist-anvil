@@ -4,6 +4,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { MainLayout } from "@/components/layout/MainLayout";
+import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import Carriers from "./pages/Carriers";
 import Tools from "./pages/Tools";
@@ -13,6 +14,7 @@ import Compliance from "./pages/Compliance";
 import AIAssist from "./pages/AIAssist";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
+import AcceptInvitation from "./pages/AcceptInvitation";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,21 +25,22 @@ const App = () => (
       <Toaster />
       <Sonner />
       <BrowserRouter>
-        <Routes>
-          <Route path="/auth" element={<Auth />} />
-          <Route path="/" element={<MainLayout />}>
-            <Route index element={<Dashboard />} />
-            <Route path="carriers" element={<Carriers />} />
-            <Route path="tools" element={<Tools />} />
-            <Route path="training" element={<Training />} />
-            <Route path="marketing" element={<Marketing />} />
-            <Route path="compliance" element={<Compliance />} />
-            <Route path="ai-assist" element={<AIAssist />} />
-            <Route path="admin" element={<Admin />} />
-          </Route>
-          {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+      <Routes>
+        <Route path="/auth" element={<Auth />} />
+        <Route path="/accept-invitation" element={<AcceptInvitation />} />
+        <Route path="/" element={<MainLayout />}>
+          <Route index element={<Index />} />
+          <Route path="dashboard" element={<Dashboard />} />
+          <Route path="carriers" element={<Carriers />} />
+          <Route path="ai-assist" element={<AIAssist />} />
+          <Route path="tools" element={<Tools />} />
+          <Route path="training" element={<Training />} />
+          <Route path="marketing" element={<Marketing />} />
+          <Route path="compliance" element={<Compliance />} />
+          <Route path="admin" element={<Admin />} />
+        </Route>
+        <Route path="*" element={<NotFound />} />
+      </Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

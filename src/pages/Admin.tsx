@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Upload, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck } from "lucide-react";
+import { Settings, Upload, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -14,6 +14,8 @@ import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
 import { CarriersList } from "@/components/admin/CarriersList";
+import { InviteAgentDialog } from "@/components/admin/InviteAgentDialog";
+import { InvitationsList } from "@/components/admin/InvitationsList";
 
 type ApprovedEmail = {
   id: string;
@@ -39,6 +41,7 @@ const Admin = () => {
   const [approvedEmails, setApprovedEmails] = useState<ApprovedEmail[]>([]);
   const [emailForm, setEmailForm] = useState({ email: "", notes: "" });
   const [loadingEmails, setLoadingEmails] = useState(false);
+  const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -432,15 +435,16 @@ const Admin = () => {
           <Card className="stat-card">
             <CardHeader>
               <CardTitle>User Management</CardTitle>
-              <CardDescription>Manage agent accounts and permissions</CardDescription>
+              <CardDescription>Invite and manage platform users</CardDescription>
             </CardHeader>
             <CardContent>
-              <Button>
-                <Users className="mr-2 h-4 w-4" />
+              <Button className="w-full sm:w-auto" onClick={() => setInviteDialogOpen(true)}>
+                <UserPlus className="mr-2 h-4 w-4" />
                 Invite Agent
               </Button>
             </CardContent>
           </Card>
+          <InvitationsList />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">
@@ -500,6 +504,13 @@ const Admin = () => {
           </Card>
         </TabsContent>
       </Tabs>
+      <InviteAgentDialog 
+        open={inviteDialogOpen} 
+        onOpenChange={setInviteDialogOpen}
+        onInvitationSent={() => {
+          // Refresh will happen automatically when InvitationsList remounts
+        }}
+      />
     </div>
   );
 };
