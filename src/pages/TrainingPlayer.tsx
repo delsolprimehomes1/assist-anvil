@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -9,11 +9,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, CheckCircle2, Download } from "lucide-react";
 import { Loader2 } from "lucide-react";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 
 const TrainingPlayer = () => {
   const { trainingId } = useParams();
   const navigate = useNavigate();
   const { currentTime, setCurrentTime, duration, setDuration, markAsComplete } = useVideoProgress(trainingId!);
+  const [videoError, setVideoError] = useState<string | null>(null);
+  const [videoReady, setVideoReady] = useState(false);
 
   const { data: training, isLoading } = useQuery({
     queryKey: ['training', trainingId],
@@ -50,8 +53,6 @@ const TrainingPlayer = () => {
     );
   }
 
-  const Player = ReactPlayer as any;
-
   return (
     <div className="space-y-6 animate-fade-in">
       <Button variant="ghost" onClick={() => navigate('/training')}>
@@ -64,17 +65,39 @@ const TrainingPlayer = () => {
           <Card>
             <CardContent className="p-0">
               <div className="aspect-video bg-black rounded-t-lg overflow-hidden">
-                {training.video_url && (
-                  <Player
-                    url={training.video_url}
-                    width="100%"
-                    height="100%"
-                    controls
-                    playing={false}
-                    onProgress={(state: any) => setCurrentTime(state.playedSeconds)}
-                    onDuration={(duration: any) => setDuration(duration)}
-                    progressInterval={1000}
-                  />
+                {training.video_url ? (
+                  <>
+                    {videoError && (
+                      <Alert variant="destructive" className="m-4">
+                        <AlertDescription>{videoError}</AlertDescription>
+                      </Alert>
+                    )}
+                    
+                    {/* Native HTML5 Video Player - Primary solution */}
+                    <video
+                      src={training.video_url}
+                      controls
+                      className="w-full h-full"
+                      onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
+                      onLoadedMetadata={(e) => {
+                        setDuration(e.currentTarget.duration);
+                        setVideoReady(true);
+                        console.log('Video loaded successfully:', training.video_url);
+                      }}
+                      onError={(e) => {
+                        const errorMsg = 'Failed to load video. The video format may not be supported.';
+                        setVideoError(errorMsg);
+                        console.error('Native video error:', e);
+                      }}
+                      preload="metadata"
+                    >
+                      Your browser does not support the video tag.
+                    </video>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center h-full text-muted-foreground">
+                    No video available
+                  </div>
                 )}
               </div>
             </CardContent>
