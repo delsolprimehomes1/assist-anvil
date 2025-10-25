@@ -143,6 +143,42 @@ export type Database = {
         }
         Relationships: []
       }
+      user_invitations: {
+        Row: {
+          email: string
+          expires_at: string
+          id: string
+          invitation_token: string
+          invited_at: string
+          invited_by: string | null
+          notes: string | null
+          role: Database["public"]["Enums"]["app_role"]
+          status: string
+        }
+        Insert: {
+          email: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_at?: string
+          invited_by?: string | null
+          notes?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+        }
+        Update: {
+          email?: string
+          expires_at?: string
+          id?: string
+          invitation_token?: string
+          invited_at?: string
+          invited_by?: string | null
+          notes?: string | null
+          role?: Database["public"]["Enums"]["app_role"]
+          status?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string
