@@ -198,6 +198,10 @@ const Admin = () => {
           <TabsTrigger value="settings">Settings</TabsTrigger>
         </TabsList>
 
+        <TabsContent value="training" className="space-y-6">
+          <TrainingManagementTab />
+        </TabsContent>
+
         <TabsContent value="upload" className="space-y-6">
           <Card className="stat-card">
             <CardHeader>

@@ -9,6 +9,7 @@ import Dashboard from "./pages/Dashboard";
 import Carriers from "./pages/Carriers";
 import Tools from "./pages/Tools";
 import Training from "./pages/Training";
+import TrainingPlayer from "./pages/TrainingPlayer";
 import Marketing from "./pages/Marketing";
 import Compliance from "./pages/Compliance";
 import AIAssist from "./pages/AIAssist";
@@ -34,6 +35,7 @@ const App = () => (
           <Route path="ai-assist" element={<AIAssist />} />
           <Route path="tools" element={<Tools />} />
           <Route path="training" element={<Training />} />
+          <Route path="training/:trainingId" element={<TrainingPlayer />} />
           <Route path="marketing" element={<Marketing />} />
           <Route path="compliance" element={<Compliance />} />
           <Route path="admin" element={<Admin />} />
