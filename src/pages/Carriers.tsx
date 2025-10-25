@@ -608,7 +608,7 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
-                    className={(carrier as any).iulGuideUrl ? '' : 'col-span-2'}
+                    className={(carrier as any).iulGuideUrl ? 'text-xs' : 'col-span-2 text-xs'}
                     onClick={() => handleDownload(
                       (carrier as any).underwritingGuideUrl, 
                       `${carrier.shortCode}_Senior_Choice_Guide.pdf`
