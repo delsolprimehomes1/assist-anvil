@@ -126,6 +126,66 @@ All colors MUST be HSL.
   body {
     @apply bg-background text-foreground font-sans antialiased;
   }
+
+  /* Auth Page Animations */
+  @keyframes bounceLeft {
+    0% {
+      transform: translate3d(100%, -50%, 0);
+    }
+    50% {
+      transform: translate3d(-30px, -50%, 0);
+    }
+    100% {
+      transform: translate3d(0, -50%, 0);
+    }
+  }
+
+  @keyframes bounceRight {
+    0% {
+      transform: translate3d(0, -50%, 0);
+    }
+    50% {
+      transform: translate3d(calc(100% + 30px), -50%, 0);
+    }
+    100% {
+      transform: translate3d(100%, -50%, 0);
+    }
+  }
+
+  @keyframes showSignUp {
+    0% {
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(120px, 0, 0);
+    }
+    100% {
+      opacity: 1;
+      visibility: visible;
+      transform: translate3d(0, 0, 0);
+    }
+  }
+
+  @keyframes hideSignUp {
+    0% {
+      opacity: 1;
+      visibility: visible;
+      transform: translate3d(0, 0, 0);
+    }
+    100% {
+      opacity: 0;
+      visibility: hidden;
+      transform: translate3d(-120px, 0, 0);
+    }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .user_options-forms,
+    .user_forms-login,
+    .user_forms-signup {
+      animation: none !important;
+      transition: opacity 0.3s ease;
+    }
+  }
 }
 
 @layer components {
@@ -420,5 +480,331 @@ All colors MUST be HSL.
       0 20px 60px hsla(180, 60%, 45%, 0.25),
       0 10px 30px hsla(30, 70%, 55%, 0.15),
       0 4px 15px hsla(180, 60%, 45%, 0.1);
+  }
+
+  /* Auth Page Styles */
+  .user {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+    min-height: 100vh;
+    background: linear-gradient(135deg, hsl(var(--primary) / 0.1), hsl(var(--secondary) / 0.2));
+    padding: 1rem;
+  }
+
+  .user_options-container {
+    position: relative;
+    width: 90%;
+    max-width: 1000px;
+  }
+
+  .user_options-text {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    background-color: hsl(var(--primary) / 0.95);
+    border-radius: 6px;
+    overflow: hidden;
+  }
+
+  .user_options-registered,
+  .user_options-unregistered {
+    width: 50%;
+    padding: 75px 45px;
+    color: hsl(var(--primary-foreground));
+    font-weight: 300;
+  }
+
+  .user_registered-title,
+  .user_unregistered-title {
+    margin-bottom: 15px;
+    font-size: 1.66rem;
+    line-height: 1em;
+    font-weight: 500;
+  }
+
+  .user_unregistered-text,
+  .user_registered-text {
+    font-size: 0.875rem;
+    line-height: 1.5em;
+    opacity: 0.9;
+  }
+
+  .user_registered-login,
+  .user_unregistered-signup {
+    margin-top: 30px;
+    border: 1px solid hsl(var(--primary-foreground) / 0.5);
+    border-radius: 6px;
+    padding: 12px 32px;
+    color: hsl(var(--primary-foreground));
+    text-transform: uppercase;
+    font-size: 0.875rem;
+    font-weight: 500;
+    line-height: 1em;
+    letter-spacing: 0.15em;
+    background-color: transparent;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .user_registered-login:hover,
+  .user_unregistered-signup:hover {
+    background-color: hsl(var(--primary-foreground));
+    color: hsl(var(--primary));
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px hsl(var(--primary) / 0.3);
+  }
+
+  .user_options-forms {
+    position: absolute;
+    top: 50%;
+    left: 30px;
+    width: calc(50% - 30px);
+    min-height: 450px;
+    background-color: hsl(var(--background));
+    border-radius: 6px;
+    box-shadow: 0 4px 20px hsl(var(--foreground) / 0.15);
+    overflow: hidden;
+    transform: translate3d(100%, -50%, 0);
+    transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .user_options-forms.bounceLeft {
+    animation: bounceLeft 1s forwards;
+  }
+
+  .user_options-forms.bounceLeft .user_forms-signup {
+    animation: showSignUp 1s forwards;
+  }
+
+  .user_options-forms.bounceLeft .user_forms-login {
+    animation: hideSignUp 1s forwards;
+  }
+
+  .user_options-forms.bounceRight {
+    animation: bounceRight 1s forwards;
+  }
+
+  .user_options-forms.bounceRight .user_forms-login {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+    transition: opacity 0.4s ease, transform 0.5s ease;
+  }
+
+  .user_options-forms.bounceRight .user_forms-signup {
+    opacity: 0;
+    visibility: hidden;
+    transform: translate3d(120px, 0, 0);
+  }
+
+  .user_forms-signup,
+  .user_forms-login {
+    position: absolute;
+    top: 60px;
+    left: 40px;
+    width: calc(100% - 80px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity 0.4s ease, visibility 0.4s ease, transform 0.5s ease;
+  }
+
+  .user_forms-login {
+    opacity: 1;
+    visibility: visible;
+    transform: translate3d(0, 0, 0);
+  }
+
+  .user_forms-signup {
+    transform: translate3d(120px, 0, 0);
+  }
+
+  .forms_title {
+    margin-bottom: 40px;
+    font-size: 1.75rem;
+    font-weight: 600;
+    line-height: 1em;
+    text-transform: uppercase;
+    color: hsl(var(--primary));
+    letter-spacing: 0.1em;
+  }
+
+  .forms_form {
+    width: 100%;
+  }
+
+  .forms_fieldset {
+    border: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .forms_field {
+    margin-bottom: 24px;
+  }
+
+  .forms_field-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid hsl(var(--border));
+    padding: 10px 20px 10px 8px;
+    font-size: 1rem;
+    font-weight: 300;
+    color: hsl(var(--foreground));
+    letter-spacing: 0.05em;
+    background-color: transparent;
+    outline: none;
+    transition: border-color 0.3s ease;
+  }
+
+  .forms_field-input:focus {
+    border-bottom-color: hsl(var(--primary));
+  }
+
+  .forms_field-input::placeholder {
+    color: hsl(var(--muted-foreground));
+    font-size: 0.95rem;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+  }
+
+  .forms_field-input:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+  }
+
+  .forms_buttons {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 40px;
+  }
+
+  .user_forms-signup .forms_buttons {
+    justify-content: flex-end;
+  }
+
+  .forms_buttons-forgot {
+    font-size: 0.875rem;
+    color: hsl(var(--muted-foreground));
+    text-decoration: underline;
+    background: none;
+    border: none;
+    cursor: pointer;
+    padding: 0;
+    letter-spacing: 0.05em;
+    transition: color 0.2s ease;
+  }
+
+  .forms_buttons-forgot:hover {
+    color: hsl(var(--foreground));
+  }
+
+  .forms_buttons-action {
+    background-color: hsl(var(--primary));
+    border-radius: 6px;
+    padding: 12px 40px;
+    font-size: 1rem;
+    font-weight: 500;
+    color: hsl(var(--primary-foreground));
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+
+  .forms_buttons-action:hover:not(:disabled) {
+    background-color: hsl(var(--primary) / 0.9);
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px hsl(var(--primary) / 0.3);
+  }
+
+  .forms_buttons-action:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+    transform: none;
+  }
+
+  /* Responsive Design */
+  @media screen and (max-width: 990px) {
+    .user_options-container {
+      width: 95%;
+    }
+
+    .user_options-registered,
+    .user_options-unregistered {
+      padding: 50px 30px;
+    }
+
+    .user_options-forms {
+      min-height: 400px;
+    }
+
+    .user_forms-signup,
+    .user_forms-login {
+      top: 40px;
+    }
+
+    .forms_buttons {
+      flex-direction: column;
+      gap: 20px;
+    }
+
+    .forms_buttons-forgot {
+      order: 2;
+    }
+
+    .forms_buttons-action {
+      width: 100%;
+    }
+  }
+
+  @media screen and (max-width: 768px) {
+    .user_options-text {
+      flex-direction: column;
+    }
+
+    .user_options-registered,
+    .user_options-unregistered {
+      width: 100%;
+      padding: 40px 30px;
+    }
+
+    .user_options-forms {
+      position: relative;
+      left: 0;
+      top: 0;
+      width: 100%;
+      margin-top: 20px;
+      transform: none !important;
+      animation: none !important;
+    }
+
+    .user_forms-signup,
+    .user_forms-login {
+      position: relative;
+      left: 0;
+      top: 0;
+      width: 100%;
+      padding: 40px 30px;
+    }
+
+    .user_options-forms.bounceLeft .user_forms-login {
+      display: none;
+    }
+
+    .user_options-forms:not(.bounceLeft) .user_forms-signup {
+      display: none;
+    }
+
+    .user_options-forms.bounceLeft .user_forms-signup,
+    .user_options-forms:not(.bounceLeft) .user_forms-login {
+      opacity: 1;
+      visibility: visible;
+      transform: none;
+      animation: none;
+    }
   }
 }

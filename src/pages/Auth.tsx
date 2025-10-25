@@ -1,11 +1,6 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
 
@@ -16,6 +11,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [isSignUp, setIsSignUp] = useState(false);
+  const formsRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     // Check if user is already logged in
@@ -105,87 +102,117 @@ const Auth = () => {
     }
   };
 
+  const handleToggleToSignUp = () => {
+    if (formsRef.current) {
+      formsRef.current.classList.remove('bounceRight');
+      formsRef.current.classList.add('bounceLeft');
+    }
+    setIsSignUp(true);
+  };
+
+  const handleToggleToLogin = () => {
+    if (formsRef.current) {
+      formsRef.current.classList.remove('bounceLeft');
+      formsRef.current.classList.add('bounceRight');
+    }
+    setIsSignUp(false);
+  };
+
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-background to-secondary/20 p-4">
-      <Card className="w-full max-w-md">
-        <CardHeader>
-          <CardTitle className="text-2xl text-center">Welcome to LifeCo Portal</CardTitle>
-          <CardDescription className="text-center">
-            Sign in to access your agent dashboard
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <Tabs defaultValue="signin" className="w-full">
-            <TabsList className="grid w-full grid-cols-2">
-              <TabsTrigger value="signin">Sign In</TabsTrigger>
-              <TabsTrigger value="signup">Sign Up</TabsTrigger>
-            </TabsList>
-            
-            <TabsContent value="signin">
-              <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signin-email">Email</Label>
-                  <Input
-                    id="signin-email"
+    <section className="user">
+      <div className="user_options-container">
+        <div className="user_options-text">
+          <div className="user_options-unregistered">
+            <h2 className="user_unregistered-title">Don't have an account?</h2>
+            <p className="user_unregistered-text">
+              Join LifeCo Portal to access powerful tools and resources for insurance agents.
+            </p>
+            <button className="user_unregistered-signup" onClick={handleToggleToSignUp}>
+              Sign up
+            </button>
+          </div>
+
+          <div className="user_options-registered">
+            <h2 className="user_registered-title">Have an account?</h2>
+            <p className="user_registered-text">
+              Welcome back! Sign in to access your agent dashboard and continue your work.
+            </p>
+            <button className="user_registered-login" onClick={handleToggleToLogin}>
+              Login
+            </button>
+          </div>
+        </div>
+
+        <div className="user_options-forms" ref={formsRef}>
+          <div className="user_forms-login">
+            <h2 className="forms_title">Login</h2>
+            <form onSubmit={handleSignIn} className="forms_form">
+              <fieldset className="forms_fieldset">
+                <div className="forms_field">
+                  <input
                     type="email"
-                    placeholder="agent@example.com"
+                    placeholder="Email"
+                    className="forms_field-input"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signin-password">Password</Label>
-                  <Input
-                    id="signin-password"
+                <div className="forms_field">
+                  <input
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="Password"
+                    className="forms_field-input"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
                     disabled={loading}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Sign In
-                </Button>
-              </form>
-            </TabsContent>
-            
-            <TabsContent value="signup">
-              <form onSubmit={handleSignUp} className="space-y-4">
-                <div className="space-y-2">
-                  <Label htmlFor="signup-name">Full Name</Label>
-                  <Input
-                    id="signup-name"
+              </fieldset>
+              <div className="forms_buttons">
+                <button type="button" className="forms_buttons-forgot">
+                  Forgot password?
+                </button>
+                <button type="submit" className="forms_buttons-action" disabled={loading}>
+                  {loading ? <Loader2 className="inline h-4 w-4 animate-spin" /> : "Log In"}
+                </button>
+              </div>
+            </form>
+          </div>
+
+          <div className="user_forms-signup">
+            <h2 className="forms_title">Sign Up</h2>
+            <form onSubmit={handleSignUp} className="forms_form">
+              <fieldset className="forms_fieldset">
+                <div className="forms_field">
+                  <input
                     type="text"
-                    placeholder="John Doe"
+                    placeholder="Full Name"
+                    className="forms_field-input"
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
                     required
                     disabled={loading}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-email">Email</Label>
-                  <Input
-                    id="signup-email"
+                <div className="forms_field">
+                  <input
                     type="email"
-                    placeholder="agent@example.com"
+                    placeholder="Email"
+                    className="forms_field-input"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
                     required
                     disabled={loading}
                   />
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="signup-password">Password</Label>
-                  <Input
-                    id="signup-password"
+                <div className="forms_field">
+                  <input
                     type="password"
-                    placeholder="••••••••"
+                    placeholder="Password"
+                    className="forms_field-input"
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
                     required
@@ -193,16 +220,17 @@ const Auth = () => {
                     disabled={loading}
                   />
                 </div>
-                <Button type="submit" className="w-full" disabled={loading}>
-                  {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-                  Create Account
-                </Button>
-              </form>
-            </TabsContent>
-          </Tabs>
-        </CardContent>
-      </Card>
-    </div>
+              </fieldset>
+              <div className="forms_buttons">
+                <button type="submit" className="forms_buttons-action" disabled={loading}>
+                  {loading ? <Loader2 className="inline h-4 w-4 animate-spin" /> : "Sign up"}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
 
