@@ -110,9 +110,9 @@ const handler = async (req: Request): Promise<Response> => {
 
     // Send invitation email
     const emailResponse = await resend.emails.send({
-      from: "LifeCo <invitations@battersbox.ai>",
+      from: "BattersBox <invitations@battersbox.ai>",
       to: [email],
-      subject: "You've been invited to join LifeCo",
+      subject: "You're invited to BattersBox 🎯",
       html: `
         <!DOCTYPE html>
         <html>
@@ -120,35 +120,177 @@ const handler = async (req: Request): Promise<Response> => {
             <meta charset="utf-8">
             <meta name="viewport" content="width=device-width, initial-scale=1.0">
             <style>
-              body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; line-height: 1.6; color: #333; }
-              .container { max-width: 600px; margin: 0 auto; padding: 20px; }
-              .header { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); color: white; padding: 30px; text-align: center; border-radius: 10px 10px 0 0; }
-              .content { background: white; padding: 30px; border: 1px solid #e0e0e0; border-top: none; }
-              .button { display: inline-block; background: #667eea; color: white; padding: 14px 32px; text-decoration: none; border-radius: 6px; margin: 20px 0; font-weight: 600; }
-              .button:hover { background: #5568d3; }
-              .footer { text-align: center; padding: 20px; color: #666; font-size: 14px; }
-              .role-badge { display: inline-block; background: #f0f0f0; padding: 4px 12px; border-radius: 20px; font-size: 12px; font-weight: 600; color: #667eea; margin: 10px 0; }
+              body { 
+                font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif; 
+                line-height: 1.6; 
+                color: #1a1a1a; 
+                margin: 0;
+                padding: 0;
+                background-color: #f5f5f5;
+              }
+              .container { 
+                max-width: 600px; 
+                margin: 40px auto; 
+                background: white;
+                border-radius: 12px;
+                overflow: hidden;
+                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+              }
+              .header { 
+                background: linear-gradient(135deg, #3AACB8 0%, #E8944A 100%); 
+                color: white; 
+                padding: 50px 40px; 
+                text-align: center; 
+              }
+              .header h1 {
+                margin: 0;
+                font-size: 32px;
+                font-weight: 700;
+                letter-spacing: -0.5px;
+              }
+              .header p {
+                margin: 12px 0 0 0;
+                font-size: 16px;
+                opacity: 0.95;
+              }
+              .content { 
+                background: white; 
+                padding: 40px; 
+              }
+              .greeting {
+                font-size: 18px;
+                color: #1a1a1a;
+                margin: 0 0 24px 0;
+                font-weight: 500;
+              }
+              .invitation-text {
+                font-size: 16px;
+                color: #4a4a4a;
+                margin: 0 0 20px 0;
+                line-height: 1.6;
+              }
+              .role-badge { 
+                display: inline-block; 
+                background: #3AACB8; 
+                color: white;
+                padding: 6px 16px; 
+                border-radius: 20px; 
+                font-size: 13px; 
+                font-weight: 700; 
+                text-transform: uppercase;
+                letter-spacing: 0.5px;
+                margin: 0 4px;
+              }
+              .note-card {
+                background: linear-gradient(135deg, #f8feff 0%, #fff8f4 100%);
+                padding: 20px;
+                border-left: 4px solid #3AACB8;
+                border-radius: 8px;
+                margin: 24px 0;
+              }
+              .note-card em {
+                font-size: 15px;
+                color: #2a2a2a;
+                font-style: italic;
+                line-height: 1.6;
+              }
+              .platform-description {
+                background: #fafafa;
+                padding: 24px;
+                border-radius: 8px;
+                margin: 24px 0;
+                border: 1px solid #e8e8e8;
+              }
+              .platform-description p {
+                margin: 0;
+                font-size: 15px;
+                color: #4a4a4a;
+                line-height: 1.7;
+              }
+              .platform-description strong {
+                color: #3AACB8;
+                font-weight: 600;
+              }
+              .cta-container {
+                text-align: center;
+                margin: 32px 0;
+              }
+              .button { 
+                display: inline-block; 
+                background: linear-gradient(135deg, #3AACB8 0%, #E8944A 100%); 
+                color: white; 
+                padding: 16px 48px; 
+                text-decoration: none; 
+                border-radius: 30px; 
+                font-weight: 700; 
+                font-size: 16px;
+                letter-spacing: 0.5px;
+                box-shadow: 0 4px 15px rgba(58, 172, 184, 0.3);
+                transition: transform 0.2s;
+              }
+              .expiry-notice {
+                font-size: 13px;
+                color: #888;
+                text-align: center;
+                margin: 24px 0 0 0;
+                padding-top: 24px;
+                border-top: 1px solid #e8e8e8;
+              }
+              .footer { 
+                background: #fafafa;
+                text-align: center; 
+                padding: 30px 40px; 
+                color: #666; 
+                font-size: 13px; 
+              }
+              .footer-brand {
+                font-weight: 700;
+                color: #3AACB8;
+                font-size: 16px;
+                margin-bottom: 8px;
+              }
+              .footer-tagline {
+                color: #888;
+                font-style: italic;
+                margin-bottom: 16px;
+              }
+              @media only screen and (max-width: 600px) {
+                .container { margin: 0; border-radius: 0; }
+                .header { padding: 40px 24px; }
+                .content { padding: 32px 24px; }
+                .header h1 { font-size: 28px; }
+                .button { padding: 14px 36px; font-size: 15px; }
+              }
             </style>
           </head>
           <body>
             <div class="container">
               <div class="header">
-                <h1 style="margin: 0; font-size: 28px;">You're Invited! 🎉</h1>
+                <h1>You're Invited! 🎯</h1>
+                <p>Join the ultimate resource platform for insurance agents</p>
               </div>
               <div class="content">
-                <p style="font-size: 16px; margin-top: 0;">Hi there!</p>
-                <p><strong>${inviterName}</strong> has invited you to join the LifeCo platform as a <span class="role-badge">${role.toUpperCase()}</span></p>
-                ${notes ? `<p style="background: #f9f9f9; padding: 15px; border-left: 3px solid #667eea; margin: 20px 0;"><em>"${notes}"</em></p>` : ''}
-                <p>LifeCo is your comprehensive platform for life insurance carriers, products, and agent tools.</p>
-                <div style="text-align: center;">
+                <p class="greeting">Welcome!</p>
+                <p class="invitation-text">
+                  <strong>${inviterName}</strong> has invited you to join <strong>BattersBox</strong> as a <span class="role-badge">${role}</span>
+                </p>
+                ${notes ? `<div class="note-card"><em>"${notes}"</em></div>` : ''}
+                <div class="platform-description">
+                  <p>
+                    <strong>BattersBox</strong> is your comprehensive resource platform for insurance agents, providing all the tools you need to <strong>scale and thrive</strong> in today's competitive market.
+                  </p>
+                </div>
+                <div class="cta-container">
                   <a href="${invitationUrl}" class="button">Accept Invitation</a>
                 </div>
-                <p style="font-size: 14px; color: #666; margin-top: 30px;">
+                <p class="expiry-notice">
                   This invitation will expire in 7 days. If you didn't expect this invitation, you can safely ignore this email.
                 </p>
               </div>
               <div class="footer">
-                <p>© 2024 LifeCo. All rights reserved.</p>
+                <div class="footer-brand">BattersBox</div>
+                <div class="footer-tagline">Empowering Insurance Agents</div>
+                <p>© 2025 BattersBox. All rights reserved.</p>
               </div>
             </div>
           </body>
