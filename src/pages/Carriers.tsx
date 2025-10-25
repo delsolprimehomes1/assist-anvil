@@ -659,6 +659,7 @@ const Carriers = () => {
                   </div>
                 )}
 
+                {/* Primary action buttons */}
                 <div className="grid grid-cols-2 gap-2 pt-4">
                   <Button 
                     size="sm" 
@@ -679,21 +680,25 @@ const Carriers = () => {
                       </a>
                     </Button>
                   )}
-                  {carrier.pdf_documents && carrier.pdf_documents.length > 0 && (
-                    carrier.pdf_documents.map((pdf: any, pdfIndex: number) => (
+                </div>
+
+                {/* PDF download buttons - full width on mobile for better text display */}
+                {carrier.pdf_documents && carrier.pdf_documents.length > 0 && (
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-2">
+                    {carrier.pdf_documents.map((pdf: any, pdfIndex: number) => (
                       <Button 
                         key={pdfIndex}
                         size="sm" 
                         variant="secondary" 
-                        className="text-xs sm:text-sm px-2 sm:px-3"
+                        className="text-xs sm:text-sm px-3 sm:px-4 whitespace-nowrap"
                         onClick={() => handleDownload(pdf.url, pdf.title)}
                       >
-                        <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
-                        {pdf.button_label || pdf.name || 'Download'}
+                        <Download className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <span className="overflow-hidden text-ellipsis">{pdf.button_label || pdf.name || 'Download'}</span>
                       </Button>
-                    ))
-                  )}
-                </div>
+                    ))}
+                  </div>
+                )}
               </CardContent>
             </Card>
           ))}
