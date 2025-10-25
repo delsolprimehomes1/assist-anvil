@@ -143,6 +143,93 @@ export type Database = {
         }
         Relationships: []
       }
+      trainings: {
+        Row: {
+          category: string | null
+          completed_count: number | null
+          created_at: string | null
+          created_by: string | null
+          description: string
+          description_html: string | null
+          duration: number
+          embed_code: string | null
+          id: string
+          level: Database["public"]["Enums"]["training_level"]
+          notify_email: boolean | null
+          notify_on_publish: boolean | null
+          notify_sms: boolean | null
+          publish_date: string | null
+          resources: Json | null
+          specific_agents: string[] | null
+          status: Database["public"]["Enums"]["training_status"] | null
+          tags: string[] | null
+          thumbnail_url: string
+          title: string
+          type: Database["public"]["Enums"]["training_type"]
+          updated_at: string | null
+          video_type: string | null
+          video_url: string | null
+          views: number | null
+          visibility: string[] | null
+        }
+        Insert: {
+          category?: string | null
+          completed_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description: string
+          description_html?: string | null
+          duration: number
+          embed_code?: string | null
+          id?: string
+          level: Database["public"]["Enums"]["training_level"]
+          notify_email?: boolean | null
+          notify_on_publish?: boolean | null
+          notify_sms?: boolean | null
+          publish_date?: string | null
+          resources?: Json | null
+          specific_agents?: string[] | null
+          status?: Database["public"]["Enums"]["training_status"] | null
+          tags?: string[] | null
+          thumbnail_url: string
+          title: string
+          type: Database["public"]["Enums"]["training_type"]
+          updated_at?: string | null
+          video_type?: string | null
+          video_url?: string | null
+          views?: number | null
+          visibility?: string[] | null
+        }
+        Update: {
+          category?: string | null
+          completed_count?: number | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string
+          description_html?: string | null
+          duration?: number
+          embed_code?: string | null
+          id?: string
+          level?: Database["public"]["Enums"]["training_level"]
+          notify_email?: boolean | null
+          notify_on_publish?: boolean | null
+          notify_sms?: boolean | null
+          publish_date?: string | null
+          resources?: Json | null
+          specific_agents?: string[] | null
+          status?: Database["public"]["Enums"]["training_status"] | null
+          tags?: string[] | null
+          thumbnail_url?: string
+          title?: string
+          type?: Database["public"]["Enums"]["training_type"]
+          updated_at?: string | null
+          video_type?: string | null
+          video_url?: string | null
+          views?: number | null
+          visibility?: string[] | null
+        }
+        Relationships: []
+      }
       user_invitations: {
         Row: {
           email: string
@@ -200,6 +287,50 @@ export type Database = {
         }
         Relationships: []
       }
+      user_training_progress: {
+        Row: {
+          completed_at: string | null
+          id: string
+          last_accessed_at: string | null
+          last_watched_position: number | null
+          progress_percentage: number | null
+          started_at: string | null
+          status: Database["public"]["Enums"]["progress_status"] | null
+          training_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          last_watched_position?: number | null
+          progress_percentage?: number | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["progress_status"] | null
+          training_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string | null
+          id?: string
+          last_accessed_at?: string | null
+          last_watched_position?: number | null
+          progress_percentage?: number | null
+          started_at?: string | null
+          status?: Database["public"]["Enums"]["progress_status"] | null
+          training_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_training_progress_training_id_fkey"
+            columns: ["training_id"]
+            isOneToOne: false
+            referencedRelation: "trainings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -212,9 +343,17 @@ export type Database = {
         }
         Returns: boolean
       }
+      increment_training_views: {
+        Args: { training_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "agent" | "user"
+      progress_status: "not_started" | "in_progress" | "completed"
+      training_level: "beginner" | "intermediate" | "advanced"
+      training_status: "draft" | "published" | "archived"
+      training_type: "video" | "audio" | "article" | "pdf" | "quiz" | "live"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -343,6 +482,10 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "agent", "user"],
+      progress_status: ["not_started", "in_progress", "completed"],
+      training_level: ["beginner", "intermediate", "advanced"],
+      training_status: ["draft", "published", "archived"],
+      training_type: ["video", "audio", "article", "pdf", "quiz", "live"],
     },
   },
 } as const
