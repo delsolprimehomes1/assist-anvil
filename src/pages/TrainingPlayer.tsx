@@ -64,14 +64,16 @@ const TrainingPlayer = () => {
               <div className="aspect-video bg-black rounded-t-lg overflow-hidden">
                 {training.video_url && (
                   <ReactPlayer
-                    url={training.video_url}
-                    width="100%"
-                    height="100%"
-                    controls
-                    playing={false}
-                    onProgress={({ playedSeconds }) => setCurrentTime(playedSeconds)}
-                    onDuration={(d) => setDuration(d)}
-                    progressInterval={1000}
+                    {...({
+                      url: training.video_url,
+                      width: "100%",
+                      height: "100%",
+                      controls: true,
+                      playing: false,
+                      onProgress: (progress: any) => setCurrentTime(progress.playedSeconds),
+                      onDuration: (d: number) => setDuration(d),
+                      progressInterval: 1000,
+                    } as any)}
                   />
                 )}
               </div>
@@ -110,13 +112,13 @@ const TrainingPlayer = () => {
             </CardContent>
           </Card>
 
-          {training.resources && training.resources.length > 0 && (
+          {Array.isArray(training.resources) && training.resources.length > 0 && (
             <Card>
               <CardHeader>
                 <CardTitle>Resources</CardTitle>
               </CardHeader>
               <CardContent className="space-y-2">
-                {training.resources.map((resource: any, index: number) => (
+                {(training.resources as Array<{ fileName: string; fileUrl: string }>).map((resource, index) => (
                   <a
                     key={index}
                     href={resource.fileUrl}

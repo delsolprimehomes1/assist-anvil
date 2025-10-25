@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CarriersList } from "@/components/admin/CarriersList";
 import { InviteAgentDialog } from "@/components/admin/InviteAgentDialog";
 import { InvitationsList } from "@/components/admin/InvitationsList";
+import { TrainingManagementTab } from "@/components/admin/training/TrainingManagementTab";
 
 type ApprovedEmail = {
   id: string;
@@ -189,14 +190,15 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="upload" className="w-full">
-        <TabsList className="grid w-full grid-cols-6">
+        <TabsList className="grid w-full grid-cols-7">
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="approvals">Admin Approvals</TabsTrigger>
           <TabsTrigger value="carriers">Manage Carriers</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-        </TabsList>
+            <TabsTrigger value="settings">Settings</TabsTrigger>
+            <TabsTrigger value="training">Training</TabsTrigger>
+          </TabsList>
 
         <TabsContent value="training" className="space-y-6">
           <TrainingManagementTab />
