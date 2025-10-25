@@ -615,7 +615,7 @@ const Carriers = () => {
                     )}
                   >
                     <Download className="h-3 w-3 mr-1" />
-                    <span className="hidden sm:inline">Download </span>Senior Choice
+                    Senior Choice
                   </Button>
                 )}
                 {(carrier as any).iulGuideUrl && (
