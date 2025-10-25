@@ -613,7 +613,7 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
-                    className="text-xs"
+                    className="text-sm"
                     onClick={() => handleDownload(
                       (carrier as any).underwritingGuideUrl, 
                       `${carrier.shortCode}_Senior_Choice_Guide.pdf`
@@ -627,7 +627,7 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
-                    className="text-xs"
+                    className="text-sm"
                     onClick={() => handleDownload(
                       (carrier as any).iulGuideUrl, 
                       `${carrier.shortCode}_IUL_Guide.pdf`
@@ -641,7 +641,7 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
-                    className="text-xs"
+                    className="text-sm"
                     onClick={() => handleDownload(
                       (carrier as any).termGuideUrl, 
                       `${carrier.shortCode}_Term_Guide.pdf`
