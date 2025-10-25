@@ -29,8 +29,7 @@ const App = () => (
         <Route path="/auth" element={<Auth />} />
         <Route path="/accept-invitation" element={<AcceptInvitation />} />
         <Route path="/" element={<MainLayout />}>
-          <Route index element={<Index />} />
-          <Route path="dashboard" element={<Dashboard />} />
+          <Route index element={<Dashboard />} />
           <Route path="carriers" element={<Carriers />} />
           <Route path="ai-assist" element={<AIAssist />} />
           <Route path="tools" element={<Tools />} />
