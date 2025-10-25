@@ -1,9 +1,11 @@
-import { Search, Menu, Bell, User } from "lucide-react";
+import { Search, Menu, Bell, User, LogOut } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import lifecoLogo from "@/assets/lifeco-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
+import { useAuth } from "@/hooks/useAuth";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -18,6 +20,16 @@ interface HeaderProps {
 }
 
 export const Header = ({ onMenuClick }: HeaderProps) => {
+  const navigate = useNavigate();
+  const { user, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    await signOut();
+    navigate("/auth");
+  };
+
+  const userInitials = user?.email?.substring(0, 2).toUpperCase() || "AG";
+
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
       <div className="w-full flex h-16 items-center justify-between px-4 md:px-6">
@@ -63,27 +75,32 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-9 w-9">
                   <AvatarImage src="/avatars/01.png" alt="Agent" />
-                  <AvatarFallback>AG</AvatarFallback>
+                  <AvatarFallback>{userInitials}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-56" align="end" forceMount>
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
-                  <p className="text-sm font-medium leading-none">John Smith</p>
+                  <p className="text-sm font-medium leading-none">
+                    {user?.user_metadata?.full_name || "Agent"}
+                  </p>
                   <p className="text-xs leading-none text-muted-foreground">
-                    john@agentgroup.com
+                    {user?.email || ""}
                   </p>
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>
+              <DropdownMenuItem onClick={() => navigate("/")}>
                 <User className="mr-2 h-4 w-4" />
                 Profile
               </DropdownMenuItem>
               <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
-              <DropdownMenuItem>Log out</DropdownMenuItem>
+              <DropdownMenuItem onClick={handleSignOut}>
+                <LogOut className="mr-2 h-4 w-4" />
+                Log out
+              </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
         </div>

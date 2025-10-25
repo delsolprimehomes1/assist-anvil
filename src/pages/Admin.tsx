@@ -1,5 +1,8 @@
-import { useState } from "react";
-import { Settings, Upload, Users, BarChart3, FileText, Database } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+import { Settings, Upload, Users, BarChart3, FileText, Database, Shield, Loader2 } from "lucide-react";
+import { useAdmin } from "@/hooks/useAdmin";
+import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +13,9 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 
 const Admin = () => {
+  const navigate = useNavigate();
+  const { user, loading: authLoading } = useAuth();
+  const { isAdmin, loading: adminLoading } = useAdmin();
   const [uploadForm, setUploadForm] = useState({
     title: "",
     carrier: "",
@@ -20,6 +26,36 @@ const Admin = () => {
     file: null as File | null
   });
   const { toast } = useToast();
+
+  useEffect(() => {
+    if (!authLoading && !adminLoading) {
+      if (!user) {
+        navigate("/auth");
+      } else if (!isAdmin) {
+        toast({
+          title: "Access Denied",
+          description: "You don't have permission to access the admin dashboard.",
+          variant: "destructive",
+        });
+        navigate("/");
+      }
+    }
+  }, [user, isAdmin, authLoading, adminLoading, navigate, toast]);
+
+  if (authLoading || adminLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="text-center space-y-4">
+          <Loader2 className="h-8 w-8 animate-spin mx-auto text-primary" />
+          <p className="text-muted-foreground">Verifying admin access...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user || !isAdmin) {
+    return null;
+  }
 
   const handleUpload = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -47,7 +83,7 @@ const Admin = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Settings className="h-8 w-8 text-primary" />
+            <Shield className="h-8 w-8 text-primary" />
             Admin Dashboard
           </h1>
           <p className="text-muted-foreground">Manage content, users, and system settings</p>

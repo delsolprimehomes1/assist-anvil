@@ -12,6 +12,7 @@ import Marketing from "./pages/Marketing";
 import Compliance from "./pages/Compliance";
 import AIAssist from "./pages/AIAssist";
 import Admin from "./pages/Admin";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -23,6 +24,7 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
+          <Route path="/auth" element={<Auth />} />
           <Route path="/" element={<MainLayout />}>
             <Route index element={<Dashboard />} />
             <Route path="carriers" element={<Carriers />} />
