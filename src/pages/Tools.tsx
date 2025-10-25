@@ -18,24 +18,6 @@ const resources = [
     lastUpdated: "2024-01-10"
   },
   {
-    id: 3,
-    title: "DUI Lookback Guide",
-    type: "guide",
-    description: "Carrier-specific DUI lookback periods and requirements",
-    tags: ["underwriting", "impairments"],
-    carrier: "Multiple",
-    lastUpdated: "2024-01-20"
-  },
-  {
-    id: 4,
-    title: "Build Chart Reference",
-    type: "cheat_sheet",
-    description: "Height/weight charts for underwriting",
-    tags: ["underwriting", "health"],
-    carrier: "Universal",
-    lastUpdated: "2024-01-18"
-  },
-  {
     id: 5,
     title: "FE Health Matrix",
     type: "guide",
@@ -184,35 +166,6 @@ const Tools = () => {
 
         <TabsContent value="guides" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="stat-card">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileText className="h-5 w-5 text-primary" />
-                  DUI Lookback Reference
-                </CardTitle>
-                <CardDescription>Quick reference for carrier DUI policies</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <div className="flex justify-between text-sm">
-                    <span>American General:</span>
-                    <span className="font-medium">5 years</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Mutual of Omaha:</span>
-                    <span className="font-medium">7 years</span>
-                  </div>
-                  <div className="flex justify-between text-sm">
-                    <span>Foresters:</span>
-                    <span className="font-medium">10 years</span>
-                  </div>
-                </div>
-                <Button variant="outline" className="w-full" size="sm">
-                  View Full Guide
-                </Button>
-              </CardContent>
-            </Card>
-
             <Card className="stat-card">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
