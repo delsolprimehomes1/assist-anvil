@@ -689,7 +689,7 @@ const Carriers = () => {
                         onClick={() => handleDownload(pdf.url, pdf.title)}
                       >
                         <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
-                        {pdf.button_label}
+                        {pdf.button_label || pdf.name || 'Download'}
                       </Button>
                     ))
                   )}
