@@ -64,16 +64,15 @@ const TrainingPlayer = () => {
               <div className="aspect-video bg-black rounded-t-lg overflow-hidden">
                 {training.video_url && (
                   <ReactPlayer
-                    {...({
+                    {...{
                       url: training.video_url,
                       width: "100%",
                       height: "100%",
                       controls: true,
-                      playing: false,
-                      onProgress: (progress: any) => setCurrentTime(progress.playedSeconds),
-                      onDuration: (d: number) => setDuration(d),
+                      onProgress: (state: any) => setCurrentTime(state.playedSeconds),
+                      onDuration: (duration: any) => setDuration(duration),
                       progressInterval: 1000,
-                    } as any)}
+                    } as any}
                   />
                 )}
               </div>
