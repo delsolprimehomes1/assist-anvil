@@ -5,19 +5,9 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { BMICalculator } from "@/components/tools/BMICalculator";
 import { CommissionCalculator } from "@/components/tools/CommissionCalculator";
 
 const resources = [
-  {
-    id: 1,
-    title: "BMI Calculator",
-    type: "calculator",
-    description: "Calculate Body Mass Index for health assessments",
-    tags: ["underwriting", "health"],
-    carrier: "Universal",
-    lastUpdated: "2024-01-15"
-  },
   {
     id: 2,
     title: "Commission Calculator",
@@ -189,10 +179,7 @@ const Tools = () => {
         </TabsContent>
 
         <TabsContent value="calculators" className="space-y-6">
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            <BMICalculator />
-            <CommissionCalculator />
-          </div>
+          <CommissionCalculator />
         </TabsContent>
 
         <TabsContent value="guides" className="space-y-6">
