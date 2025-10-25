@@ -434,6 +434,7 @@ const carriers = [
     underwritingGuideUrl: "/carriers/american-amicable-senior-choice-guide.pdf",
     iulGuideUrl: "/carriers/american-amicable-intelligent-choice-iul-guide.pdf",
     termGuideUrl: "/carriers/american-amicable-safecare-term-guide.pdf",
+    termMsGuideUrl: "/carriers/american-amicable-term-ms-guide.pdf",
     headquarters: "425 Austin Ave., Waco, TX 76701",
     phone: "1-800-736-7311",
     founded: 1910,
@@ -447,6 +448,7 @@ const carriers = [
       "Intelligent Choice IUL (ages 18-75) with indexed growth",
       "IUL Multiple Index Options (S&P 500, Fixed Account)",
       "SafeCare Term - Level Term to age 95 (10, 15, 20, 30-year terms)",
+      "Term Made Simple (Term MS) - Level Term to age 95",
       "SafeCare Term with Return of Premium option available",
       "Mobile Application with instant decision engine",
       "Grandchild Rider covering great-grandchildren",
@@ -649,6 +651,20 @@ const Carriers = () => {
                   >
                     <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
                     Term
+                  </Button>
+                )}
+                {(carrier as any).termMsGuideUrl && (
+                  <Button 
+                    size="sm" 
+                    variant="secondary" 
+                    className="text-xs sm:text-sm px-2 sm:px-3"
+                    onClick={() => handleDownload(
+                      (carrier as any).termMsGuideUrl, 
+                      `${carrier.shortCode}_Term_MS_Guide.pdf`
+                    )}
+                  >
+                    <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
+                    Term MS
                   </Button>
                 )}
               </div>
