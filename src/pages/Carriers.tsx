@@ -613,13 +613,13 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
-                    className="text-sm"
+                    className="text-xs sm:text-sm px-2 sm:px-3"
                     onClick={() => handleDownload(
                       (carrier as any).underwritingGuideUrl, 
                       `${carrier.shortCode}_Senior_Choice_Guide.pdf`
                     )}
                   >
-                    <Download className="h-3 w-3 mr-1" />
+                    <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
                     Senior Choice
                   </Button>
                 )}
@@ -627,13 +627,13 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
-                    className="text-sm"
+                    className="text-xs sm:text-sm px-2 sm:px-3"
                     onClick={() => handleDownload(
                       (carrier as any).iulGuideUrl, 
                       `${carrier.shortCode}_IUL_Guide.pdf`
                     )}
                   >
-                    <Download className="h-3 w-3 mr-1" />
+                    <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
                     IUL
                   </Button>
                 )}
@@ -641,13 +641,13 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="secondary" 
-                    className="text-sm"
+                    className="text-xs sm:text-sm px-2 sm:px-3"
                     onClick={() => handleDownload(
                       (carrier as any).termGuideUrl, 
                       `${carrier.shortCode}_Term_Guide.pdf`
                     )}
                   >
-                    <Download className="h-3 w-3 mr-1" />
+                    <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
                     Term
                   </Button>
                 )}
