@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Upload, Users, BarChart3, FileText, Database, Shield, Loader2 } from "lucide-react";
+import { Settings, Upload, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
+import { supabase } from "@/integrations/supabase/client";
+import { Textarea } from "@/components/ui/textarea";
+
+type ApprovedEmail = {
+  id: string;
+  email: string;
+  added_by: string | null;
+  added_at: string;
+  notes: string | null;
+};
 
 const Admin = () => {
   const navigate = useNavigate();
@@ -25,6 +35,9 @@ const Admin = () => {
     version: "",
     file: null as File | null
   });
+  const [approvedEmails, setApprovedEmails] = useState<ApprovedEmail[]>([]);
+  const [emailForm, setEmailForm] = useState({ email: "", notes: "" });
+  const [loadingEmails, setLoadingEmails] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -38,9 +51,90 @@ const Admin = () => {
           variant: "destructive",
         });
         navigate("/");
+      } else {
+        fetchApprovedEmails();
       }
     }
   }, [user, isAdmin, authLoading, adminLoading, navigate, toast]);
+
+  const fetchApprovedEmails = async () => {
+    setLoadingEmails(true);
+    const { data, error } = await supabase
+      .from("approved_admin_emails")
+      .select("*")
+      .order("added_at", { ascending: false });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to load approved emails.",
+        variant: "destructive",
+      });
+    } else {
+      setApprovedEmails(data || []);
+    }
+    setLoadingEmails(false);
+  };
+
+  const handleAddEmail = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
+    if (!emailRegex.test(emailForm.email)) {
+      toast({
+        title: "Invalid Email",
+        description: "Please enter a valid email address.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    const { error } = await supabase
+      .from("approved_admin_emails")
+      .insert({
+        email: emailForm.email.toLowerCase().trim(),
+        added_by: user?.id,
+        notes: emailForm.notes.trim() || null,
+      });
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: error.message.includes("duplicate") 
+          ? "This email is already approved." 
+          : "Failed to add email.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Success",
+        description: `${emailForm.email} has been approved for admin access.`,
+      });
+      setEmailForm({ email: "", notes: "" });
+      fetchApprovedEmails();
+    }
+  };
+
+  const handleDeleteEmail = async (id: string, email: string) => {
+    const { error } = await supabase
+      .from("approved_admin_emails")
+      .delete()
+      .eq("id", id);
+
+    if (error) {
+      toast({
+        title: "Error",
+        description: "Failed to remove email.",
+        variant: "destructive",
+      });
+    } else {
+      toast({
+        title: "Removed",
+        description: `${email} has been removed from approved list.`,
+      });
+      fetchApprovedEmails();
+    }
+  };
 
   if (authLoading || adminLoading) {
     return (
@@ -91,8 +185,9 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="upload" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="upload">Upload</TabsTrigger>
+          <TabsTrigger value="approvals">Admin Approvals</TabsTrigger>
           <TabsTrigger value="carriers">Carriers</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
@@ -231,6 +326,99 @@ const Admin = () => {
                   </div>
                 ))}
               </div>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="approvals" className="space-y-6">
+          <Card className="stat-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <UserCheck className="h-5 w-5 text-primary" />
+                Approve Admin Access
+              </CardTitle>
+              <CardDescription>
+                Add email addresses that should be granted admin access upon signup
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleAddEmail} className="space-y-4">
+                <div className="space-y-2">
+                  <Label htmlFor="email">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
+                    placeholder="admin@example.com"
+                    value={emailForm.email}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, email: e.target.value }))}
+                    required
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="notes">Notes (optional)</Label>
+                  <Textarea
+                    id="notes"
+                    placeholder="e.g., Regional manager - West Coast"
+                    value={emailForm.notes}
+                    onChange={(e) => setEmailForm(prev => ({ ...prev, notes: e.target.value }))}
+                    rows={2}
+                  />
+                </div>
+                <Button type="submit" className="w-full">
+                  <Mail className="mr-2 h-4 w-4" />
+                  Approve Email for Admin Access
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          <Card className="stat-card">
+            <CardHeader>
+              <CardTitle>Approved Admin Emails</CardTitle>
+              <CardDescription>
+                Users who sign up with these emails will automatically receive admin access
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {loadingEmails ? (
+                <div className="flex items-center justify-center py-8">
+                  <Loader2 className="h-6 w-6 animate-spin text-primary" />
+                </div>
+              ) : approvedEmails.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No approved emails yet. Add one above to get started.
+                </p>
+              ) : (
+                <div className="space-y-3">
+                  {approvedEmails.map((item) => (
+                    <div
+                      key={item.id}
+                      className="flex items-start justify-between p-4 bg-accent/50 rounded-lg"
+                    >
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2">
+                          <Mail className="h-4 w-4 text-primary" />
+                          <p className="font-medium">{item.email}</p>
+                        </div>
+                        {item.notes && (
+                          <p className="text-sm text-muted-foreground mt-1">{item.notes}</p>
+                        )}
+                        <p className="text-xs text-muted-foreground mt-2">
+                          Added {new Date(item.added_at).toLocaleDateString()}
+                        </p>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="icon"
+                        onClick={() => handleDeleteEmail(item.id, item.email)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
             </CardContent>
           </Card>
         </TabsContent>
