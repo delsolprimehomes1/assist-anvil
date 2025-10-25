@@ -61,6 +61,10 @@ export const CommissionCalculator = () => {
                 <SelectItem value="80">80%</SelectItem>
                 <SelectItem value="90">90%</SelectItem>
                 <SelectItem value="100">100%</SelectItem>
+                <SelectItem value="110">110%</SelectItem>
+                <SelectItem value="120">120%</SelectItem>
+                <SelectItem value="130">130%</SelectItem>
+                <SelectItem value="140">140%</SelectItem>
               </SelectContent>
             </Select>
           </div>
