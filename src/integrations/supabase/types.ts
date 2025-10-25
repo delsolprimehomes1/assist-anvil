@@ -38,6 +38,87 @@ export type Database = {
         }
         Relationships: []
       }
+      carriers: {
+        Row: {
+          am_best_rating: string | null
+          company_history: string | null
+          created_at: string | null
+          created_by: string | null
+          description: string | null
+          employees: string | null
+          founded: string | null
+          headquarters: string | null
+          id: string
+          illustration_url: string | null
+          logo_url: string | null
+          name: string
+          niches: string[] | null
+          pdf_documents: Json | null
+          phone: string | null
+          portal_url: string | null
+          products: string[] | null
+          quotes_url: string | null
+          short_code: string
+          special_products: string[] | null
+          turnaround: string | null
+          underwriting_strengths: string[] | null
+          updated_at: string | null
+          website: string | null
+        }
+        Insert: {
+          am_best_rating?: string | null
+          company_history?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          employees?: string | null
+          founded?: string | null
+          headquarters?: string | null
+          id?: string
+          illustration_url?: string | null
+          logo_url?: string | null
+          name: string
+          niches?: string[] | null
+          pdf_documents?: Json | null
+          phone?: string | null
+          portal_url?: string | null
+          products?: string[] | null
+          quotes_url?: string | null
+          short_code: string
+          special_products?: string[] | null
+          turnaround?: string | null
+          underwriting_strengths?: string[] | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Update: {
+          am_best_rating?: string | null
+          company_history?: string | null
+          created_at?: string | null
+          created_by?: string | null
+          description?: string | null
+          employees?: string | null
+          founded?: string | null
+          headquarters?: string | null
+          id?: string
+          illustration_url?: string | null
+          logo_url?: string | null
+          name?: string
+          niches?: string[] | null
+          pdf_documents?: Json | null
+          phone?: string | null
+          portal_url?: string | null
+          products?: string[] | null
+          quotes_url?: string | null
+          short_code?: string
+          special_products?: string[] | null
+          turnaround?: string | null
+          underwriting_strengths?: string[] | null
+          updated_at?: string | null
+          website?: string | null
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           created_at: string

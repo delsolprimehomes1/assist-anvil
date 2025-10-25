@@ -1,13 +1,15 @@
-import { useState } from "react";
-import { Search, Filter, Building2, ExternalLink, Star, Info, Download } from "lucide-react";
+import { useState, useEffect } from "react";
+import { Search, Filter, Building2, ExternalLink, Star, Info, Download, FileText } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import CarrierDetailsModal from "@/components/CarrierDetailsModal";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
-const carriers = [
+const hardcodedCarriers = [
   {
     id: 1,
     name: "American General",
@@ -475,24 +477,68 @@ const carriers = [
 ];
 
 const Carriers = () => {
+  const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedProduct, setSelectedProduct] = useState("all");
-  const [selectedCarrier, setSelectedCarrier] = useState<typeof carriers[0] | null>(null);
+  const [selectedCarrier, setSelectedCarrier] = useState<any | null>(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [carriers, setCarriers] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const handleDownload = (url: string, filename: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = filename;
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+  useEffect(() => {
+    fetchCarriers();
+  }, []);
+
+  const fetchCarriers = async () => {
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .from('carriers')
+        .select('*')
+        .order('name');
+
+      if (error) throw error;
+      setCarriers(data || []);
+    } catch (error: any) {
+      console.error('Error fetching carriers:', error);
+      toast({
+        title: "Error",
+        description: "Failed to load carriers",
+        variant: "destructive",
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleDownload = async (url: string, filename: string) => {
+    try {
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      link.target = '_blank';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      
+      toast({
+        title: "Download Started",
+        description: `Downloading ${filename}`,
+      });
+    } catch (error) {
+      console.error('Download error:', error);
+      toast({
+        title: "Download Failed",
+        description: "Unable to download file",
+        variant: "destructive",
+      });
+    }
   };
 
   const filteredCarriers = carriers.filter(carrier => {
-    const matchesSearch = carrier.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         carrier.shortCode.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesProduct = selectedProduct === "all" || carrier.products.includes(selectedProduct);
+    const matchesSearch = carrier.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         carrier.short_code?.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesProduct = selectedProduct === "all" || carrier.products?.includes(selectedProduct);
     return matchesSearch && matchesProduct;
   });
 
@@ -543,135 +589,116 @@ const Carriers = () => {
         </CardContent>
       </Card>
 
-      {/* Carriers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredCarriers.map((carrier, index) => (
-          <Card key={carrier.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
-            <CardHeader className="pb-4">
-              <div className="flex items-start justify-between">
-                <div className="flex items-center space-x-3">
-                  <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
-                    <Building2 className="h-6 w-6 text-primary" />
+      {loading ? (
+        <div className="text-center py-12">Loading carriers...</div>
+      ) : carriers.length === 0 ? (
+        <Card className="p-12 text-center">
+          <Building2 className="h-16 w-16 mx-auto mb-4 text-muted-foreground" />
+          <h3 className="text-xl font-semibold mb-2">No Carriers Available</h3>
+          <p className="text-muted-foreground">Check back soon as we add carriers to the system.</p>
+        </Card>
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredCarriers.map((carrier, index) => (
+            <Card key={carrier.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
+              <CardHeader className="pb-4">
+                <div className="flex items-start justify-between">
+                  <div className="flex items-center space-x-3">
+                    {carrier.logo_url ? (
+                      <img src={carrier.logo_url} alt={carrier.name} className="w-12 h-12 object-contain" />
+                    ) : (
+                      <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
+                        <Building2 className="h-6 w-6 text-primary" />
+                      </div>
+                    )}
+                    <div>
+                      <CardTitle className="text-lg">{carrier.name}</CardTitle>
+                      <CardDescription>{carrier.short_code}</CardDescription>
+                    </div>
                   </div>
+                  {carrier.am_best_rating && (
+                    <Badge variant="outline" className="text-xs">
+                      A.M. Best: {carrier.am_best_rating}
+                    </Badge>
+                  )}
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                {carrier.turnaround && (
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-muted-foreground">Turnaround</span>
+                    <Badge className={`text-xs ${getTurnaroundColor(carrier.turnaround)}`}>
+                      {carrier.turnaround}
+                    </Badge>
+                  </div>
+                )}
+
+                {carrier.products && carrier.products.length > 0 && (
                   <div>
-                    <CardTitle className="text-lg">{carrier.name}</CardTitle>
-                    <CardDescription>{carrier.shortCode}</CardDescription>
+                    <span className="text-sm text-muted-foreground">Products</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {carrier.products.map((product: string) => (
+                        <Badge key={product} variant="secondary" className="text-xs">
+                          {product}
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
-                </div>
-                <Badge variant="outline" className="text-xs">
-                  A.M. Best: {carrier.amBestRating}
-                </Badge>
-              </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-center justify-between">
-                <span className="text-sm text-muted-foreground">Turnaround</span>
-                <Badge className={`text-xs ${getTurnaroundColor(carrier.turnaround)}`}>
-                  {carrier.turnaround}
-                </Badge>
-              </div>
+                )}
 
-              <div>
-                <span className="text-sm text-muted-foreground">Products</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {carrier.products.map(product => (
-                    <Badge key={product} variant="secondary" className="text-xs">
-                      {product}
-                    </Badge>
-                  ))}
-                </div>
-              </div>
+                {carrier.niches && carrier.niches.length > 0 && (
+                  <div>
+                    <span className="text-sm text-muted-foreground">Specialties</span>
+                    <div className="flex flex-wrap gap-1 mt-1">
+                      {carrier.niches.map((niche: string) => (
+                        <Badge key={niche} variant="outline" className="text-xs">
+                          {niche.replace('_', ' ')}
+                        </Badge>
+                      ))}
+                    </div>
+                  </div>
+                )}
 
-              <div>
-                <span className="text-sm text-muted-foreground">Specialties</span>
-                <div className="flex flex-wrap gap-1 mt-1">
-                  {carrier.niches.map(niche => (
-                    <Badge key={niche} variant="outline" className="text-xs">
-                      {niche.replace('_', ' ')}
-                    </Badge>
-                  ))}
+                <div className="grid grid-cols-2 gap-2 pt-4">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    onClick={() => {
+                      setSelectedCarrier(carrier);
+                      setIsModalOpen(true);
+                    }}
+                  >
+                    <Info className="h-3 w-3 mr-1" />
+                    Details
+                  </Button>
+                  {carrier.portal_url && (
+                    <Button size="sm" asChild>
+                      <a href={carrier.portal_url} target="_blank" rel="noopener noreferrer">
+                        <ExternalLink className="h-3 w-3 mr-1" />
+                        Portal
+                      </a>
+                    </Button>
+                  )}
+                  {carrier.pdf_documents && carrier.pdf_documents.length > 0 && (
+                    carrier.pdf_documents.map((pdf: any, pdfIndex: number) => (
+                      <Button 
+                        key={pdfIndex}
+                        size="sm" 
+                        variant="secondary" 
+                        className="text-xs sm:text-sm px-2 sm:px-3"
+                        onClick={() => handleDownload(pdf.url, pdf.title)}
+                      >
+                        <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
+                        {pdf.button_label}
+                      </Button>
+                    ))
+                  )}
                 </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2 pt-4">
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  onClick={() => {
-                    setSelectedCarrier(carrier);
-                    setIsModalOpen(true);
-                  }}
-                >
-                  <Info className="h-3 w-3 mr-1" />
-                  Details
-                </Button>
-                <Button size="sm" asChild>
-                  <a href={carrier.portalUrl} target="_blank" rel="noopener noreferrer">
-                    <ExternalLink className="h-3 w-3 mr-1" />
-                    Portal
-                  </a>
-                </Button>
-                {(carrier as any).underwritingGuideUrl && (
-                  <Button 
-                    size="sm" 
-                    variant="secondary" 
-                    className="text-xs sm:text-sm px-2 sm:px-3"
-                    onClick={() => handleDownload(
-                      (carrier as any).underwritingGuideUrl, 
-                      `${carrier.shortCode}_Senior_Choice_Guide.pdf`
-                    )}
-                  >
-                    <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
-                    Senior Choice
-                  </Button>
-                )}
-                {(carrier as any).iulGuideUrl && (
-                  <Button 
-                    size="sm" 
-                    variant="secondary" 
-                    className="text-xs sm:text-sm px-2 sm:px-3"
-                    onClick={() => handleDownload(
-                      (carrier as any).iulGuideUrl, 
-                      `${carrier.shortCode}_IUL_Guide.pdf`
-                    )}
-                  >
-                    <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
-                    IUL
-                  </Button>
-                )}
-                {(carrier as any).termGuideUrl && (
-                  <Button 
-                    size="sm" 
-                    variant="secondary" 
-                    className="text-xs sm:text-sm px-2 sm:px-3"
-                    onClick={() => handleDownload(
-                      (carrier as any).termGuideUrl, 
-                      `${carrier.shortCode}_Term_Guide.pdf`
-                    )}
-                  >
-                    <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
-                    Term
-                  </Button>
-                )}
-                {(carrier as any).termMsGuideUrl && (
-                  <Button 
-                    size="sm" 
-                    variant="secondary" 
-                    className="text-xs sm:text-sm px-2 sm:px-3"
-                    onClick={() => handleDownload(
-                      (carrier as any).termMsGuideUrl, 
-                      `${carrier.shortCode}_Term_MS_Guide.pdf`
-                    )}
-                  >
-                    <Download className="h-3 w-3 mr-0.5 sm:mr-1" />
-                    Term MS
-                  </Button>
-                )}
-              </div>
-            </CardContent>
-          </Card>
-        ))}
-      </div>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      )}
 
       {filteredCarriers.length === 0 && (
         <Card className="stat-card">

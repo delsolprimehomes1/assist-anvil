@@ -13,6 +13,7 @@ import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
+import { CarriersList } from "@/components/admin/CarriersList";
 
 type ApprovedEmail = {
   id: string;
@@ -188,7 +189,7 @@ const Admin = () => {
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="approvals">Admin Approvals</TabsTrigger>
-          <TabsTrigger value="carriers">Carriers</TabsTrigger>
+          <TabsTrigger value="carriers">Manage Carriers</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -424,18 +425,7 @@ const Admin = () => {
         </TabsContent>
 
         <TabsContent value="carriers" className="space-y-6">
-          <Card className="stat-card">
-            <CardHeader>
-              <CardTitle>Manage Carriers</CardTitle>
-              <CardDescription>Add, edit, and remove insurance carriers</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button>
-                <Database className="mr-2 h-4 w-4" />
-                Add New Carrier
-              </Button>
-            </CardContent>
-          </Card>
+          <CarriersList />
         </TabsContent>
 
         <TabsContent value="users" className="space-y-6">
