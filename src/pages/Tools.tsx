@@ -7,36 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CommissionCalculator } from "@/components/tools/CommissionCalculator";
 
-const resources = [
-  {
-    id: 2,
-    title: "Commission Calculator",
-    type: "calculator", 
-    description: "Calculate potential commission earnings",
-    tags: ["sales", "planning"],
-    carrier: "Universal",
-    lastUpdated: "2024-01-10"
-  },
-  {
-    id: 5,
-    title: "FE Health Matrix",
-    type: "guide",
-    description: "Final expense health question matrix",
-    tags: ["final_expense", "underwriting"],
-    carrier: "Multiple",
-    lastUpdated: "2024-01-22"
-  },
-  {
-    id: 6,
-    title: "Illustration Link",
-    type: "tool",
-    description: "Access WinFlexWeb to run client illustrations and proposals",
-    tags: ["illustrations", "proposals", "sales"],
-    carrier: "Universal",
-    lastUpdated: "2024-01-25",
-    url: "https://www.winflexweb.com/"
-  }
-];
+const resources: any[] = [];
 
 const Tools = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -100,64 +71,15 @@ const Tools = () => {
           </Card>
 
           {/* Resources Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredResources.map((resource, index) => {
-              const Icon = getTypeIcon(resource.type);
-              return (
-                <Card key={resource.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3">
-                        <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
-                          <Icon className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1">
-                          <CardTitle className="text-lg">{resource.title}</CardTitle>
-                          <CardDescription className="text-sm">{resource.description}</CardDescription>
-                        </div>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <Badge className={`text-xs ${getTypeColor(resource.type)}`}>
-                        {resource.type.replace('_', ' ')}
-                      </Badge>
-                      <span className="text-xs text-muted-foreground">
-                        {resource.carrier}
-                      </span>
-                    </div>
-
-                    <div>
-                      <div className="flex flex-wrap gap-1">
-                        {resource.tags.map(tag => (
-                          <Badge key={tag} variant="outline" className="text-xs">
-                            {tag.replace('_', ' ')}
-                          </Badge>
-                        ))}
-                      </div>
-                    </div>
-
-                    <div className="flex items-center justify-between text-xs text-muted-foreground pt-2">
-                      <span>Updated: {resource.lastUpdated}</span>
-                    </div>
-
-                    <Button 
-                      className="w-full" 
-                      size="sm"
-                      onClick={() => {
-                        if (resource.url) {
-                          window.open(resource.url, '_blank');
-                        }
-                      }}
-                    >
-                      Open Tool
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          <Card className="stat-card">
+            <CardContent className="py-12 text-center">
+              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">No Resources Available</h3>
+              <p className="text-muted-foreground text-sm">
+                Check back later for tools and reference materials
+              </p>
+            </CardContent>
+          </Card>
         </TabsContent>
 
         <TabsContent value="calculators" className="space-y-6">
