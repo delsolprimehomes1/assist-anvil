@@ -50,6 +50,8 @@ const TrainingPlayer = () => {
     );
   }
 
+  const Player = ReactPlayer as any;
+
   return (
     <div className="space-y-6 animate-fade-in">
       <Button variant="ghost" onClick={() => navigate('/training')}>
@@ -63,16 +65,15 @@ const TrainingPlayer = () => {
             <CardContent className="p-0">
               <div className="aspect-video bg-black rounded-t-lg overflow-hidden">
                 {training.video_url && (
-                  <ReactPlayer
-                    {...{
-                      url: training.video_url,
-                      width: "100%",
-                      height: "100%",
-                      controls: true,
-                      onProgress: (state: any) => setCurrentTime(state.playedSeconds),
-                      onDuration: (duration: any) => setDuration(duration),
-                      progressInterval: 1000,
-                    } as any}
+                  <Player
+                    url={training.video_url}
+                    width="100%"
+                    height="100%"
+                    controls
+                    playing={false}
+                    onProgress={(state: any) => setCurrentTime(state.playedSeconds)}
+                    onDuration={(duration: any) => setDuration(duration)}
+                    progressInterval={1000}
                   />
                 )}
               </div>
