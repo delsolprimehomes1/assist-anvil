@@ -1,12 +1,65 @@
-import { TrendingUp, Target, Calendar, Users, Award, DollarSign, Building2, FileText } from "lucide-react";
+import { useState, useEffect } from "react";
+import { TrendingUp, Target, Calendar, Users, Award, DollarSign, Building2, FileText, Clock } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QuickActions } from "@/components/dashboard/QuickActions";
-
 import { motion, useScroll, useTransform } from "framer-motion";
+import { supabase } from "@/integrations/supabase/client";
+
+interface ScheduleItem {
+  id: string;
+  title: string;
+  time: string;
+  description: string | null;
+  date: string;
+}
 
 const Dashboard = () => {
+  const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetchTodaySchedule();
+
+    // Set up realtime subscription
+    const channel = supabase
+      .channel('schedule_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'schedule_items'
+        },
+        () => {
+          fetchTodaySchedule();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, []);
+
+  const fetchTodaySchedule = async () => {
+    try {
+      const today = new Date().toISOString().split('T')[0];
+      const { data, error } = await supabase
+        .from('schedule_items')
+        .select('*')
+        .eq('date', today)
+        .order('time', { ascending: true });
+
+      if (error) throw error;
+      setTodaySchedule(data || []);
+    } catch (error) {
+      console.error('Error fetching schedule:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 200], [0, -50]);
   const heroOpacity = useTransform(scrollY, [0, 200], [1, 0.8]);
@@ -152,54 +205,38 @@ const Dashboard = () => {
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
-                <motion.div 
-                  className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-accent/30 rounded-lg backdrop-blur-sm border border-white/10"
-                  whileHover={{ 
-                    backgroundColor: "rgba(var(--accent), 0.5)",
-                    scale: 1.02 
-                  }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <div className="mb-2 md:mb-0">
-                    <p className="font-medium text-sm md:text-base">Client Meeting - Sarah Johnson</p>
-                    <p className="text-xs md:text-sm text-muted-foreground">Life Insurance Quote Review</p>
-                  </div>
-                  <motion.div
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                  >
-                    <Badge variant="outline" className="text-xs md:text-sm">2:00 PM</Badge>
-                  </motion.div>
-                </motion.div>
-                
-                <motion.div 
-                  className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-accent/30 rounded-lg backdrop-blur-sm border border-white/10"
-                  whileHover={{ 
-                    backgroundColor: "rgba(var(--accent), 0.5)",
-                    scale: 1.02 
-                  }}
-                  transition={{ type: "spring", stiffness: 300 }}
-                >
-                  <div className="mb-2 md:mb-0">
-                    <p className="font-medium text-sm md:text-base">License Renewal Due</p>
-                    <p className="text-xs md:text-sm text-muted-foreground">Texas - Expires in 30 days</p>
-                  </div>
-                  <motion.div
-                    animate={{ 
-                      scale: [1, 1.1, 1],
-                      opacity: [0.8, 1, 0.8] 
-                    }}
-                    transition={{ 
-                      duration: 2, 
-                      repeat: Infinity,
-                      ease: "easeInOut" 
-                    }}
-                  >
-                    <Badge variant="secondary" className="bg-warning/20 text-warning-foreground text-xs md:text-sm">
-                      Expiring Soon
-                    </Badge>
-                  </motion.div>
-                </motion.div>
+                {loading ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">Loading schedule...</p>
+                ) : todaySchedule.length === 0 ? (
+                  <p className="text-sm text-muted-foreground text-center py-4">No schedule items for today</p>
+                ) : (
+                  todaySchedule.map((item) => (
+                    <motion.div 
+                      key={item.id}
+                      className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-accent/30 rounded-lg backdrop-blur-sm border border-white/10"
+                      whileHover={{ 
+                        backgroundColor: "rgba(var(--accent), 0.5)",
+                        scale: 1.02 
+                      }}
+                      transition={{ type: "spring", stiffness: 300 }}
+                    >
+                      <div className="mb-2 md:mb-0 flex-1">
+                        <p className="font-medium text-sm md:text-base">{item.title}</p>
+                        {item.description && (
+                          <p className="text-xs md:text-sm text-muted-foreground">{item.description}</p>
+                        )}
+                      </div>
+                      <motion.div
+                        whileHover={{ scale: 1.05 }}
+                        whileTap={{ scale: 0.95 }}
+                        className="flex items-center gap-2"
+                      >
+                        <Clock className="h-4 w-4 text-muted-foreground" />
+                        <Badge variant="outline" className="text-xs md:text-sm">{item.time}</Badge>
+                      </motion.div>
+                    </motion.div>
+                  ))
+                )}
               </CardContent>
             </Card>
           </motion.div>
