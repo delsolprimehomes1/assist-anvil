@@ -1,11 +1,13 @@
 import { Search, Menu, Bell, User, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import lifecoLogo from "@/assets/lifeco-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,13 +24,45 @@ interface HeaderProps {
 export const Header = ({ onMenuClick }: HeaderProps) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
+  const [userProfile, setUserProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.id) return;
+      
+      const { data } = await supabase
+        .from('profiles')
+        .select('full_name, avatar_url')
+        .eq('id', user.id)
+        .maybeSingle();
+      
+      if (data) setUserProfile(data);
+    };
+    
+    fetchProfile();
+  }, [user?.id]);
 
   const handleSignOut = async () => {
     await signOut();
     navigate("/auth");
   };
 
-  const userInitials = user?.email?.substring(0, 2).toUpperCase() || "AG";
+  const getUserInitials = () => {
+    const fullName = userProfile?.full_name || user?.user_metadata?.full_name;
+    
+    if (!fullName) return "AG";
+    
+    const nameParts = fullName.trim().split(/\s+/);
+    
+    if (nameParts.length === 1) {
+      return nameParts[0].substring(0, 2).toUpperCase();
+    }
+    
+    const firstInitial = nameParts[0].charAt(0).toUpperCase();
+    const lastInitial = nameParts[nameParts.length - 1].charAt(0).toUpperCase();
+    
+    return firstInitial + lastInitial;
+  };
 
   return (
     <header className="sticky top-0 z-50 w-full border-b bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/60">
@@ -74,8 +108,11 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" className="relative h-10 w-10 rounded-full">
                 <Avatar className="h-9 w-9">
-                  <AvatarImage src="/avatars/01.png" alt="Agent" />
-                  <AvatarFallback>{userInitials}</AvatarFallback>
+                  <AvatarImage 
+                    src={userProfile?.avatar_url || undefined} 
+                    alt={userProfile?.full_name || "Agent"} 
+                  />
+                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
@@ -83,7 +120,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
               <DropdownMenuLabel className="font-normal">
                 <div className="flex flex-col space-y-1">
                   <p className="text-sm font-medium leading-none">
-                    {user?.user_metadata?.full_name || "Agent"}
+                    {userProfile?.full_name || user?.user_metadata?.full_name || "Agent"}
                   </p>
                   <p className="text-xs leading-none text-muted-foreground">
                     {user?.email || ""}
@@ -91,11 +128,10 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
                 </div>
               </DropdownMenuLabel>
               <DropdownMenuSeparator />
-              <DropdownMenuItem onClick={() => navigate("/")}>
+              <DropdownMenuItem onClick={() => navigate("/profile")}>
                 <User className="mr-2 h-4 w-4" />
-                Profile
+                Profile Settings
               </DropdownMenuItem>
-              <DropdownMenuItem>Settings</DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem onClick={handleSignOut}>
                 <LogOut className="mr-2 h-4 w-4" />

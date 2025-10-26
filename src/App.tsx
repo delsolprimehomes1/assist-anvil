@@ -16,6 +16,7 @@ import AIAssist from "./pages/AIAssist";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import AcceptInvitation from "./pages/AcceptInvitation";
+import ProfileSettings from "./pages/ProfileSettings";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -38,6 +39,7 @@ const App = () => (
           <Route path="training/:trainingId" element={<TrainingPlayer />} />
           <Route path="marketing" element={<Marketing />} />
           <Route path="compliance" element={<Compliance />} />
+          <Route path="profile" element={<ProfileSettings />} />
           <Route path="admin" element={<Admin />} />
         </Route>
         <Route path="*" element={<NotFound />} />
