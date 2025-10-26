@@ -153,19 +153,19 @@ const AIAssist = () => {
                 key={result.id}
                 className="bg-white/80 backdrop-blur border border-slate-200/50 rounded-2xl shadow-lg shadow-slate-200/50 overflow-hidden"
               >
-                {/* Header Section */}
-                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 md:px-8 py-6 border-b border-slate-200">
-                  <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
-                    {result.question}
-                  </h3>
-                  <p className="text-sm text-slate-500">
-                    {result.timestamp.toLocaleString()}
-                  </p>
-                </div>
+          {/* Header Section */}
+          <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-4 sm:px-6 md:px-8 py-4 md:py-6 border-b border-slate-200">
+            <h3 className="text-lg sm:text-xl md:text-2xl font-bold text-slate-900 mb-1 break-words line-clamp-3">
+              {result.question}
+            </h3>
+            <p className="text-xs sm:text-sm text-slate-500">
+              {result.timestamp.toLocaleString()}
+            </p>
+          </div>
                 
                 {/* Content Section */}
-                <div className="px-6 md:px-8 py-8">
-                  <div className="prose prose-lg prose-slate prose-headings:text-slate-900 prose-headings:font-bold prose-h3:text-2xl prose-h3:mt-10 prose-h3:mb-6 prose-p:text-slate-800 prose-p:leading-loose prose-p:text-base prose-strong:text-slate-900 prose-strong:font-bold prose-ul:text-slate-800 prose-ul:my-6 prose-li:my-2 prose-table:text-base prose-table:w-full prose-table:my-8 prose-th:bg-slate-100 prose-th:text-slate-900 prose-th:font-bold prose-th:p-4 prose-th:text-left prose-th:border prose-th:border-slate-300 prose-td:p-4 prose-td:border prose-td:border-slate-200 prose-tr:border-b prose-tr:border-slate-200 prose-code:text-sm prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded max-w-none">
+                <div className="px-4 sm:px-6 md:px-8 py-6 md:py-8">
+                  <div className="prose prose-sm sm:prose-base lg:prose-lg prose-slate prose-headings:text-slate-900 prose-headings:font-bold prose-headings:mt-6 sm:prose-headings:mt-8 lg:prose-headings:mt-10 prose-headings:mb-3 sm:prose-headings:mb-4 lg:prose-headings:mb-6 prose-h3:text-lg sm:prose-h3:text-xl lg:prose-h3:text-2xl prose-p:text-slate-800 prose-p:leading-relaxed sm:prose-p:leading-loose prose-p:text-sm sm:prose-p:text-base prose-p:mb-4 prose-strong:text-slate-900 prose-strong:font-bold prose-strong:text-sm sm:prose-strong:text-base prose-ul:text-slate-800 prose-ul:my-4 lg:prose-ul:my-6 prose-li:my-1.5 lg:prose-li:my-2 prose-li:leading-relaxed sm:prose-li:leading-loose prose-table:text-xs sm:prose-table:text-sm lg:prose-table:text-base prose-table:w-full prose-table:my-6 lg:prose-table:my-8 prose-th:bg-slate-100 prose-th:text-slate-900 prose-th:font-bold prose-th:p-2 sm:prose-th:p-3 lg:prose-th:p-4 prose-th:text-left prose-th:border prose-th:border-slate-300 prose-td:p-2 sm:prose-td:p-3 lg:prose-td:p-4 prose-td:border prose-td:border-slate-200 prose-tr:border-b prose-tr:border-slate-200 prose-code:text-xs sm:prose-code:text-sm prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded max-w-none">
                     <ReactMarkdown remarkPlugins={[remarkGfm]}>
                       {result.answer}
                     </ReactMarkdown>
@@ -173,31 +173,31 @@ const AIAssist = () => {
                 </div>
                 
                 {/* Actions Footer */}
-                <div className="bg-slate-50/50 px-6 md:px-8 py-4 border-t border-slate-200 flex items-center gap-3">
+                <div className="bg-slate-50/50 px-4 sm:px-6 md:px-8 py-3 md:py-4 border-t border-slate-200 flex items-center gap-2 sm:gap-3">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => copyToClipboard(result.answer)}
-                    className="hover:bg-white rounded-lg"
+                    className="hover:bg-white rounded-lg text-xs sm:text-sm"
                   >
-                    <Copy className="w-4 h-4 mr-1.5" />
+                    <Copy className="w-3 h-3 sm:w-4 sm:h-4 mr-1 sm:mr-1.5" />
                     Copy
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleFeedback(result.id, true)}
-                    className="hover:bg-white rounded-lg"
+                    className="hover:bg-white rounded-lg text-xs sm:text-sm"
                   >
-                    <ThumbsUp className="w-4 h-4" />
+                    <ThumbsUp className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleFeedback(result.id, false)}
-                    className="hover:bg-white rounded-lg"
+                    className="hover:bg-white rounded-lg text-xs sm:text-sm"
                   >
-                    <ThumbsDown className="w-4 h-4" />
+                    <ThumbsDown className="w-3 h-3 sm:w-4 sm:h-4" />
                   </Button>
                 </div>
               </div>
