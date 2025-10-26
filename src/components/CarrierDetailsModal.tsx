@@ -54,15 +54,15 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-4xl h-full md:h-auto md:max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <div className="flex items-center space-x-3 mb-2">
-            <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
-              <Building2 className="h-6 w-6 text-primary" />
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
+              <Building2 className="h-5 w-5 md:h-6 md:w-6 text-primary" />
             </div>
             <div>
-              <DialogTitle className="text-2xl">{carrier.name}</DialogTitle>
-              <DialogDescription className="text-base">
+              <DialogTitle className="text-xl md:text-2xl">{carrier.name}</DialogTitle>
+              <DialogDescription className="text-sm md:text-base">
                 {carrier.shortCode} • A.M. Best Rating: {carrier.amBestRating}
               </DialogDescription>
             </div>
@@ -70,15 +70,15 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
+          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-1">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="contact">Contact</TabsTrigger>
             <TabsTrigger value="products">Products</TabsTrigger>
             <TabsTrigger value="underwriting">Underwriting</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="overview" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TabsContent value="overview" className="space-y-4 mt-4 px-1 md:px-0">
+            <div className="grid grid-cols-1 gap-6">
               <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold mb-2 flex items-center">
@@ -127,8 +127,8 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
             </div>
           </TabsContent>
 
-          <TabsContent value="contact" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TabsContent value="contact" className="space-y-4 mt-4 px-1 md:px-0">
+            <div className="grid grid-cols-1 gap-6">
               <div className="space-y-4">
                 <div>
                   <h3 className="font-semibold mb-3 flex items-center">
@@ -168,19 +168,19 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
               <div className="space-y-4">
                 <h3 className="font-semibold mb-3">Quick Actions</h3>
                 <div className="space-y-2">
-                  <Button className="w-full justify-start" asChild>
+                  <Button className="w-full justify-start h-11 md:h-10" asChild>
                     <a href={carrier.portalUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Access Agent Portal
                     </a>
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" asChild>
+                  <Button variant="outline" className="w-full justify-start h-11 md:h-10" asChild>
                     <a href={carrier.quotesUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Get Quotes
                     </a>
                   </Button>
-                  <Button variant="outline" className="w-full justify-start" asChild>
+                  <Button variant="outline" className="w-full justify-start h-11 md:h-10" asChild>
                     <a href={carrier.illustrationUrl} target="_blank" rel="noopener noreferrer">
                       <ExternalLink className="h-4 w-4 mr-2" />
                       Run Illustrations
@@ -191,8 +191,8 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
             </div>
           </TabsContent>
 
-          <TabsContent value="products" className="space-y-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <TabsContent value="products" className="space-y-4 mt-4 px-1 md:px-0">
+            <div className="grid grid-cols-1 gap-6">
               <div>
                 <h3 className="font-semibold mb-3">Available Products</h3>
                 <div className="flex flex-wrap gap-2">
@@ -220,7 +220,7 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
 
             <div>
               <h3 className="font-semibold mb-3">Specialized Products & Features</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 gap-4">
                 {carrier.specialProducts.map((product, index) => (
                   <div key={index} className="p-3 border rounded-lg">
                     <p className="text-sm text-muted-foreground">{product}</p>
@@ -230,7 +230,7 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
             </div>
           </TabsContent>
 
-          <TabsContent value="underwriting" className="space-y-4">
+          <TabsContent value="underwriting" className="space-y-4 mt-4 px-1 md:px-0">
             <div>
               <h3 className="font-semibold mb-3">Underwriting Strengths</h3>
               <div className="space-y-3">
@@ -245,7 +245,7 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
 
             <Separator />
 
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 gap-4">
               <div className="text-center p-4 border rounded-lg">
                 <h4 className="font-semibold mb-1">Processing Speed</h4>
                 <Badge className={`${getTurnaroundColor(carrier.turnaround)}`}>

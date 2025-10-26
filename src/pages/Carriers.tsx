@@ -663,14 +663,15 @@ const Carriers = () => {
                 <div className="grid grid-cols-2 gap-2 pt-4">
                   <Button 
                     size="sm" 
-                    variant="outline" 
+                    variant="outline"
+                    className="h-10 md:h-9"
                     onClick={() => {
                       setSelectedCarrier(carrier);
                       setIsModalOpen(true);
                     }}
                   >
-                    <Info className="h-3 w-3 mr-1" />
-                    Details
+                    <Info className="h-4 w-4 md:h-3 md:w-3 mr-1" />
+                    <span className="text-sm">Details</span>
                   </Button>
                   {carrier.portal_url && (
                     <Button size="sm" asChild>
