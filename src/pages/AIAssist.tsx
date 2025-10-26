@@ -80,139 +80,155 @@ const AIAssist = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      <div className="container mx-auto px-4 py-8 max-w-4xl">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
+      <div className="max-w-2xl mx-auto py-12 md:py-16 px-6 md:px-8">
         {/* Header */}
-        <div className="mb-8 text-center">
-          <div className="flex items-center justify-center gap-3 mb-2">
-            <Brain className="w-8 h-8 text-primary" />
-            <h1 className="text-3xl font-bold">AI Assistant</h1>
-          </div>
-          <p className="text-muted-foreground">
+        <div className="mb-12 text-center">
+          <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
+            AI Assistant
+          </h1>
+          <p className="text-lg text-slate-600">
             Ask questions and get intelligent answers from our knowledge base
           </p>
         </div>
 
         {/* Input Card */}
-        <Card className="mb-8">
-          <CardHeader>
-            <CardTitle>Ask Your Question</CardTitle>
-            <CardDescription>
-              Type your question below and press Cmd/Ctrl + Enter to submit quickly
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
+        <div className="bg-white/80 backdrop-blur-sm shadow-xl shadow-slate-200/50 rounded-2xl md:rounded-3xl p-8 md:p-10 mb-12">
+          <h2 className="text-2xl font-semibold text-slate-800 mb-2">Ask Your Question</h2>
+          <p className="text-slate-600 text-base mb-6">
+            Type your question below and press Cmd/Ctrl + Enter to submit quickly
+          </p>
+          
+          <div className="space-y-6">
+            <div className="relative">
               <Textarea
                 placeholder="What would you like to know?"
                 value={question}
                 onChange={(e) => setQuestion(e.target.value)}
                 onKeyDown={handleKeyDown}
-                className="min-h-[120px] resize-none"
+                className="min-h-[180px] resize-none border-0 bg-slate-50/50 p-4 text-base md:text-lg rounded-xl focus:bg-white focus:ring-2 focus:ring-blue-500/20 placeholder:text-slate-400 transition-all"
                 maxLength={1000}
                 disabled={isLoading}
               />
-              <div className="flex items-center justify-between">
-                <span className={`text-sm ${charCount < 10 ? "text-destructive" : "text-muted-foreground"}`}>
-                  {charCount < 10 && charCount > 0 && "Please enter at least 10 characters"}
-                  {charCount === 0 && " "}
-                </span>
-                <span className="text-sm text-muted-foreground">
-                  {charCount}/1000 characters
-                </span>
-              </div>
+              {charCount > 0 && (
+                <div className="absolute bottom-3 right-3 text-xs text-slate-400">
+                  {charCount}/1000
+                </div>
+              )}
             </div>
+            
+            {charCount < 10 && charCount > 0 && (
+              <p className="text-sm text-red-500">Please enter at least 10 characters</p>
+            )}
+            
             <div className="flex justify-end">
               <Button
                 onClick={handleSubmit}
                 disabled={!canSubmit}
-                className="bg-blue-600 hover:bg-blue-700 text-white"
+                className="w-full md:w-auto px-8 py-4 text-lg bg-gradient-to-r from-blue-600 to-blue-500 hover:shadow-lg hover:-translate-y-0.5 transition-all rounded-xl text-white"
               >
                 {isLoading ? (
                   <>Getting Answer...</>
                 ) : (
                   <>
                     Get Answer
-                    <Send className="ml-2 w-4 h-4" />
+                    <Send className="ml-2 w-5 h-5" />
                   </>
                 )}
               </Button>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Results */}
         {results.length > 0 ? (
-          <div className="space-y-4">
+          <div className="space-y-8">
             {results.map((result) => (
-              <Card key={result.id}>
-                <CardHeader>
-                  <CardTitle className="text-lg">{result.question}</CardTitle>
-                  <CardDescription>
-                    {result.timestamp.toLocaleString()}
-                  </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <div className="prose prose-sm max-w-none">
-                    <p className="text-foreground whitespace-pre-wrap">{result.answer}</p>
-                  </div>
-                  <div className="flex items-center gap-2 pt-2 border-t">
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => copyToClipboard(result.answer)}
-                    >
-                      <Copy className="w-4 h-4 mr-1" />
-                      Copy
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleFeedback(result.id, true)}
-                    >
-                      <ThumbsUp className="w-4 h-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => handleFeedback(result.id, false)}
-                    >
-                      <ThumbsDown className="w-4 h-4" />
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
+              <div 
+                key={result.id}
+                className="bg-white/60 backdrop-blur shadow-lg shadow-slate-200/50 rounded-2xl p-8"
+              >
+                <h3 className="text-xl font-semibold text-slate-800 mb-1">
+                  {result.question}
+                </h3>
+                <p className="text-xs text-slate-400 mb-4">
+                  {result.timestamp.toLocaleString()}
+                </p>
+                
+                <div className="prose prose-slate max-w-none mb-6">
+                  <p className="text-base text-slate-700 leading-relaxed whitespace-pre-wrap">
+                    {result.answer}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => copyToClipboard(result.answer)}
+                    className="hover:bg-slate-100/50 rounded-lg"
+                  >
+                    <Copy className="w-4 h-4 mr-1" />
+                    Copy
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFeedback(result.id, true)}
+                    className="hover:bg-slate-100/50 rounded-lg"
+                  >
+                    <ThumbsUp className="w-4 h-4" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => handleFeedback(result.id, false)}
+                    className="hover:bg-slate-100/50 rounded-lg"
+                  >
+                    <ThumbsDown className="w-4 h-4" />
+                  </Button>
+                </div>
+              </div>
             ))}
           </div>
         ) : (
-          <Card>
-            <CardContent className="py-12">
-              <div className="text-center space-y-6">
-                <div className="flex justify-center">
-                  <div className="w-16 h-16 rounded-full bg-primary/10 flex items-center justify-center">
-                    <Brain className="w-8 h-8 text-primary" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold">Ready to help you find answers</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Ask any question and I'll search through our knowledge base to provide you with accurate information.
-                  </p>
-                </div>
-                <div className="bg-muted/50 rounded-lg p-6 max-w-md mx-auto text-left">
-                  <div className="flex items-start gap-3 mb-3">
-                    <Lightbulb className="w-5 h-5 text-primary mt-0.5" />
-                    <span className="font-medium">Tips for better results:</span>
-                  </div>
-                  <ul className="space-y-2 text-sm text-muted-foreground ml-8">
-                    <li>• Be specific with your questions</li>
-                    <li>• Include relevant context or details</li>
-                    <li>• Ask one question at a time for clarity</li>
-                  </ul>
-                </div>
+          <div className="bg-transparent py-12 text-center space-y-8">
+            <div className="flex justify-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-3xl p-5 flex items-center justify-center">
+                <Brain className="w-10 h-10 text-blue-600" />
               </div>
-            </CardContent>
-          </Card>
+            </div>
+            
+            <div className="space-y-3">
+              <h3 className="text-2xl font-semibold text-slate-800">
+                Ready to help you find answers
+              </h3>
+              <p className="text-slate-600 text-lg max-w-md mx-auto">
+                Ask any question and I'll search through our knowledge base to provide you with accurate information.
+              </p>
+            </div>
+            
+            <div className="max-w-md mx-auto text-left border-l-4 border-blue-500 pl-6 py-4">
+              <div className="flex items-start gap-3 mb-4">
+                <Lightbulb className="w-5 h-5 text-blue-600 mt-0.5" />
+                <span className="font-semibold text-slate-800">Tips for better results:</span>
+              </div>
+              <ul className="space-y-3 text-slate-600">
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 font-bold">•</span>
+                  <span>Be specific with your questions</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 font-bold">•</span>
+                  <span>Include relevant context or details</span>
+                </li>
+                <li className="flex items-start gap-2">
+                  <span className="text-blue-500 font-bold">•</span>
+                  <span>Ask one question at a time for clarity</span>
+                </li>
+              </ul>
+            </div>
+          </div>
         )}
       </div>
     </div>
