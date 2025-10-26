@@ -25,6 +25,8 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [userName, setUserName] = useState<string>("there");
   const [greeting, setGreeting] = useState<{ text: string; emoji: string }>({ text: "Hello", emoji: "👋" });
+  const [goalProgress, setGoalProgress] = useState<number | null>(null);
+  const [hasActiveGoals, setHasActiveGoals] = useState(false);
 
   const getGreeting = () => {
     const hour = new Date().getHours();
@@ -60,6 +62,7 @@ const Dashboard = () => {
     };
 
     fetchUserName();
+    fetchGoalProgress();
     fetchSchedule();
 
     // Set up realtime subscription
@@ -82,6 +85,41 @@ const Dashboard = () => {
       supabase.removeChannel(channel);
     };
   }, [user]);
+
+  const fetchGoalProgress = async () => {
+    if (!user?.id) return;
+    
+    const now = new Date();
+    const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+    const endOfMonth = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    
+    try {
+      const { data: goals, error } = await supabase
+        .from('business_goals')
+        .select('progress_percentage, status')
+        .eq('agent_id', user.id)
+        .in('status', ['in_progress', 'not_started'])
+        .or(`target_date.gte.${startOfMonth.toISOString()},target_date.lte.${endOfMonth.toISOString()},target_date.is.null`)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      
+      if (goals && goals.length > 0) {
+        const avgProgress = Math.round(
+          goals.reduce((sum, g) => sum + (g.progress_percentage || 0), 0) / goals.length
+        );
+        setGoalProgress(avgProgress);
+        setHasActiveGoals(true);
+      } else {
+        setHasActiveGoals(false);
+        setGoalProgress(null);
+      }
+    } catch (error) {
+      console.error('Error fetching goal progress:', error);
+      setHasActiveGoals(false);
+      setGoalProgress(null);
+    }
+  };
 
   const fetchSchedule = async () => {
     try {
@@ -256,7 +294,11 @@ const Dashboard = () => {
             >
               <Badge variant="secondary" className="bg-white/20 text-white border-white/30 backdrop-blur-sm">
                 <Target className="w-3 h-3 md:w-4 md:h-4 mr-1" />
-                Goal: 80% this month
+                {hasActiveGoals ? (
+                  <>Goal: {goalProgress}% this month</>
+                ) : (
+                  <>Set your goals</>
+                )}
               </Badge>
             </motion.div>
           </motion.div>
