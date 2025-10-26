@@ -3,7 +3,7 @@ export interface RAGRequest {
 }
 
 export interface RAGResponse {
-  answer: string;
+  output: string;
   sources?: string[];
 }
 

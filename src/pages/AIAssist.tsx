@@ -5,6 +5,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 import { sendRAGQuery } from "@/services/ragApi";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 interface QueryResult {
   id: string;
@@ -35,7 +37,7 @@ const AIAssist = () => {
       const newResult: QueryResult = {
         id: Date.now().toString(),
         question: currentQuestion,
-        answer: response.answer,
+        answer: response.output,
         timestamp: new Date(),
       };
 
@@ -155,10 +157,10 @@ const AIAssist = () => {
                   {result.timestamp.toLocaleString()}
                 </p>
                 
-                <div className="prose prose-slate max-w-none mb-6">
-                  <p className="text-base text-slate-700 leading-relaxed whitespace-pre-wrap">
+                <div className="prose prose-slate prose-headings:text-slate-800 prose-headings:font-semibold prose-h3:mt-8 prose-h3:mb-4 prose-h3:text-xl prose-p:text-slate-700 prose-p:leading-relaxed prose-strong:text-slate-900 prose-ul:text-slate-700 prose-ul:my-4 prose-li:my-1 prose-table:text-sm prose-table:my-6 prose-td:border prose-td:border-slate-200 prose-td:p-2 prose-th:border prose-th:border-slate-300 prose-th:bg-slate-50 prose-th:p-2 prose-th:font-semibold prose-code:text-sm prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded max-w-none mb-6">
+                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
                     {result.answer}
-                  </p>
+                  </ReactMarkdown>
                 </div>
                 
                 <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
