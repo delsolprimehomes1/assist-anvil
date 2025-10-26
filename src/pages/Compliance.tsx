@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shield, Plus, AlertTriangle, CheckCircle, Clock } from "lucide-react";
+import { Shield, Plus, AlertTriangle, CheckCircle, Clock, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,38 +8,25 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, Di
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-
-const licenses = [
-  {
-    id: 1,
-    state: "Texas",
-    npn: "12345678",
-    expiresOn: "2024-12-15",
-    status: "active" as const
-  },
-  {
-    id: 2,
-    state: "California",
-    npn: "87654321",
-    expiresOn: "2024-03-20",
-    status: "expiring_soon" as const
-  },
-  {
-    id: 3,
-    state: "Florida",
-    npn: "11223344",
-    expiresOn: "2023-11-30",
-    status: "expired" as const
-  }
-];
+import { useAuth } from "@/hooks/useAuth";
+import { useAgentProfile } from "@/hooks/useAgentProfile";
+import { useNonResidentLicenses } from "@/hooks/useNonResidentLicenses";
+import { useComplianceRecords } from "@/hooks/useComplianceRecords";
 
 const Compliance = () => {
+  const { user, loading: authLoading } = useAuth();
+  const { profile, isLoading: profileLoading } = useAgentProfile();
+  const { licenses, isLoading: licensesLoading, createLicense } = useNonResidentLicenses();
+  const { complianceRecord, isLoading: complianceLoading } = useComplianceRecords();
+  
   const [showAddDialog, setShowAddDialog] = useState(false);
   const [newLicense, setNewLicense] = useState({
     state: "",
     npn: "",
     expiresOn: ""
   });
+
+  const isLoading = authLoading || profileLoading || licensesLoading || complianceLoading;
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -71,12 +58,60 @@ const Compliance = () => {
     return diffDays;
   };
 
-  const handleAddLicense = () => {
-    // In real app, this would call an API
-    console.log("Adding license:", newLicense);
+  const handleAddLicense = async () => {
+    if (!newLicense.state || !newLicense.npn || !newLicense.expiresOn) {
+      return;
+    }
+
+    await createLicense.mutateAsync({
+      state: newLicense.state,
+      license_number: newLicense.npn,
+      expiration_date: newLicense.expiresOn,
+    });
+
     setNewLicense({ state: "", npn: "", expiresOn: "" });
     setShowAddDialog(false);
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
+
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <p className="text-muted-foreground">Please sign in to view compliance information.</p>
+      </div>
+    );
+  }
+
+  // Combine resident and non-resident licenses
+  const allLicenses = [
+    ...(profile?.resident_license_number ? [{
+      id: 'resident',
+      state: profile.resident_state || '',
+      license_number: profile.resident_license_number,
+      expiration_date: profile.resident_license_exp || '',
+      status: profile.resident_license_exp ? 
+        (() => {
+          const daysUntil = getDaysUntilExpiration(profile.resident_license_exp);
+          if (daysUntil < 0) return 'expired';
+          if (daysUntil <= 90) return 'expiring_soon';
+          return 'active';
+        })() : 'active',
+      isResident: true,
+    }] : []),
+    ...licenses.map(l => ({ ...l, isResident: false })),
+  ];
+
+  const totalLicenses = allLicenses.length;
+  const activeLicenses = allLicenses.filter(l => l.status === 'active').length;
+  const expiringSoon = allLicenses.filter(l => l.status === 'expiring_soon').length;
+  const hasAlerts = allLicenses.some(l => l.status === 'expiring_soon' || l.status === 'expired');
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -153,7 +188,7 @@ const Compliance = () => {
       </div>
 
       {/* Alert for expiring licenses */}
-      {licenses.some(license => license.status === "expiring_soon" || license.status === "expired") && (
+      {hasAlerts && (
         <Card className="border-destructive/50 bg-destructive/5">
           <CardContent className="pt-6">
             <div className="flex items-center space-x-2">
@@ -177,7 +212,7 @@ const Compliance = () => {
             <Shield className="h-4 w-4 text-primary" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{licenses.length}</div>
+            <div className="text-2xl font-bold">{totalLicenses}</div>
             <p className="text-xs text-muted-foreground">Across all states</p>
           </CardContent>
         </Card>
@@ -188,7 +223,7 @@ const Compliance = () => {
             <CheckCircle className="h-4 w-4 text-success" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{licenses.filter(l => l.status === "active").length}</div>
+            <div className="text-2xl font-bold">{activeLicenses}</div>
             <p className="text-xs text-muted-foreground">In good standing</p>
           </CardContent>
         </Card>
@@ -199,8 +234,8 @@ const Compliance = () => {
             <Clock className="h-4 w-4 text-warning" />
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{licenses.filter(l => l.status === "expiring_soon").length}</div>
-            <p className="text-xs text-muted-foreground">Within 60 days</p>
+            <div className="text-2xl font-bold">{expiringSoon}</div>
+            <p className="text-xs text-muted-foreground">Within 90 days</p>
           </CardContent>
         </Card>
       </div>
@@ -226,36 +261,49 @@ const Compliance = () => {
               </TableRow>
             </TableHeader>
             <TableBody>
-              {licenses.map((license) => {
-                const daysLeft = getDaysUntilExpiration(license.expiresOn);
-                return (
-                  <TableRow key={license.id}>
-                    <TableCell className="font-medium">{license.state}</TableCell>
-                    <TableCell>{license.npn}</TableCell>
-                    <TableCell>{new Date(license.expiresOn).toLocaleDateString()}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center space-x-2">
-                        {getStatusIcon(license.status)}
-                        {getStatusBadge(license.status)}
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <span className={`font-medium ${
-                        daysLeft < 0 ? 'text-destructive' :
-                        daysLeft < 60 ? 'text-warning' :
-                        'text-success'
-                      }`}>
-                        {daysLeft < 0 ? `${Math.abs(daysLeft)} days overdue` : `${daysLeft} days`}
-                      </span>
-                    </TableCell>
-                    <TableCell>
-                      <Button variant="outline" size="sm">
-                        Renew
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                );
-              })}
+              {allLicenses.length === 0 ? (
+                <TableRow>
+                  <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
+                    No licenses added yet. Click "Add License" to get started.
+                  </TableCell>
+                </TableRow>
+              ) : (
+                allLicenses.map((license) => {
+                  const daysLeft = getDaysUntilExpiration(license.expiration_date);
+                  return (
+                    <TableRow key={license.id}>
+                      <TableCell className="font-medium">
+                        {license.state}
+                        {license.isResident && (
+                          <Badge variant="secondary" className="ml-2 text-xs">Resident</Badge>
+                        )}
+                      </TableCell>
+                      <TableCell>{license.license_number}</TableCell>
+                      <TableCell>{new Date(license.expiration_date).toLocaleDateString()}</TableCell>
+                      <TableCell>
+                        <div className="flex items-center space-x-2">
+                          {getStatusIcon(license.status)}
+                          {getStatusBadge(license.status)}
+                        </div>
+                      </TableCell>
+                      <TableCell>
+                        <span className={`font-medium ${
+                          daysLeft < 0 ? 'text-destructive' :
+                          daysLeft < 90 ? 'text-warning' :
+                          'text-success'
+                        }`}>
+                          {daysLeft < 0 ? `${Math.abs(daysLeft)} days overdue` : `${daysLeft} days`}
+                        </span>
+                      </TableCell>
+                      <TableCell>
+                        <Button variant="outline" size="sm">
+                          Renew
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })
+              )}
             </TableBody>
           </Table>
         </CardContent>
