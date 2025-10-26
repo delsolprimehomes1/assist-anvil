@@ -54,8 +54,12 @@ export function ScheduleCalendarDialog() {
     }
   };
 
+  const formatDateForComparison = (date: Date): string => {
+    return format(date, 'yyyy-MM-dd');
+  };
+
   const filterEventsByDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateForComparison(date);
     const events = monthSchedule.filter(item => item.date === dateStr);
     setSelectedDateEvents(events);
   };
@@ -65,7 +69,7 @@ export function ScheduleCalendarDialog() {
   };
 
   const getEventCountForDate = (date: Date) => {
-    const dateStr = date.toISOString().split('T')[0];
+    const dateStr = formatDateForComparison(date);
     return monthSchedule.filter(item => item.date === dateStr).length;
   };
 
