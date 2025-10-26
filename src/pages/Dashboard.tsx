@@ -99,6 +99,18 @@ const Dashboard = () => {
       return false;
     }
   };
+
+  const formatTime12Hour = (time: string): string => {
+    try {
+      const [hours, minutes] = time.split(':').map(Number);
+      const period = hours >= 12 ? 'PM' : 'AM';
+      const hour12 = hours % 12 || 12;
+      return `${hour12}:${minutes.toString().padStart(2, '0')} ${period}`;
+    } catch {
+      return time;
+    }
+  };
+
   const { scrollY } = useScroll();
   const heroY = useTransform(scrollY, [0, 200], [0, -50]);
   const heroOpacity = useTransform(scrollY, [0, 200], [1, 0.8]);
@@ -270,7 +282,7 @@ const Dashboard = () => {
                         <div className="flex items-center gap-2">
                           <Clock className="h-4 w-4 text-primary" />
                           <Badge variant="outline" className="font-mono text-xs">
-                            {upcomingEvent.time}
+                            {formatTime12Hour(upcomingEvent.time)}
                           </Badge>
                           {upcomingEvent.date !== format(new Date(), 'yyyy-MM-dd') && (
                             <span className="text-sm text-muted-foreground">
@@ -310,7 +322,7 @@ const Dashboard = () => {
                               <div className="flex items-center gap-2">
                                 <Clock className="h-3.5 w-3.5 text-muted-foreground" />
                                 <Badge variant="outline" className="text-xs">
-                                  {item.time}
+                                  {formatTime12Hour(item.time)}
                                 </Badge>
                                 <span className="text-xs text-muted-foreground hidden md:inline">
                                   {getRelativeTime(item.date, item.time)}
