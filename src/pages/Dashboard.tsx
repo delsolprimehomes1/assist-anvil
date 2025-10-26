@@ -7,7 +7,7 @@ import { QuickActions } from "@/components/dashboard/QuickActions";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { ScheduleCalendarDialog } from "@/components/dashboard/ScheduleCalendarDialog";
-import { formatDistanceToNow, parseISO, isAfter, isBefore, startOfDay } from "date-fns";
+import { formatDistanceToNow, parseISO, isAfter, isBefore, startOfDay, format } from "date-fns";
 
 interface ScheduleItem {
   id: string;
@@ -48,7 +48,7 @@ const Dashboard = () => {
 
   const fetchSchedule = async () => {
     try {
-      const today = new Date().toISOString().split('T')[0];
+      const today = format(new Date(), 'yyyy-MM-dd');
       const now = new Date();
       
       // Fetch today's and future schedule items
@@ -261,8 +261,8 @@ const Dashboard = () => {
                       <Clock className="h-4 w-4 text-primary" />
                       <Badge variant="outline" className="font-mono">{upcomingEvent.time}</Badge>
                       <span className="text-sm text-muted-foreground">
-                        {upcomingEvent.date !== new Date().toISOString().split('T')[0] && 
-                          `on ${new Date(upcomingEvent.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                        {upcomingEvent.date !== format(new Date(), 'yyyy-MM-dd') && 
+                          `on ${new Date(upcomingEvent.date + 'T00:00:00').toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
                         }
                       </span>
                     </div>

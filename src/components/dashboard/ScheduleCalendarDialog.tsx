@@ -65,7 +65,7 @@ export function ScheduleCalendarDialog() {
   };
 
   const getDatesWithEvents = () => {
-    return monthSchedule.map(item => new Date(item.date));
+    return monthSchedule.map(item => new Date(item.date + 'T00:00:00'));
   };
 
   const getEventCountForDate = (date: Date) => {
