@@ -689,8 +689,16 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    className="h-10 md:h-9"
-                    onClick={() => {
+                    className="h-12 md:h-9 cursor-pointer touch-manipulation"
+                    onClick={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
+                      setSelectedCarrier(transformCarrierForModal(carrier));
+                      setIsModalOpen(true);
+                    }}
+                    onTouchEnd={(e) => {
+                      e.preventDefault();
+                      e.stopPropagation();
                       setSelectedCarrier(transformCarrierForModal(carrier));
                       setIsModalOpen(true);
                     }}
@@ -699,7 +707,7 @@ const Carriers = () => {
                     <span className="text-sm">Details</span>
                   </Button>
                   {carrier.portal_url && (
-                    <Button size="sm" asChild>
+                    <Button size="sm" className="h-12 md:h-9" asChild>
                       <a href={carrier.portal_url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="h-3 w-3 mr-1" />
                         Portal
