@@ -115,13 +115,6 @@ All colors MUST be HSL.
     --sidebar-accent-foreground: 240 4.8% 95.9%;
     --sidebar-border: 240 3.7% 15.9%;
     --sidebar-ring: 217.2 91.2% 59.8%;
-
-    /* RAG System Theme */
-    --rag-background: 222 47% 6%; /* #0E1117 */
-    --rag-background-light: 220 28% 12%; /* #1A202C */
-    --rag-gold: 36 54% 51%; /* #C98A3A */
-    --rag-gold-light: 39 68% 63%; /* #E5B15E */
-    --rag-navy: 216 30% 15%; /* #1A2332 */
   }
 }
 

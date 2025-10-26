@@ -29,10 +29,10 @@ const App = () => (
       <Routes>
         <Route path="/auth" element={<Auth />} />
         <Route path="/accept-invitation" element={<AcceptInvitation />} />
-        <Route path="/ai-assist" element={<AIAssist />} />
         <Route path="/" element={<MainLayout />}>
           <Route index element={<Dashboard />} />
           <Route path="carriers" element={<Carriers />} />
+          <Route path="ai-assist" element={<AIAssist />} />
           <Route path="tools" element={<Tools />} />
           <Route path="training" element={<Training />} />
           <Route path="training/:trainingId" element={<TrainingPlayer />} />
