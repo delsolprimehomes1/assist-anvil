@@ -551,15 +551,45 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
                         )}
                         <span className="text-sm">{logoFile?.name || "Current logo"}</span>
                       </div>
-                      <Button
-                        type="button"
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setLogoFile(null)}
-                      >
-                        <X className="h-4 w-4" />
-                      </Button>
+                      <div className="flex gap-2">
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          onClick={() => document.getElementById('logo-replace-input')?.click()}
+                        >
+                          <Upload className="h-4 w-4 mr-1" />
+                          Replace
+                        </Button>
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setLogoFile(null)}
+                        >
+                          <X className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </div>
+                    <input
+                      id="logo-replace-input"
+                      type="file"
+                      className="hidden"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file && file.size <= 2 * 1024 * 1024) {
+                          setLogoFile(file);
+                        } else {
+                          toast({
+                            title: "Error",
+                            description: "File must be under 2MB",
+                            variant: "destructive",
+                          });
+                        }
+                        e.target.value = '';
+                      }}
+                    />
                   </Card>
                 ) : (
                   <label className="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
