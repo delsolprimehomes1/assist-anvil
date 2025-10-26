@@ -1,11 +1,13 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Target, Calendar, Users, Award, DollarSign, Building2, FileText, Clock } from "lucide-react";
+import { TrendingUp, Target, Calendar, Users, Award, DollarSign, Building2, FileText, Clock, Sparkles } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { QuickActions } from "@/components/dashboard/QuickActions";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
+import { ScheduleCalendarDialog } from "@/components/dashboard/ScheduleCalendarDialog";
+import { formatDistanceToNow, parseISO, isAfter, isBefore, startOfDay } from "date-fns";
 
 interface ScheduleItem {
   id: string;
@@ -17,10 +19,11 @@ interface ScheduleItem {
 
 const Dashboard = () => {
   const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([]);
+  const [upcomingEvent, setUpcomingEvent] = useState<ScheduleItem | null>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    fetchTodaySchedule();
+    fetchSchedule();
 
     // Set up realtime subscription
     const channel = supabase
@@ -33,7 +36,7 @@ const Dashboard = () => {
           table: 'schedule_items'
         },
         () => {
-          fetchTodaySchedule();
+          fetchSchedule();
         }
       )
       .subscribe();
@@ -43,21 +46,57 @@ const Dashboard = () => {
     };
   }, []);
 
-  const fetchTodaySchedule = async () => {
+  const fetchSchedule = async () => {
     try {
       const today = new Date().toISOString().split('T')[0];
+      const now = new Date();
+      
+      // Fetch today's and future schedule items
       const { data, error } = await supabase
         .from('schedule_items')
         .select('*')
-        .eq('date', today)
-        .order('time', { ascending: true });
+        .gte('date', today)
+        .order('date', { ascending: true })
+        .order('time', { ascending: true })
+        .limit(20);
 
       if (error) throw error;
-      setTodaySchedule(data || []);
+      
+      const allEvents = data || [];
+      
+      // Filter today's events
+      const todayEvents = allEvents.filter(item => item.date === today);
+      setTodaySchedule(todayEvents);
+      
+      // Find next upcoming event
+      const upcoming = allEvents.find(item => {
+        const eventDateTime = parseISO(`${item.date}T${item.time}`);
+        return isAfter(eventDateTime, now);
+      });
+      
+      setUpcomingEvent(upcoming || null);
     } catch (error) {
       console.error('Error fetching schedule:', error);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const getRelativeTime = (date: string, time: string) => {
+    try {
+      const eventDateTime = parseISO(`${date}T${time}`);
+      return formatDistanceToNow(eventDateTime, { addSuffix: true });
+    } catch {
+      return '';
+    }
+  };
+
+  const isEventPast = (date: string, time: string) => {
+    try {
+      const eventDateTime = parseISO(`${date}T${time}`);
+      return isBefore(eventDateTime, new Date());
+    } catch {
+      return false;
     }
   };
   const { scrollY } = useScroll();
@@ -184,25 +223,79 @@ const Dashboard = () => {
           {/* Quick Actions */}
           <QuickActions />
 
-          {/* Recent Activity */}
+          {/* Next Upcoming Event */}
+          {upcomingEvent && (
+            <motion.div
+              whileHover={{ scale: 1.02 }}
+              transition={{ type: "spring", stiffness: 300, damping: 30 }}
+            >
+              <Card className="card-3d overflow-hidden border-2 border-primary/50 bg-gradient-to-br from-primary/10 via-background to-background">
+                <CardHeader className="relative pb-3">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <motion.div
+                        animate={{ 
+                          rotate: [0, 5, -5, 0],
+                          scale: [1, 1.1, 1]
+                        }}
+                        transition={{ duration: 2, repeat: Infinity }}
+                      >
+                        <Sparkles className="h-5 w-5 text-primary" />
+                      </motion.div>
+                      <Badge variant="default" className="bg-primary">
+                        NEXT UP
+                      </Badge>
+                    </div>
+                    <span className="text-xs text-muted-foreground">
+                      {getRelativeTime(upcomingEvent.date, upcomingEvent.time)}
+                    </span>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-2">
+                    <h3 className="text-xl font-bold">{upcomingEvent.title}</h3>
+                    {upcomingEvent.description && (
+                      <p className="text-sm text-muted-foreground">{upcomingEvent.description}</p>
+                    )}
+                    <div className="flex items-center gap-2 pt-2">
+                      <Clock className="h-4 w-4 text-primary" />
+                      <Badge variant="outline" className="font-mono">{upcomingEvent.time}</Badge>
+                      <span className="text-sm text-muted-foreground">
+                        {upcomingEvent.date !== new Date().toISOString().split('T')[0] && 
+                          `on ${new Date(upcomingEvent.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}`
+                        }
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            </motion.div>
+          )}
+
+          {/* Today's Schedule */}
           <motion.div
             whileHover={{ scale: 1.01 }}
             transition={{ type: "spring", stiffness: 300, damping: 30 }}
           >
             <Card className="card-3d overflow-hidden">
               <CardHeader className="relative">
-                <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                  <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
-                  >
-                    <Calendar className="h-5 w-5 text-primary" />
-                  </motion.div>
-                  Today's Schedule
-                </CardTitle>
-                <CardDescription className="text-sm md:text-base">
-                  Upcoming appointments and deadlines
-                </CardDescription>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
+                      <motion.div
+                        animate={{ rotate: 360 }}
+                        transition={{ duration: 8, repeat: Infinity, ease: "linear" }}
+                      >
+                        <Calendar className="h-5 w-5 text-primary" />
+                      </motion.div>
+                      Today's Schedule
+                    </CardTitle>
+                    <CardDescription className="text-sm md:text-base">
+                      Appointments and deadlines
+                    </CardDescription>
+                  </div>
+                  <ScheduleCalendarDialog />
+                </div>
               </CardHeader>
               <CardContent className="space-y-4">
                 {loading ? (
@@ -210,32 +303,46 @@ const Dashboard = () => {
                 ) : todaySchedule.length === 0 ? (
                   <p className="text-sm text-muted-foreground text-center py-4">No schedule items for today</p>
                 ) : (
-                  todaySchedule.map((item) => (
-                    <motion.div 
-                      key={item.id}
-                      className="flex flex-col md:flex-row md:items-center justify-between p-4 bg-accent/30 rounded-lg backdrop-blur-sm border border-white/10"
-                      whileHover={{ 
-                        backgroundColor: "rgba(var(--accent), 0.5)",
-                        scale: 1.02 
-                      }}
-                      transition={{ type: "spring", stiffness: 300 }}
-                    >
-                      <div className="mb-2 md:mb-0 flex-1">
-                        <p className="font-medium text-sm md:text-base">{item.title}</p>
-                        {item.description && (
-                          <p className="text-xs md:text-sm text-muted-foreground">{item.description}</p>
-                        )}
-                      </div>
-                      <motion.div
-                        whileHover={{ scale: 1.05 }}
-                        whileTap={{ scale: 0.95 }}
-                        className="flex items-center gap-2"
+                  todaySchedule.map((item) => {
+                    const isPast = isEventPast(item.date, item.time);
+                    return (
+                      <motion.div 
+                        key={item.id}
+                        className={`flex flex-col md:flex-row md:items-center justify-between p-4 rounded-lg backdrop-blur-sm border ${
+                          isPast 
+                            ? 'bg-accent/10 border-border/50 opacity-60' 
+                            : 'bg-accent/30 border-border'
+                        }`}
+                        whileHover={{ 
+                          backgroundColor: isPast ? "rgba(var(--accent), 0.15)" : "rgba(var(--accent), 0.5)",
+                          scale: 1.02 
+                        }}
+                        transition={{ type: "spring", stiffness: 300 }}
                       >
-                        <Clock className="h-4 w-4 text-muted-foreground" />
-                        <Badge variant="outline" className="text-xs md:text-sm">{item.time}</Badge>
+                        <div className="mb-2 md:mb-0 flex-1">
+                          <p className={`font-medium text-sm md:text-base ${isPast ? 'line-through' : ''}`}>
+                            {item.title}
+                          </p>
+                          {item.description && (
+                            <p className="text-xs md:text-sm text-muted-foreground">{item.description}</p>
+                          )}
+                        </div>
+                        <motion.div
+                          whileHover={{ scale: 1.05 }}
+                          whileTap={{ scale: 0.95 }}
+                          className="flex items-center gap-2"
+                        >
+                          <Clock className="h-4 w-4 text-muted-foreground" />
+                          <Badge variant="outline" className="text-xs md:text-sm">
+                            {item.time}
+                          </Badge>
+                          <span className="text-xs text-muted-foreground hidden md:inline">
+                            {getRelativeTime(item.date, item.time)}
+                          </span>
+                        </motion.div>
                       </motion.div>
-                    </motion.div>
-                  ))
+                    );
+                  })
                 )}
               </CardContent>
             </Card>
