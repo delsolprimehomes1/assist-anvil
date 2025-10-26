@@ -93,7 +93,7 @@ const AIAssist = () => {
         </div>
 
         {/* Input Card */}
-        <div className="bg-white/80 backdrop-blur-sm shadow-xl shadow-slate-200/50 rounded-2xl md:rounded-3xl p-8 md:p-10 mb-12">
+        <div className="relative bg-white/80 backdrop-blur-sm border border-white/20 rounded-xl md:rounded-2xl p-6 md:p-8 mb-12 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2),0_4px_6px_-2px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.25),0_8px_10px_-5px_rgba(0,0,0,0.1)] transition-all duration-300 ease-out">
           <h2 className="text-2xl font-semibold text-slate-800 mb-2">Ask Your Question</h2>
           <p className="text-slate-600 text-base mb-6">
             Type your question below and press Cmd/Ctrl + Enter to submit quickly
