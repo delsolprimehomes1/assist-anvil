@@ -489,6 +489,31 @@ const Carriers = () => {
     fetchCarriers();
   }, []);
 
+  const transformCarrierForModal = (carrier: any) => {
+    return {
+      id: carrier.id,
+      name: carrier.name,
+      shortCode: carrier.short_code,
+      amBestRating: carrier.am_best_rating,
+      products: carrier.products || [],
+      niches: carrier.niches || [],
+      turnaround: carrier.turnaround,
+      logoUrl: carrier.logo_url,
+      portalUrl: carrier.portal_url || '',
+      quotesUrl: carrier.quotes_url || '',
+      illustrationUrl: carrier.illustration_url || '',
+      headquarters: carrier.headquarters || '',
+      phone: carrier.phone || '',
+      founded: carrier.founded || '',
+      employees: carrier.employees || '',
+      description: carrier.description || '',
+      website: carrier.website || '',
+      specialProducts: carrier.special_products || [],
+      underwritingStrengths: carrier.underwriting_strengths || [],
+      companyHistory: carrier.company_history || ''
+    };
+  };
+
   const fetchCarriers = async () => {
     setLoading(true);
     try {
@@ -666,7 +691,7 @@ const Carriers = () => {
                     variant="outline"
                     className="h-10 md:h-9"
                     onClick={() => {
-                      setSelectedCarrier(carrier);
+                      setSelectedCarrier(transformCarrierForModal(carrier));
                       setIsModalOpen(true);
                     }}
                   >
