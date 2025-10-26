@@ -14,6 +14,56 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_profiles: {
+        Row: {
+          agency_name: string | null
+          ce_due_date: string | null
+          created_at: string
+          goal_states: string[] | null
+          id: string
+          npn_number: string | null
+          resident_license_exp: string | null
+          resident_license_number: string | null
+          resident_state: string | null
+          updated_at: string
+          upline_manager: string | null
+        }
+        Insert: {
+          agency_name?: string | null
+          ce_due_date?: string | null
+          created_at?: string
+          goal_states?: string[] | null
+          id: string
+          npn_number?: string | null
+          resident_license_exp?: string | null
+          resident_license_number?: string | null
+          resident_state?: string | null
+          updated_at?: string
+          upline_manager?: string | null
+        }
+        Update: {
+          agency_name?: string | null
+          ce_due_date?: string | null
+          created_at?: string
+          goal_states?: string[] | null
+          id?: string
+          npn_number?: string | null
+          resident_license_exp?: string | null
+          resident_license_number?: string | null
+          resident_state?: string | null
+          updated_at?: string
+          upline_manager?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_profiles_id_fkey"
+            columns: ["id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       approved_admin_emails: {
         Row: {
           added_at: string
@@ -37,6 +87,120 @@ export type Database = {
           notes?: string | null
         }
         Relationships: []
+      }
+      business_goals: {
+        Row: {
+          action_steps: string[] | null
+          agent_id: string
+          completed_at: string | null
+          created_at: string
+          goal_title: string
+          id: string
+          notes: string | null
+          progress_percentage: number | null
+          status: Database["public"]["Enums"]["goal_status"] | null
+          target_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          action_steps?: string[] | null
+          agent_id: string
+          completed_at?: string | null
+          created_at?: string
+          goal_title: string
+          id?: string
+          notes?: string | null
+          progress_percentage?: number | null
+          status?: Database["public"]["Enums"]["goal_status"] | null
+          target_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          action_steps?: string[] | null
+          agent_id?: string
+          completed_at?: string | null
+          created_at?: string
+          goal_title?: string
+          id?: string
+          notes?: string | null
+          progress_percentage?: number | null
+          status?: Database["public"]["Enums"]["goal_status"] | null
+          target_date?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_goals_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      carrier_contracts: {
+        Row: {
+          agent_id: string
+          carrier_id: string | null
+          carrier_type: string[] | null
+          contract_level: number | null
+          contract_start_date: string | null
+          contract_status: Database["public"]["Enums"]["contract_status"] | null
+          created_at: string
+          id: string
+          notes: string | null
+          updated_at: string
+          upline_imo: string | null
+          writing_number: string | null
+        }
+        Insert: {
+          agent_id: string
+          carrier_id?: string | null
+          carrier_type?: string[] | null
+          contract_level?: number | null
+          contract_start_date?: string | null
+          contract_status?:
+            | Database["public"]["Enums"]["contract_status"]
+            | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          upline_imo?: string | null
+          writing_number?: string | null
+        }
+        Update: {
+          agent_id?: string
+          carrier_id?: string | null
+          carrier_type?: string[] | null
+          contract_level?: number | null
+          contract_start_date?: string | null
+          contract_status?:
+            | Database["public"]["Enums"]["contract_status"]
+            | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          updated_at?: string
+          upline_imo?: string | null
+          writing_number?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_contracts_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "carrier_contracts_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       carriers: {
         Row: {
@@ -119,6 +283,201 @@ export type Database = {
         }
         Relationships: []
       }
+      compliance_documents: {
+        Row: {
+          agent_id: string
+          created_at: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          expiration_date: string | null
+          file_url: string
+          id: string
+          notes: string | null
+          related_id: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          document_type: Database["public"]["Enums"]["document_type"]
+          expiration_date?: string | null
+          file_url: string
+          id?: string
+          notes?: string | null
+          related_id?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          document_type?: Database["public"]["Enums"]["document_type"]
+          expiration_date?: string | null
+          file_url?: string
+          id?: string
+          notes?: string | null
+          related_id?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_documents_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      compliance_records: {
+        Row: {
+          agent_id: string
+          aml_training_date: string | null
+          background_check_date: string | null
+          ce_hours_completed: boolean | null
+          ce_hours_earned: number | null
+          ce_hours_required: number | null
+          created_at: string
+          eo_insurance_exp: string | null
+          eo_insurance_provider: string | null
+          eo_policy_number: string | null
+          id: string
+          notes: string | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          aml_training_date?: string | null
+          background_check_date?: string | null
+          ce_hours_completed?: boolean | null
+          ce_hours_earned?: number | null
+          ce_hours_required?: number | null
+          created_at?: string
+          eo_insurance_exp?: string | null
+          eo_insurance_provider?: string | null
+          eo_policy_number?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          aml_training_date?: string | null
+          background_check_date?: string | null
+          ce_hours_completed?: boolean | null
+          ce_hours_earned?: number | null
+          ce_hours_required?: number | null
+          created_at?: string
+          eo_insurance_exp?: string | null
+          eo_insurance_provider?: string | null
+          eo_policy_number?: string | null
+          id?: string
+          notes?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "compliance_records_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      non_resident_licenses: {
+        Row: {
+          agent_id: string
+          created_at: string
+          expiration_date: string
+          id: string
+          license_number: string
+          notes: string | null
+          state: string
+          status: Database["public"]["Enums"]["license_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          expiration_date: string
+          id?: string
+          license_number: string
+          notes?: string | null
+          state: string
+          status?: Database["public"]["Enums"]["license_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          expiration_date?: string
+          id?: string
+          license_number?: string
+          notes?: string | null
+          state?: string
+          status?: Database["public"]["Enums"]["license_status"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "non_resident_licenses_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      products: {
+        Row: {
+          agent_id: string
+          carrier_contract_id: string | null
+          created_at: string
+          id: string
+          notes: string | null
+          product_line: string
+          product_name: string
+          updated_at: string
+        }
+        Insert: {
+          agent_id: string
+          carrier_contract_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_line: string
+          product_name: string
+          updated_at?: string
+        }
+        Update: {
+          agent_id?: string
+          carrier_contract_id?: string | null
+          created_at?: string
+          id?: string
+          notes?: string | null
+          product_line?: string
+          product_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "products_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "products_carrier_contract_id_fkey"
+            columns: ["carrier_contract_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_contracts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -142,6 +501,47 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      resources: {
+        Row: {
+          agent_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          resource_type: Database["public"]["Enums"]["resource_type"]
+          title: string
+          updated_at: string
+          url: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          resource_type: Database["public"]["Enums"]["resource_type"]
+          title: string
+          updated_at?: string
+          url?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          resource_type?: Database["public"]["Enums"]["resource_type"]
+          title?: string
+          updated_at?: string
+          url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "resources_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       schedule_items: {
         Row: {
@@ -492,7 +892,22 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "agent" | "user"
+      contract_status: "active" | "pending" | "terminated"
+      document_type:
+        | "license"
+        | "contract"
+        | "eo_insurance"
+        | "ce_certificate"
+        | "other"
+      goal_status: "not_started" | "in_progress" | "completed" | "abandoned"
+      license_status: "active" | "expiring_soon" | "expired" | "pending"
       progress_status: "not_started" | "in_progress" | "completed"
+      resource_type:
+        | "carrier_portal"
+        | "license_lookup"
+        | "ce_provider"
+        | "document"
+        | "link"
       training_level: "beginner" | "intermediate" | "advanced"
       training_status: "draft" | "published" | "archived"
       training_type: "video" | "audio" | "article" | "pdf" | "quiz" | "live"
@@ -624,7 +1039,24 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "agent", "user"],
+      contract_status: ["active", "pending", "terminated"],
+      document_type: [
+        "license",
+        "contract",
+        "eo_insurance",
+        "ce_certificate",
+        "other",
+      ],
+      goal_status: ["not_started", "in_progress", "completed", "abandoned"],
+      license_status: ["active", "expiring_soon", "expired", "pending"],
       progress_status: ["not_started", "in_progress", "completed"],
+      resource_type: [
+        "carrier_portal",
+        "license_lookup",
+        "ce_provider",
+        "document",
+        "link",
+      ],
       training_level: ["beginner", "intermediate", "advanced"],
       training_status: ["draft", "published", "archived"],
       training_type: ["video", "audio", "article", "pdf", "quiz", "live"],
