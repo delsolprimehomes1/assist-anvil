@@ -3,61 +3,67 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Loader2 } from "lucide-react";
-
 const Auth = () => {
   const navigate = useNavigate();
-  const { toast } = useToast();
+  const {
+    toast
+  } = useToast();
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
   const [isSignUp, setIsSignUp] = useState(false);
   const formsRef = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
     // Check if user is already logged in
-    supabase.auth.getSession().then(({ data: { session } }) => {
+    supabase.auth.getSession().then(({
+      data: {
+        session
+      }
+    }) => {
       if (session) {
         navigate("/");
       }
     });
 
     // Listen for auth changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const {
+      data: {
+        subscription
+      }
+    } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         navigate("/");
       }
     });
-
     return () => subscription.unsubscribe();
   }, [navigate]);
-
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signUp({
+      const {
+        error
+      } = await supabase.auth.signUp({
         email,
         password,
         options: {
           emailRedirectTo: `${window.location.origin}/`,
           data: {
-            full_name: fullName,
-          },
-        },
+            full_name: fullName
+          }
+        }
       });
-
       if (error) {
         toast({
           title: "Sign up failed",
           description: error.message,
-          variant: "destructive",
+          variant: "destructive"
         });
       } else {
         toast({
           title: "Success!",
-          description: "Your account has been created. Please log in.",
+          description: "Your account has been created. Please log in."
         });
         setEmail("");
         setPassword("");
@@ -67,41 +73,39 @@ const Auth = () => {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      const {
+        error
+      } = await supabase.auth.signInWithPassword({
         email,
-        password,
+        password
       });
-
       if (error) {
         toast({
           title: "Login failed",
           description: error.message,
-          variant: "destructive",
+          variant: "destructive"
         });
       }
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setLoading(false);
     }
   };
-
   const handleToggleToSignUp = () => {
     if (formsRef.current) {
       formsRef.current.classList.remove('bounceRight');
@@ -109,7 +113,6 @@ const Auth = () => {
     }
     setIsSignUp(true);
   };
-
   const handleToggleToLogin = () => {
     if (formsRef.current) {
       formsRef.current.classList.remove('bounceLeft');
@@ -117,16 +120,12 @@ const Auth = () => {
     }
     setIsSignUp(false);
   };
-
-  return (
-    <section className="user">
+  return <section className="user">
       <div className="user_options-container">
         <div className="user_options-text">
           <div className="user_options-unregistered">
             <h2 className="user_unregistered-title">Don't have an account?</h2>
-            <p className="user_unregistered-text">
-              Join LifeCo Portal to access powerful tools and resources for insurance agents.
-            </p>
+            <p className="user_unregistered-text">Join BattersBox's Portal to access powerful tools and resources for insurance agents.</p>
             <button className="user_unregistered-signup" onClick={handleToggleToSignUp}>
               Sign up
             </button>
@@ -149,26 +148,10 @@ const Auth = () => {
             <form onSubmit={handleSignIn} className="forms_form">
               <fieldset className="forms_fieldset">
                 <div className="forms_field">
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    className="forms_field-input"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
+                  <input type="email" placeholder="Email" className="forms_field-input" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} />
                 </div>
                 <div className="forms_field">
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    className="forms_field-input"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
+                  <input type="password" placeholder="Password" className="forms_field-input" value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} />
                 </div>
               </fieldset>
               <div className="forms_buttons">
@@ -187,38 +170,13 @@ const Auth = () => {
             <form onSubmit={handleSignUp} className="forms_form">
               <fieldset className="forms_fieldset">
                 <div className="forms_field">
-                  <input
-                    type="text"
-                    placeholder="Full Name"
-                    className="forms_field-input"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
+                  <input type="text" placeholder="Full Name" className="forms_field-input" value={fullName} onChange={e => setFullName(e.target.value)} required disabled={loading} />
                 </div>
                 <div className="forms_field">
-                  <input
-                    type="email"
-                    placeholder="Email"
-                    className="forms_field-input"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    required
-                    disabled={loading}
-                  />
+                  <input type="email" placeholder="Email" className="forms_field-input" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} />
                 </div>
                 <div className="forms_field">
-                  <input
-                    type="password"
-                    placeholder="Password"
-                    className="forms_field-input"
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    required
-                    minLength={6}
-                    disabled={loading}
-                  />
+                  <input type="password" placeholder="Password" className="forms_field-input" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} disabled={loading} />
                 </div>
               </fieldset>
               <div className="forms_buttons">
@@ -230,8 +188,6 @@ const Auth = () => {
           </div>
         </div>
       </div>
-    </section>
-  );
+    </section>;
 };
-
 export default Auth;
