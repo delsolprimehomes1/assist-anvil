@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -50,9 +50,62 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
   });
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [pdfFiles, setPdfFiles] = useState<Array<{ title: string; button_label: string; file: File | null }>>([
+  const [pdfFiles, setPdfFiles] = useState<Array<{ 
+    title: string; 
+    button_label: string; 
+    file: File | null;
+    url?: string;
+    file_path?: string;
+    isExisting?: boolean;
+  }>>([
     { title: "", button_label: "", file: null }
   ]);
+
+  // Reset form when carrier prop changes or dialog opens
+  useEffect(() => {
+    if (open) {
+      setFormData({
+        name: carrier?.name || "",
+        short_code: carrier?.short_code || "",
+        am_best_rating: carrier?.am_best_rating || "",
+        headquarters: carrier?.headquarters || "",
+        phone: carrier?.phone || "",
+        founded: carrier?.founded || "",
+        employees: carrier?.employees || "",
+        website: carrier?.website || "",
+        description: carrier?.description || "",
+        company_history: carrier?.company_history || "",
+        products: carrier?.products || [],
+        niches: carrier?.niches || [],
+        turnaround: carrier?.turnaround || "",
+        portal_url: carrier?.portal_url || "",
+        quotes_url: carrier?.quotes_url || "",
+        illustration_url: carrier?.illustration_url || "",
+        special_products: carrier?.special_products?.length > 0 ? carrier.special_products : [""],
+        underwriting_strengths: carrier?.underwriting_strengths?.length > 0 ? carrier.underwriting_strengths : [""],
+      });
+      
+      // Reset logo file
+      setLogoFile(null);
+      
+      // Populate existing PDFs or reset to empty
+      if (carrier?.pdf_documents && carrier.pdf_documents.length > 0) {
+        setPdfFiles(carrier.pdf_documents.map((pdf: any) => ({
+          title: pdf.title || "",
+          button_label: pdf.button_label || "",
+          file: null,
+          url: pdf.url,
+          file_path: pdf.file_path,
+          isExisting: true
+        })));
+      } else {
+        setPdfFiles([{ title: "", button_label: "", file: null }]);
+      }
+      
+      // Reset to first step
+      setStep(1);
+    }
+  }, [carrier, open]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -168,13 +221,23 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
         logoUrl = publicUrl;
       }
 
-      // Upload PDFs and build pdf_documents array
-      const pdfDocuments = [];
+      // Keep existing PDFs and add new ones
+      const existingPdfs = pdfFiles
+        .filter(pdf => pdf.isExisting && pdf.url)
+        .map(pdf => ({
+          title: pdf.title,
+          button_label: pdf.button_label,
+          url: pdf.url,
+          file_path: pdf.file_path
+        }));
+
+      // Upload new PDFs
+      const newPdfDocuments = [];
       for (const pdf of pdfFiles) {
         if (pdf.file && pdf.title && pdf.button_label) {
           const pdfPath = `pdfs/${formData.short_code}-${Date.now()}-${pdf.file.name}`;
           const { publicUrl, filePath } = await uploadFile(pdf.file, pdfPath);
-          pdfDocuments.push({
+          newPdfDocuments.push({
             title: pdf.title,
             button_label: pdf.button_label,
             url: publicUrl,
@@ -186,7 +249,7 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
       const carrierData = {
         ...formData,
         logo_url: logoUrl,
-        pdf_documents: [...(carrier?.pdf_documents || []), ...pdfDocuments],
+        pdf_documents: [...existingPdfs, ...newPdfDocuments],
         special_products: formData.special_products.filter((p: string) => p.trim()),
         underwriting_strengths: formData.underwriting_strengths.filter((s: string) => s.trim()),
         created_by: carrier ? undefined : user.id,
@@ -563,27 +626,38 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
                   value={pdf.button_label}
                   onChange={(e) => updatePdfField(index, 'button_label', e.target.value)}
                 />
-                <label className="flex items-center justify-center w-full h-20 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
-                  {pdf.file ? (
-                    <span className="text-sm">{pdf.file.name}</span>
-                  ) : (
-                    <div className="text-center">
-                      <Upload className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
-                      <p className="text-xs text-muted-foreground">Upload PDF</p>
-                    </div>
-                  )}
-                  <input
-                    type="file"
-                    className="hidden"
-                    accept="application/pdf"
-                    onChange={(e) => {
-                      const file = e.target.files?.[0];
-                      if (file) {
-                        updatePdfField(index, 'file', file);
-                      }
-                    }}
-                  />
-                </label>
+                {pdf.isExisting && pdf.url && (
+                  <div className="flex items-center gap-2 text-sm text-muted-foreground bg-muted/50 p-2 rounded">
+                    <FileText className="h-4 w-4" />
+                    <a href={pdf.url} target="_blank" rel="noopener noreferrer" className="underline hover:text-foreground">
+                      View current PDF
+                    </a>
+                    <span className="text-xs">(existing)</span>
+                  </div>
+                )}
+                {!pdf.isExisting && (
+                  <label className="flex items-center justify-center w-full h-20 border-2 border-dashed rounded-lg cursor-pointer hover:bg-muted/50">
+                    {pdf.file ? (
+                      <span className="text-sm">{pdf.file.name}</span>
+                    ) : (
+                      <div className="text-center">
+                        <Upload className="h-6 w-6 mx-auto mb-1 text-muted-foreground" />
+                        <p className="text-xs text-muted-foreground">Upload PDF</p>
+                      </div>
+                    )}
+                    <input
+                      type="file"
+                      className="hidden"
+                      accept="application/pdf"
+                      onChange={(e) => {
+                        const file = e.target.files?.[0];
+                        if (file) {
+                          updatePdfField(index, 'file', file);
+                        }
+                      }}
+                    />
+                  </label>
+                )}
               </Card>
             ))}
           </div>
