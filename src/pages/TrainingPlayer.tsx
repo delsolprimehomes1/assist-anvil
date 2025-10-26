@@ -1,9 +1,8 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useVideoProgress } from "@/hooks/useVideoProgress";
-import ReactPlayer from "react-player";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -14,9 +13,28 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 const TrainingPlayer = () => {
   const { trainingId } = useParams();
   const navigate = useNavigate();
-  const { currentTime, setCurrentTime, duration, setDuration, markAsComplete } = useVideoProgress(trainingId!);
+  const { markAsComplete } = useVideoProgress(trainingId!);
   const [videoError, setVideoError] = useState<string | null>(null);
-  const [videoReady, setVideoReady] = useState(false);
+
+  // Helper function to extract YouTube video ID
+  const getYouTubeVideoId = (url: string) => {
+    const patterns = [
+      /(?:youtube\.com\/watch\?v=|youtu\.be\/)([^&\n?#]+)/,
+      /youtube\.com\/embed\/([^&\n?#]+)/,
+    ];
+    for (const pattern of patterns) {
+      const match = url.match(pattern);
+      if (match) return match[1];
+    }
+    return null;
+  };
+
+  // Helper function to extract Vimeo video ID
+  const getVimeoVideoId = (url: string) => {
+    const pattern = /vimeo\.com\/(?:video\/)?(\d+)/;
+    const match = url.match(pattern);
+    return match ? match[1] : null;
+  };
 
   const { data: training, isLoading } = useQuery({
     queryKey: ['training', trainingId],
@@ -73,26 +91,64 @@ const TrainingPlayer = () => {
                       </Alert>
                     )}
                     
-                    {/* Native HTML5 Video Player - Primary solution */}
-                    <video
-                      src={training.video_url}
-                      controls
-                      className="w-full h-full"
-                      onTimeUpdate={(e) => setCurrentTime(e.currentTarget.currentTime)}
-                      onLoadedMetadata={(e) => {
-                        setDuration(e.currentTarget.duration);
-                        setVideoReady(true);
-                        console.log('Video loaded successfully:', training.video_url);
-                      }}
-                      onError={(e) => {
-                        const errorMsg = 'Failed to load video. The video format may not be supported.';
-                        setVideoError(errorMsg);
-                        console.error('Native video error:', e);
-                      }}
-                      preload="metadata"
-                    >
-                      Your browser does not support the video tag.
-                    </video>
+                    {/* YouTube Embed */}
+                    {training.video_type === 'youtube' && (() => {
+                      const videoId = getYouTubeVideoId(training.video_url);
+                      return videoId ? (
+                        <iframe
+                          className="w-full h-full"
+                          src={`https://www.youtube.com/embed/${videoId}`}
+                          title={training.title}
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                          Invalid YouTube URL
+                        </div>
+                      );
+                    })()}
+                    
+                    {/* Vimeo Embed */}
+                    {training.video_type === 'vimeo' && (() => {
+                      const videoId = getVimeoVideoId(training.video_url);
+                      return videoId ? (
+                        <iframe
+                          className="w-full h-full"
+                          src={`https://player.vimeo.com/video/${videoId}`}
+                          title={training.title}
+                          allow="autoplay; fullscreen; picture-in-picture"
+                          allowFullScreen
+                        />
+                      ) : (
+                        <div className="flex items-center justify-center h-full text-muted-foreground">
+                          Invalid Vimeo URL
+                        </div>
+                      );
+                    })()}
+                    
+                    {/* Custom Embed Code */}
+                    {training.video_type === 'embed' && training.embed_code && (
+                      <div 
+                        className="w-full h-full" 
+                        dangerouslySetInnerHTML={{ __html: training.embed_code }}
+                      />
+                    )}
+                    
+                    {/* Native HTML5 Video Player for direct uploads */}
+                    {training.video_type === 'upload' && (
+                      <video
+                        src={training.video_url}
+                        controls
+                        className="w-full h-full"
+                        onError={() => {
+                          setVideoError('Failed to load video. The video format may not be supported.');
+                        }}
+                        preload="metadata"
+                      >
+                        Your browser does not support the video tag.
+                      </video>
+                    )}
                   </>
                 ) : (
                   <div className="flex items-center justify-center h-full text-muted-foreground">
