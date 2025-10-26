@@ -83,7 +83,8 @@ const AIAssist = () => {
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-white to-slate-50">
-      <div className="max-w-2xl mx-auto py-12 md:py-16 px-6 md:px-8">
+      {/* Focused Input Section - Narrower */}
+      <div className="max-w-3xl mx-auto py-12 md:py-16 px-6 md:px-8">
         {/* Header */}
         <div className="mb-12 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-slate-900 mb-4">
@@ -95,7 +96,7 @@ const AIAssist = () => {
         </div>
 
         {/* Input Card */}
-        <div className="relative bg-white/80 backdrop-blur-sm border border-white/20 rounded-xl md:rounded-2xl p-6 md:p-8 mb-12 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2),0_4px_6px_-2px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.25),0_8px_10px_-5px_rgba(0,0,0,0.1)] transition-all duration-300 ease-out">
+        <div className="relative bg-white/80 backdrop-blur-sm border border-white/20 rounded-xl md:rounded-2xl p-6 md:p-8 shadow-[0_10px_40px_-15px_rgba(0,0,0,0.2),0_4px_6px_-2px_rgba(0,0,0,0.05)] hover:-translate-y-1 hover:shadow-[0_20px_50px_-15px_rgba(0,0,0,0.25),0_8px_10px_-5px_rgba(0,0,0,0.1)] transition-all duration-300 ease-out">
           <h2 className="text-2xl font-semibold text-slate-800 mb-2">Ask Your Question</h2>
           <p className="text-slate-600 text-base mb-6">
             Type your question below and press Cmd/Ctrl + Enter to submit quickly
@@ -141,43 +142,52 @@ const AIAssist = () => {
             </div>
           </div>
         </div>
+      </div>
 
-        {/* Results */}
-        {results.length > 0 ? (
+      {/* Widescreen Results Section */}
+      {results.length > 0 ? (
+        <div className="max-w-7xl mx-auto px-4 md:px-6 lg:px-8 pb-16">
           <div className="space-y-8">
             {results.map((result) => (
               <div 
                 key={result.id}
-                className="bg-white/60 backdrop-blur shadow-lg shadow-slate-200/50 rounded-2xl p-8"
+                className="bg-white/80 backdrop-blur border border-slate-200/50 rounded-2xl shadow-lg shadow-slate-200/50 overflow-hidden"
               >
-                <h3 className="text-xl font-semibold text-slate-800 mb-1">
-                  {result.question}
-                </h3>
-                <p className="text-xs text-slate-400 mb-4">
-                  {result.timestamp.toLocaleString()}
-                </p>
-                
-                <div className="prose prose-slate prose-headings:text-slate-800 prose-headings:font-semibold prose-h3:mt-8 prose-h3:mb-4 prose-h3:text-xl prose-p:text-slate-700 prose-p:leading-relaxed prose-strong:text-slate-900 prose-ul:text-slate-700 prose-ul:my-4 prose-li:my-1 prose-table:text-sm prose-table:my-6 prose-td:border prose-td:border-slate-200 prose-td:p-2 prose-th:border prose-th:border-slate-300 prose-th:bg-slate-50 prose-th:p-2 prose-th:font-semibold prose-code:text-sm prose-code:bg-slate-100 prose-code:px-1 prose-code:py-0.5 prose-code:rounded max-w-none mb-6">
-                  <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                    {result.answer}
-                  </ReactMarkdown>
+                {/* Header Section */}
+                <div className="bg-gradient-to-r from-blue-50 to-cyan-50 px-6 md:px-8 py-6 border-b border-slate-200">
+                  <h3 className="text-xl md:text-2xl font-bold text-slate-900 mb-1">
+                    {result.question}
+                  </h3>
+                  <p className="text-sm text-slate-500">
+                    {result.timestamp.toLocaleString()}
+                  </p>
                 </div>
                 
-                <div className="flex items-center gap-3 pt-4 border-t border-slate-100">
+                {/* Content Section */}
+                <div className="px-6 md:px-8 py-8">
+                  <div className="prose prose-lg prose-slate prose-headings:text-slate-900 prose-headings:font-bold prose-h3:text-2xl prose-h3:mt-10 prose-h3:mb-6 prose-p:text-slate-800 prose-p:leading-loose prose-p:text-base prose-strong:text-slate-900 prose-strong:font-bold prose-ul:text-slate-800 prose-ul:my-6 prose-li:my-2 prose-table:text-base prose-table:w-full prose-table:my-8 prose-th:bg-slate-100 prose-th:text-slate-900 prose-th:font-bold prose-th:p-4 prose-th:text-left prose-th:border prose-th:border-slate-300 prose-td:p-4 prose-td:border prose-td:border-slate-200 prose-tr:border-b prose-tr:border-slate-200 prose-code:text-sm prose-code:bg-slate-100 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded max-w-none">
+                    <ReactMarkdown remarkPlugins={[remarkGfm]}>
+                      {result.answer}
+                    </ReactMarkdown>
+                  </div>
+                </div>
+                
+                {/* Actions Footer */}
+                <div className="bg-slate-50/50 px-6 md:px-8 py-4 border-t border-slate-200 flex items-center gap-3">
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => copyToClipboard(result.answer)}
-                    className="hover:bg-slate-100/50 rounded-lg"
+                    className="hover:bg-white rounded-lg"
                   >
-                    <Copy className="w-4 h-4 mr-1" />
+                    <Copy className="w-4 h-4 mr-1.5" />
                     Copy
                   </Button>
                   <Button
                     variant="ghost"
                     size="sm"
                     onClick={() => handleFeedback(result.id, true)}
-                    className="hover:bg-slate-100/50 rounded-lg"
+                    className="hover:bg-white rounded-lg"
                   >
                     <ThumbsUp className="w-4 h-4" />
                   </Button>
@@ -185,7 +195,7 @@ const AIAssist = () => {
                     variant="ghost"
                     size="sm"
                     onClick={() => handleFeedback(result.id, false)}
-                    className="hover:bg-slate-100/50 rounded-lg"
+                    className="hover:bg-white rounded-lg"
                   >
                     <ThumbsDown className="w-4 h-4" />
                   </Button>
@@ -193,7 +203,9 @@ const AIAssist = () => {
               </div>
             ))}
           </div>
-        ) : (
+        </div>
+      ) : (
+        <div className="max-w-3xl mx-auto px-6 md:px-8 pb-16">
           <div className="bg-transparent py-12 text-center space-y-8">
             <div className="flex justify-center">
               <div className="w-20 h-20 bg-gradient-to-br from-blue-50 to-cyan-50 rounded-3xl p-5 flex items-center justify-center">
@@ -231,8 +243,8 @@ const AIAssist = () => {
               </ul>
             </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
     </div>
   );
 };
