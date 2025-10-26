@@ -4,7 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Loader2, Mail, RefreshCw, X, Users } from "lucide-react";
+import { Loader2, Mail, RefreshCw, X, Users, Trash2 } from "lucide-react";
 import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { formatDistanceToNow } from "date-fns";
 
@@ -37,6 +37,9 @@ export const InvitationsList = () => {
   const [loading, setLoading] = useState(true);
   const [cancellingId, setCancellingId] = useState<string | null>(null);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [deletingUserId, setDeletingUserId] = useState<string | null>(null);
+  const [showDeleteDialog, setShowDeleteDialog] = useState(false);
+  const [userToDelete, setUserToDelete] = useState<{ id: string; name: string } | null>(null);
   const { toast } = useToast();
 
   const fetchInvitations = async () => {
@@ -137,6 +140,38 @@ export const InvitationsList = () => {
     } finally {
       setCancellingId(null);
       setShowCancelDialog(false);
+    }
+  };
+
+  const handleDeleteUser = async () => {
+    if (!userToDelete) return;
+
+    try {
+      setDeletingUserId(userToDelete.id);
+      
+      const { data, error } = await supabase.functions.invoke('delete-user', {
+        body: { user_id: userToDelete.id }
+      });
+
+      if (error) throw error;
+
+      toast({
+        title: "User removed",
+        description: `${userToDelete.name} has been removed from the system`,
+      });
+
+      await fetchUsers();
+    } catch (error: any) {
+      console.error("Error deleting user:", error);
+      toast({
+        title: "Error removing user",
+        description: error.message || "Failed to remove user",
+        variant: "destructive",
+      });
+    } finally {
+      setDeletingUserId(null);
+      setUserToDelete(null);
+      setShowDeleteDialog(false);
     }
   };
 
@@ -249,7 +284,7 @@ export const InvitationsList = () => {
             <div className="space-y-3">
               {users.map((user) => (
                 <div key={user.id} className="flex items-center justify-between p-3 border rounded-lg">
-                  <div>
+                  <div className="flex-1">
                     <div className="flex items-center gap-3">
                       <p className="font-medium">{user.full_name || user.email}</p>
                       {user.user_roles.map((ur, idx) => (
@@ -261,6 +296,22 @@ export const InvitationsList = () => {
                       Joined {formatDistanceToNow(new Date(user.created_at), { addSuffix: true })}
                     </p>
                   </div>
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => {
+                      setUserToDelete({ id: user.id, name: user.full_name || user.email });
+                      setShowDeleteDialog(true);
+                    }}
+                    disabled={deletingUserId === user.id}
+                    className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  >
+                    {deletingUserId === user.id ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      <Trash2 className="h-4 w-4" />
+                    )}
+                  </Button>
                 </div>
               ))}
             </div>
@@ -280,6 +331,38 @@ export const InvitationsList = () => {
             <AlertDialogCancel>No, keep it</AlertDialogCancel>
             <AlertDialogAction onClick={handleCancelInvitation}>
               Yes, cancel invitation
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={showDeleteDialog} onOpenChange={setShowDeleteDialog}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Remove User?</AlertDialogTitle>
+            <AlertDialogDescription className="space-y-2">
+              <p>
+                Are you sure you want to remove <strong>{userToDelete?.name}</strong>?
+              </p>
+              <p className="text-destructive font-medium">
+                This action cannot be undone. This will permanently delete:
+              </p>
+              <ul className="list-disc list-inside space-y-1 text-sm">
+                <li>User account and authentication access</li>
+                <li>Profile information</li>
+                <li>All agent data (licenses, compliance records, goals)</li>
+                <li>Marketing templates and brand kits</li>
+                <li>Training progress</li>
+              </ul>
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction
+              onClick={handleDeleteUser}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Yes, remove user permanently
             </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
