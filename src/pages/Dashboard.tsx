@@ -8,6 +8,7 @@ import { motion, useScroll, useTransform } from "framer-motion";
 import { supabase } from "@/integrations/supabase/client";
 import { ScheduleCalendarDialog } from "@/components/dashboard/ScheduleCalendarDialog";
 import { formatDistanceToNow, parseISO, isAfter, isBefore, startOfDay, format } from "date-fns";
+import { useAuth } from "@/hooks/useAuth";
 
 interface ScheduleItem {
   id: string;
@@ -18,11 +19,47 @@ interface ScheduleItem {
 }
 
 const Dashboard = () => {
+  const { user } = useAuth();
   const [todaySchedule, setTodaySchedule] = useState<ScheduleItem[]>([]);
   const [upcomingEvent, setUpcomingEvent] = useState<ScheduleItem | null>(null);
   const [loading, setLoading] = useState(true);
+  const [userName, setUserName] = useState<string>("there");
+  const [greeting, setGreeting] = useState<{ text: string; emoji: string }>({ text: "Hello", emoji: "👋" });
+
+  const getGreeting = () => {
+    const hour = new Date().getHours();
+    
+    if (hour >= 5 && hour < 12) {
+      return { text: "Good morning", emoji: "🌅" };
+    } else if (hour >= 12 && hour < 17) {
+      return { text: "Good afternoon", emoji: "☀️" };
+    } else if (hour >= 17 && hour < 21) {
+      return { text: "Good evening", emoji: "🌆" };
+    } else {
+      return { text: "Good night", emoji: "🌙" };
+    }
+  };
 
   useEffect(() => {
+    // Set greeting based on current time
+    setGreeting(getGreeting());
+
+    // Fetch user name
+    const fetchUserName = async () => {
+      if (user?.id) {
+        const { data } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', user.id)
+          .maybeSingle();
+        
+        if (data?.full_name) {
+          setUserName(data.full_name);
+        }
+      }
+    };
+
+    fetchUserName();
     fetchSchedule();
 
     // Set up realtime subscription
@@ -44,7 +81,7 @@ const Dashboard = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, []);
+  }, [user]);
 
   const fetchSchedule = async () => {
     try {
@@ -197,7 +234,7 @@ const Dashboard = () => {
               }}
               transition={{ duration: 3, repeat: Infinity }}
             >
-              Good morning, John! 👋
+              {greeting.text}, {userName}! {greeting.emoji}
             </motion.h1>
             <motion.p 
               className="text-white/90 text-base md:text-lg"
