@@ -1,11 +1,26 @@
 import { useState } from "react";
-import { Megaphone, Copy, ExternalLink, Download, Palette, Mail, MessageSquare } from "lucide-react";
+import { Megaphone, Copy, ExternalLink, Download, Palette, Mail, MessageSquare, Plus, Edit, Trash2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useBrandKit } from "@/hooks/useBrandKit";
+import { useMarketingTemplates } from "@/hooks/useMarketingTemplates";
+import { BrandKitEditor } from "@/components/marketing/BrandKitEditor";
+import { BrandKitDisplay } from "@/components/marketing/BrandKitDisplay";
+import { TemplateEditor } from "@/components/marketing/TemplateEditor";
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 const templates = [
   {
@@ -65,14 +80,38 @@ const Marketing = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const { toast } = useToast();
+  
+  const { brandKit, isLoading: isBrandKitLoading } = useBrandKit();
+  const { templates: userTemplates, deleteTemplate } = useMarketingTemplates();
+  
+  const [brandKitEditorOpen, setBrandKitEditorOpen] = useState(false);
+  const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
+  const [editingTemplate, setEditingTemplate] = useState<any>(null);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
 
-  const allAssets = [...templates, ...brandAssets];
-  const filteredAssets = allAssets.filter(asset => {
-    const matchesSearch = asset.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                         asset.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()));
-    const matchesType = selectedType === "all" || asset.type === selectedType;
-    return matchesSearch && matchesType;
-  });
+  const handleEditTemplate = (template: any) => {
+    setEditingTemplate(template);
+    setTemplateEditorOpen(true);
+  };
+
+  const handleNewTemplate = () => {
+    setEditingTemplate(null);
+    setTemplateEditorOpen(true);
+  };
+
+  const handleDeleteTemplate = (id: string) => {
+    setTemplateToDelete(id);
+    setDeleteDialogOpen(true);
+  };
+
+  const confirmDelete = async () => {
+    if (templateToDelete) {
+      await deleteTemplate.mutateAsync(templateToDelete);
+      setDeleteDialogOpen(false);
+      setTemplateToDelete(null);
+    }
+  };
 
   const copyToClipboard = (content: string) => {
     navigator.clipboard.writeText(content);
@@ -123,18 +162,77 @@ const Marketing = () => {
         </TabsList>
 
         <TabsContent value="templates" className="space-y-6">
-          {/* Search */}
-          <Card className="stat-card">
-            <CardContent className="pt-6">
-              <Input
-                placeholder="Search templates..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </CardContent>
-          </Card>
+          {/* Header with New Template Button */}
+          <div className="flex items-center justify-between">
+            <Input
+              placeholder="Search templates..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="max-w-sm"
+            />
+            <Button onClick={handleNewTemplate}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Template
+            </Button>
+          </div>
 
-          {/* Canva Templates */}
+          {/* User's Canva Templates */}
+          {userTemplates.filter(t => t.type === "canva_template").length > 0 && (
+            <>
+              <h3 className="text-lg font-semibold">My Templates</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {userTemplates.filter(t => t.type === "canva_template").map((template, index) => {
+                  const Icon = getTypeIcon(template.type);
+                  return (
+                    <Card key={template.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-3 flex-1">
+                            <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
+                              <Icon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="flex-1 min-w-0">
+                              <CardTitle className="text-lg truncate">{template.title}</CardTitle>
+                              <CardDescription className="text-sm">
+                                {template.description}
+                              </CardDescription>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" onClick={() => handleEditTemplate(template)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => handleDeleteTemplate(template.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex flex-wrap gap-1">
+                          {template.tags.map(tag => (
+                            <Badge key={tag} variant="outline" className="text-xs">
+                              {tag.replace('_', ' ')}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <Button className="w-full" asChild>
+                          <a href={template.url || "#"} target="_blank" rel="noopener noreferrer">
+                            <ExternalLink className="mr-2 h-4 w-4" />
+                            Open in Canva
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* System Canva Templates */}
+          <h3 className="text-lg font-semibold">System Templates</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {templates.filter(t => t.type === "canva_template").map((template, index) => {
               const Icon = getTypeIcon(template.type);
@@ -178,6 +276,73 @@ const Marketing = () => {
         </TabsContent>
 
         <TabsContent value="scripts" className="space-y-6">
+          {/* Header with New Script Button */}
+          <div className="flex justify-end">
+            <Button onClick={handleNewTemplate}>
+              <Plus className="mr-2 h-4 w-4" />
+              New Script
+            </Button>
+          </div>
+
+          {/* User's Scripts */}
+          {userTemplates.filter(t => t.type === "email_script" || t.type === "sms_script").length > 0 && (
+            <>
+              <h3 className="text-lg font-semibold">My Scripts</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {userTemplates.filter(t => t.type === "email_script" || t.type === "sms_script").map((script, index) => {
+                  const Icon = getTypeIcon(script.type);
+                  return (
+                    <Card key={script.id} className="stat-card" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <CardHeader>
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center gap-2 flex-1">
+                            <Icon className="h-5 w-5 text-primary" />
+                            <CardTitle>{script.title}</CardTitle>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" onClick={() => handleEditTemplate(script)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => handleDeleteTemplate(script.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                        <CardDescription>{script.description}</CardDescription>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="bg-muted/50 p-4 rounded-lg">
+                          <pre className="text-sm whitespace-pre-wrap font-sans">
+                            {script.content}
+                          </pre>
+                        </div>
+                        
+                        <div className="flex flex-wrap gap-1">
+                          {script.tags.map(tag => (
+                            <Badge key={tag} variant="outline" className="text-xs">
+                              {tag.replace('_', ' ')}
+                            </Badge>
+                          ))}
+                        </div>
+
+                        <Button 
+                          onClick={() => copyToClipboard(script.content || "")}
+                          className="w-full"
+                          variant="outline"
+                        >
+                          <Copy className="mr-2 h-4 w-4" />
+                          Copy Script
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+            </>
+          )}
+
+          {/* System Scripts */}
+          <h3 className="text-lg font-semibold">System Scripts</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
             {templates.filter(t => t.type === "email_script" || t.type === "sms_script").map((script, index) => {
               const Icon = getTypeIcon(script.type);
@@ -221,76 +386,91 @@ const Marketing = () => {
         </TabsContent>
 
         <TabsContent value="brand" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {brandAssets.map((asset, index) => {
-              const Icon = getTypeIcon(asset.type);
-              return (
-                <Card key={asset.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardHeader className="pb-4">
-                    <div className="flex items-center space-x-3">
-                      <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
-                        <Icon className="h-6 w-6 text-primary" />
-                      </div>
-                      <div className="flex-1">
-                        <CardTitle className="text-lg">{asset.title}</CardTitle>
-                        <CardDescription className="text-sm">
-                          {asset.description}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap gap-1">
-                      {asset.tags.map(tag => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag.replace('_', ' ')}
-                        </Badge>
-                      ))}
-                    </div>
+          {/* Brand Kit Section */}
+          {isBrandKitLoading ? (
+            <Card className="stat-card">
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground">Loading brand kit...</p>
+              </CardContent>
+            </Card>
+          ) : brandKit ? (
+            <BrandKitDisplay brandKit={brandKit} onEdit={() => setBrandKitEditorOpen(true)} />
+          ) : (
+            <Card className="stat-card">
+              <CardContent className="py-12 text-center space-y-4">
+                <div className="flex justify-center">
+                  <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center">
+                    <Palette className="h-10 w-10 text-white" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <h3 className="text-xl font-semibold">Create Your Brand Kit</h3>
+                  <p className="text-muted-foreground max-w-md mx-auto">
+                    Set up your company branding to personalize all your marketing materials with your logo, colors, and contact information.
+                  </p>
+                </div>
+                <Button onClick={() => setBrandKitEditorOpen(true)} size="lg">
+                  <Plus className="mr-2 h-5 w-5" />
+                  Create Brand Kit
+                </Button>
+              </CardContent>
+            </Card>
+          )}
 
-                    <Button className="w-full" asChild>
-                      <a href={asset.downloadUrl} download>
-                        <Download className="mr-2 h-4 w-4" />
-                        Download
-                      </a>
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+          {/* User's Brand Assets */}
+          {userTemplates.filter(t => t.type === "brand_asset").length > 0 && (
+            <>
+              <h3 className="text-lg font-semibold">My Brand Assets</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {userTemplates.filter(t => t.type === "brand_asset").map((asset, index) => {
+                  const Icon = getTypeIcon(asset.type);
+                  return (
+                    <Card key={asset.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
+                      <CardHeader className="pb-4">
+                        <div className="flex items-start justify-between">
+                          <div className="flex items-center space-x-3 flex-1">
+                            <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
+                              <Icon className="h-6 w-6 text-primary" />
+                            </div>
+                            <div className="flex-1">
+                              <CardTitle className="text-lg">{asset.title}</CardTitle>
+                              <CardDescription className="text-sm">
+                                {asset.description}
+                              </CardDescription>
+                            </div>
+                          </div>
+                          <div className="flex gap-1">
+                            <Button size="icon" variant="ghost" onClick={() => handleEditTemplate(asset)}>
+                              <Edit className="h-4 w-4" />
+                            </Button>
+                            <Button size="icon" variant="ghost" onClick={() => handleDeleteTemplate(asset.id)}>
+                              <Trash2 className="h-4 w-4" />
+                            </Button>
+                          </div>
+                        </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="flex flex-wrap gap-1">
+                          {asset.tags.map(tag => (
+                            <Badge key={tag} variant="outline" className="text-xs">
+                              {tag.replace('_', ' ')}
+                            </Badge>
+                          ))}
+                        </div>
 
-          {/* Brand Colors */}
-          <Card className="stat-card">
-            <CardHeader>
-              <CardTitle>Brand Colors</CardTitle>
-              <CardDescription>Official color palette for all marketing materials</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="w-full h-20 bg-gradient-primary rounded-lg mb-2"></div>
-                  <p className="text-sm font-medium">Primary</p>
-                  <p className="text-xs text-muted-foreground">#6366F1</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-full h-20 bg-secondary rounded-lg mb-2"></div>
-                  <p className="text-sm font-medium">Secondary</p>
-                  <p className="text-xs text-muted-foreground">#F1F5F9</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-full h-20 bg-success rounded-lg mb-2"></div>
-                  <p className="text-sm font-medium">Success</p>
-                  <p className="text-xs text-muted-foreground">#10B981</p>
-                </div>
-                <div className="text-center">
-                  <div className="w-full h-20 bg-foreground rounded-lg mb-2"></div>
-                  <p className="text-sm font-medium">Text</p>
-                  <p className="text-xs text-muted-foreground">#0F172A</p>
-                </div>
+                        <Button className="w-full" asChild>
+                          <a href={asset.file_url || "#"} download>
+                            <Download className="mr-2 h-4 w-4" />
+                            Download
+                          </a>
+                        </Button>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
               </div>
-            </CardContent>
-          </Card>
+            </>
+          )}
         </TabsContent>
 
         <TabsContent value="funnels" className="space-y-6">
@@ -333,6 +513,34 @@ const Marketing = () => {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Dialogs */}
+      <BrandKitEditor
+        open={brandKitEditorOpen}
+        onOpenChange={setBrandKitEditorOpen}
+        brandKit={brandKit}
+      />
+
+      <TemplateEditor
+        open={templateEditorOpen}
+        onOpenChange={setTemplateEditorOpen}
+        template={editingTemplate}
+      />
+
+      <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Template</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete this template? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
