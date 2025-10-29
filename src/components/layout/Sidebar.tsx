@@ -8,7 +8,9 @@ import {
   Shield, 
   Bot,
   Settings,
-  X
+  X,
+  ShoppingBag,
+  Sparkles
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -20,6 +22,13 @@ interface SidebarProps {
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
+  { 
+    name: "Orders/Leads", 
+    href: "/orders-leads", 
+    icon: ShoppingBag,
+    special: true,
+    badge: 5
+  },
   { name: "Carriers", href: "/carriers", icon: Building2 },
   { name: "Tools", href: "/tools", icon: Calculator },
   { name: "Training", href: "/training", icon: GraduationCap },
@@ -82,16 +91,27 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               }}
               className={({ isActive }) =>
                 cn(
-                  "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-smooth group",
+                  "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-smooth group relative",
                   isOpen && "animate-slide-up",
-                  isActive
-                    ? "bg-gradient-primary text-white shadow-glow"
-                    : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  item.special && !isActive && "bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 hover:from-primary/20 hover:via-secondary/20 hover:to-primary/20 shadow-sm border border-primary/20 animate-pulse-subtle",
+                  item.special && isActive && "bg-gradient-to-r from-primary via-secondary to-primary text-white shadow-glow-premium",
+                  !item.special && isActive && "bg-gradient-primary text-white shadow-glow",
+                  !item.special && !isActive && "text-muted-foreground hover:text-foreground hover:bg-accent"
                 )
               }
             >
               <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-              {item.name}
+              <span className="flex-1">{item.name}</span>
+              
+              {item.special && item.badge && (
+                <span className="ml-auto bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+                  {item.badge}
+                </span>
+              )}
+              
+              {item.special && (
+                <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary animate-pulse" />
+              )}
             </NavLink>
           ))}
         </nav>
