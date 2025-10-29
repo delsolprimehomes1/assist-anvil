@@ -10,7 +10,8 @@ import {
   Settings,
   X,
   ShoppingBag,
-  Sparkles
+  Sparkles,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -29,6 +30,7 @@ const navigation = [
     special: true,
     badge: 5
   },
+  { name: "CRM", href: "/crm", icon: Users },
   { name: "Carriers", href: "/carriers", icon: Building2 },
   { name: "Tools", href: "/tools", icon: Calculator },
   { name: "Training", href: "/training", icon: GraduationCap },

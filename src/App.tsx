@@ -8,6 +8,7 @@ import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
 import OrdersLeads from "./pages/OrdersLeads";
+import CRM from "./pages/CRM";
 import Carriers from "./pages/Carriers";
 import Tools from "./pages/Tools";
 import Training from "./pages/Training";
@@ -39,6 +40,7 @@ const App = () => (
         }>
           <Route index element={<Dashboard />} />
           <Route path="orders-leads" element={<OrdersLeads />} />
+          <Route path="crm" element={<CRM />} />
           <Route path="carriers" element={<Carriers />} />
           <Route path="ai-assist" element={<AIAssist />} />
           <Route path="tools" element={<Tools />} />

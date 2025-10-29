@@ -4,16 +4,17 @@ import {
   Building2, 
   Calculator, 
   Bot,
-  ShoppingBag
+  ShoppingBag,
+  Users
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { name: "Orders", href: "/orders-leads", icon: ShoppingBag, badge: 5 },
+  { name: "CRM", href: "/crm", icon: Users },
   { name: "Carriers", href: "/carriers", icon: Building2 },
   { name: "Tools", href: "/tools", icon: Calculator },
-  { name: "AI Assist", href: "/ai-assist", icon: Bot },
 ];
 
 export const BottomNav = () => {
