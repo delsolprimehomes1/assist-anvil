@@ -25,10 +25,11 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { 
     name: "Orders/Leads", 
-    href: "/orders-leads", 
+    href: "https://lifecoimo.com/", 
     icon: ShoppingBag,
     special: true,
-    badge: 5
+    badge: 5,
+    external: true
   },
   { name: "CRM", href: "/crm", icon: Users },
   { name: "Carriers", href: "/carriers", icon: Building2 },
@@ -82,40 +83,77 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         </div>
         
         <nav className="space-y-1 p-4">
-          {navigation.map((item, index) => (
-            <NavLink
-              key={item.name}
-              to={item.href}
-              onClick={onClose}
-              style={{ 
-                animationDelay: `${index * 80}ms`,
-                animationFillMode: 'backwards'
-              }}
-              className={({ isActive }) =>
-                cn(
-                  "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-smooth group relative",
-                  isOpen && "animate-slide-up",
-                  item.special && !isActive && "bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 hover:from-primary/20 hover:via-secondary/20 hover:to-primary/20 shadow-sm border border-primary/20 animate-pulse-subtle",
-                  item.special && isActive && "bg-gradient-to-r from-primary via-secondary to-primary text-white shadow-glow-premium",
-                  !item.special && isActive && "bg-gradient-primary text-white shadow-glow",
-                  !item.special && !isActive && "text-muted-foreground hover:text-foreground hover:bg-accent"
-                )
-              }
-            >
-              <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
-              <span className="flex-1">{item.name}</span>
-              
-              {item.special && item.badge && (
-                <span className="ml-auto bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
-                  {item.badge}
-                </span>
-              )}
-              
-              {item.special && (
-                <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary animate-pulse" />
-              )}
-            </NavLink>
-          ))}
+          {navigation.map((item, index) => {
+            if (item.external) {
+              return (
+                <a
+                  key={item.name}
+                  href={item.href}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={onClose}
+                  style={{ 
+                    animationDelay: `${index * 80}ms`,
+                    animationFillMode: 'backwards'
+                  }}
+                  className={cn(
+                    "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-smooth group relative",
+                    isOpen && "animate-slide-up",
+                    item.special && "bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 hover:from-primary/20 hover:via-secondary/20 hover:to-primary/20 shadow-sm border border-primary/20 animate-pulse-subtle",
+                    !item.special && "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  )}
+                >
+                  <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <span className="flex-1">{item.name}</span>
+                  
+                  {item.special && item.badge && (
+                    <span className="ml-auto bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+                      {item.badge}
+                    </span>
+                  )}
+                  
+                  {item.special && (
+                    <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary animate-pulse" />
+                  )}
+                </a>
+              );
+            }
+            
+            return (
+              <NavLink
+                key={item.name}
+                to={item.href}
+                onClick={onClose}
+                style={{ 
+                  animationDelay: `${index * 80}ms`,
+                  animationFillMode: 'backwards'
+                }}
+                className={({ isActive }) =>
+                  cn(
+                    "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-smooth group relative",
+                    isOpen && "animate-slide-up",
+                    item.special && !isActive && "bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 hover:from-primary/20 hover:via-secondary/20 hover:to-primary/20 shadow-sm border border-primary/20 animate-pulse-subtle",
+                    item.special && isActive && "bg-gradient-to-r from-primary via-secondary to-primary text-white shadow-glow-premium",
+                    !item.special && isActive && "bg-gradient-primary text-white shadow-glow",
+                    !item.special && !isActive && "text-muted-foreground hover:text-foreground hover:bg-accent"
+                  )
+                }
+              >
+                <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                <span className="flex-1">{item.name}</span>
+                
+                {item.special && item.badge && (
+                  <span className="ml-auto bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
+                    {item.badge}
+                  </span>
+                )}
+                
+                {item.special && (
+                  <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary animate-pulse" />
+                )}
+              </NavLink>
+            );
+          })}
         </nav>
       </div>
     </>
