@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { name: "Orders", href: "https://lifecoimo.com/", icon: ShoppingBag, badge: 5, external: true },
-  { name: "CRM", href: "/crm", icon: Users },
+  { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
   { name: "Carriers", href: "/carriers", icon: Building2 },
   { name: "Tools", href: "/tools", icon: Calculator },
 ];

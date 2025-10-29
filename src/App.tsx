@@ -7,7 +7,6 @@ import { MainLayout } from "@/components/layout/MainLayout";
 import { ProtectedRoute } from "@/components/auth/ProtectedRoute";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
-import CRM from "./pages/CRM";
 import Carriers from "./pages/Carriers";
 import Tools from "./pages/Tools";
 import Training from "./pages/Training";
@@ -37,9 +36,8 @@ const App = () => (
             <MainLayout />
           </ProtectedRoute>
         }>
-          <Route index element={<Dashboard />} />
-          <Route path="crm" element={<CRM />} />
-          <Route path="carriers" element={<Carriers />} />
+            <Route index element={<Dashboard />} />
+            <Route path="carriers" element={<Carriers />} />
           <Route path="ai-assist" element={<AIAssist />} />
           <Route path="tools" element={<Tools />} />
           <Route path="training" element={<Training />} />

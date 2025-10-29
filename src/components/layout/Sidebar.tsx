@@ -31,7 +31,7 @@ const navigation = [
     badge: 5,
     external: true
   },
-  { name: "CRM", href: "/crm", icon: Users },
+  { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
   { name: "Carriers", href: "/carriers", icon: Building2 },
   { name: "Tools", href: "/tools", icon: Calculator },
   { name: "Training", href: "/training", icon: GraduationCap },
