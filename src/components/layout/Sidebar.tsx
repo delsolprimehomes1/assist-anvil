@@ -24,7 +24,7 @@ interface SidebarProps {
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { 
-    name: "Orders/Leads", 
+    name: "Order Leads", 
     href: "https://lifecoimo.com/", 
     icon: ShoppingBag,
     special: true,
