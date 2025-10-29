@@ -28,7 +28,6 @@ const navigation = [
     href: "https://lifecoimo.com/", 
     icon: ShoppingBag,
     special: true,
-    badge: 5,
     external: true
   },
   { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
@@ -106,12 +105,6 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
                   <span className="flex-1">{item.name}</span>
                   
-                  {item.special && item.badge && (
-                    <span className="ml-auto bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
-                      {item.badge}
-                    </span>
-                  )}
-                  
                   {item.special && (
                     <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary animate-pulse" />
                   )}
@@ -141,12 +134,6 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               >
                 <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
                 <span className="flex-1">{item.name}</span>
-                
-                {item.special && item.badge && (
-                  <span className="ml-auto bg-white text-primary text-xs font-bold px-2 py-0.5 rounded-full shadow-sm">
-                    {item.badge}
-                  </span>
-                )}
                 
                 {item.special && (
                   <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary animate-pulse" />

@@ -11,7 +11,7 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
-  { name: "Order Leads", href: "https://lifecoimo.com/", icon: ShoppingBag, badge: 5, external: true },
+  { name: "Order Leads", href: "https://lifecoimo.com/", icon: ShoppingBag, external: true },
   { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
   { name: "Carriers", href: "/carriers", icon: Building2 },
   { name: "Tools", href: "/tools", icon: Calculator },
@@ -33,11 +33,6 @@ export const BottomNav = () => {
               >
                 <div className="relative">
                   <item.icon className="h-5 w-5 mb-1 text-muted-foreground" />
-                  {item.badge && (
-                    <span className="absolute -top-1 -right-2 bg-destructive text-white text-[8px] font-bold px-1 min-w-[16px] h-4 rounded-full flex items-center justify-center">
-                      {item.badge}
-                    </span>
-                  )}
                 </div>
                 <span>{item.name}</span>
               </a>
@@ -64,11 +59,6 @@ export const BottomNav = () => {
                       "h-5 w-5 mb-1",
                       isActive ? "text-primary" : "text-muted-foreground"
                     )} />
-                    {item.badge && (
-                      <span className="absolute -top-1 -right-2 bg-destructive text-white text-[8px] font-bold px-1 min-w-[16px] h-4 rounded-full flex items-center justify-center">
-                        {item.badge}
-                      </span>
-                    )}
                   </div>
                   <span>{item.name}</span>
                 </>
