@@ -625,7 +625,7 @@ const Carriers = () => {
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredCarriers.map((carrier, index) => (
-            <Card key={carrier.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
+            <Card key={carrier.id} className="carrier-card" style={{ animationDelay: `${index * 0.1}s` }}>
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
