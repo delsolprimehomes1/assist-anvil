@@ -206,7 +206,7 @@ const Compliance = () => {
 
       {/* License Overview Stats */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <Card className="stat-card">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Licenses</CardTitle>
             <Shield className="h-4 w-4 text-primary" />
@@ -217,7 +217,7 @@ const Compliance = () => {
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Licenses</CardTitle>
             <CheckCircle className="h-4 w-4 text-success" />
@@ -228,7 +228,7 @@ const Compliance = () => {
           </CardContent>
         </Card>
 
-        <Card className="stat-card">
+        <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Expiring Soon</CardTitle>
             <Clock className="h-4 w-4 text-warning" />
@@ -241,7 +241,7 @@ const Compliance = () => {
       </div>
 
       {/* License Table */}
-      <Card className="stat-card">
+      <Card>
         <CardHeader>
           <CardTitle>License Details</CardTitle>
           <CardDescription>
@@ -310,7 +310,7 @@ const Compliance = () => {
       </Card>
 
       {/* Compliance Resources */}
-      <Card className="stat-card">
+      <Card>
         <CardHeader>
           <CardTitle>Compliance Resources</CardTitle>
           <CardDescription>
