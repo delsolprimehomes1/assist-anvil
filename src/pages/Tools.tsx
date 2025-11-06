@@ -56,7 +56,7 @@ const Tools = () => {
 
         <TabsContent value="resources" className="space-y-6">
           {/* Search */}
-          <Card className="stat-card">
+          <Card>
             <CardContent className="pt-6">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -71,7 +71,7 @@ const Tools = () => {
           </Card>
 
           {/* Resources Grid */}
-          <Card className="stat-card">
+          <Card>
             <CardContent className="py-12 text-center">
               <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Resources Available</h3>
@@ -88,7 +88,7 @@ const Tools = () => {
 
         <TabsContent value="guides" className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="stat-card">
+            <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <BookOpen className="h-5 w-5 text-primary" />
