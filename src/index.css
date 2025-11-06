@@ -326,13 +326,6 @@ All colors MUST be HSL.
     transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
   }
 
-.stat-card:hover {
-  box-shadow: 
-    0 25px 70px hsla(180, 60%, 45%, 0.28),
-    0 12px 35px hsla(30, 70%, 55%, 0.18),
-    0 5px 18px hsla(180, 60%, 45%, 0.12),
-    inset 0 1px 0 rgba(255,255,255,0.8);
-}
 
   /* Interactive Elements */
   .hover-lift {
