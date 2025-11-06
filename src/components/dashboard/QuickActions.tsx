@@ -50,7 +50,7 @@ const actions = [
 
 export const QuickActions = () => {
   return (
-    <Card className="stat-card">
+    <Card>
       <CardHeader>
         <CardTitle>Quick Actions</CardTitle>
         <CardDescription>
