@@ -73,7 +73,7 @@ export const CommissionCalculator = () => {
   }, [premium, contract, policies, advancePercent]);
 
   return (
-    <Card className="stat-card">
+    <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <DollarSign className="h-5 w-5 text-primary" />
