@@ -315,11 +315,7 @@ const Dashboard = () => {
           <QuickActions />
 
           {/* Unified Schedule Card */}
-          <motion.div
-            whileHover={{ scale: 1.01 }}
-            transition={{ type: "spring", stiffness: 300, damping: 30 }}
-          >
-            <Card className="card-3d overflow-hidden">
+          <Card className="card-3d overflow-hidden">
               <CardHeader>
                 <div className="flex items-center justify-between">
                   <div>
@@ -423,7 +419,6 @@ const Dashboard = () => {
                 )}
               </CardContent>
             </Card>
-          </motion.div>
         </motion.div>
 
         {/* Sidebar Content */}
