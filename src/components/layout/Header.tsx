@@ -1,7 +1,7 @@
 import { Search, Menu, Bell, User, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
-import lifecoLogo from "@/assets/lifeco-logo.png";
+import batterboxLogo from "@/assets/batterbox-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
@@ -79,8 +79,8 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
           
           <div className="flex items-center">
             <img 
-              src={lifecoLogo} 
-              alt="LIFECO Logo" 
+              src={batterboxLogo} 
+              alt="BatterBox Logo" 
               className="h-10 w-auto object-contain"
             />
           </div>
