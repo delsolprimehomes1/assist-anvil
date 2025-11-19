@@ -5,6 +5,7 @@ import { BottomNav } from "@/components/layout/BottomNav";
 import { Header } from "@/components/layout/Header";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { cn } from "@/lib/utils";
+import batterboxLogo from "@/assets/batterbox-logo.png";
 
 export const MainLayout = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -12,9 +13,18 @@ export const MainLayout = () => {
 
   return (
     <div className="min-h-screen bg-background">
+      {/* Fixed watermark logo background */}
+      <div className="fixed inset-0 z-0 flex items-center justify-center pointer-events-none">
+        <img 
+          src={batterboxLogo} 
+          alt="BatterBox Watermark" 
+          className="w-1/3 max-w-2xl opacity-40 object-contain"
+        />
+      </div>
+
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
       
-      <div className="flex">
+      <div className="flex relative z-10">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
         <main className={cn(
