@@ -269,7 +269,7 @@ All colors MUST be HSL.
   }
 
   .card-3d:hover {
-    transform: translateY(-8px) rotateX(5deg) rotateY(5deg);
+    transform: translateY(-4px) scale(1.02);
     box-shadow: 
       0 20px 60px hsla(180, 60%, 45%, 0.25),
       0 10px 30px hsla(30, 70%, 55%, 0.15),
@@ -411,7 +411,7 @@ All colors MUST be HSL.
     }
     
     .card-3d:hover {
-      transform: translateY(-6px) scale(1.01);
+      transform: translateY(-3px) scale(1.01);
       box-shadow: 
         0 12px 40px hsla(180, 60%, 45%, 0.2),
         0 6px 20px hsla(30, 70%, 55%, 0.12);
