@@ -18,21 +18,21 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 220 15% 15%;
 
-    /* LIFECO brand colors - teal blue primary */
-    --primary: 180 60% 45%;
+    /* Professional Gold/Orange as primary - Material Design aesthetic */
+    --primary: 30 70% 55%;
     --primary-foreground: 0 0% 100%;
-    --primary-light: 180 60% 65%;
-    --primary-dark: 180 60% 35%;
+    --primary-light: 30 70% 65%;
+    --primary-dark: 30 70% 45%;
 
-    /* LIFECO orange accent */
-    --secondary: 30 70% 55%;
+    /* Teal blue as secondary accent */
+    --secondary: 180 60% 45%;
     --secondary-foreground: 0 0% 100%;
 
     --muted: 220 15% 96%;
     --muted-foreground: 220 10% 50%;
 
-    --accent: 180 60% 95%;
-    --accent-foreground: 180 60% 25%;
+    --accent: 30 70% 95%;
+    --accent-foreground: 30 70% 25%;
 
     /* Success and error states */
     --success: 142 85% 45%;
@@ -45,22 +45,22 @@ All colors MUST be HSL.
     /* Borders and inputs */
     --border: 220 15% 90%;
     --input: 220 15% 95%;
-    --ring: 180 60% 45%;
+    --ring: 30 70% 55%;
 
-    /* LIFECO gradients */
-    --gradient-primary: linear-gradient(135deg, hsl(180 60% 45%), hsl(30 70% 55%));
+    /* Material Design gradients with Professional Gold */
+    --gradient-primary: linear-gradient(135deg, hsl(30 70% 55%), hsl(30 70% 65%));
     --gradient-secondary: linear-gradient(135deg, hsl(180 60% 95%), hsl(180 60% 90%));
-    --gradient-accent: linear-gradient(135deg, hsl(180 60% 65%), hsl(30 70% 65%));
+    --gradient-accent: linear-gradient(135deg, hsl(30 70% 65%), hsl(180 60% 65%));
 
     /* Shadows */
     --shadow-soft: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
     --shadow-medium: 0 10px 15px -3px rgba(0, 0, 0, 0.08), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
     --shadow-strong: 0 20px 25px -5px rgba(0, 0, 0, 0.12), 0 10px 10px -5px rgba(0, 0, 0, 0.08);
-    --shadow-glow: 0 0 20px hsl(180 60% 45% / 0.15);
+    --shadow-glow: 0 0 20px hsl(30 70% 55% / 0.15);
     
     /* Gradient shadows and borders */
-    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(180, 60%, 45%, 0.3) 0%, hsla(30, 70%, 55%, 0.15) 50%, transparent 100%);
-    --gradient-border: linear-gradient(135deg, hsl(180 60% 45%), hsl(180 60% 55%), hsl(30 70% 55%));
+    --gradient-glow: radial-gradient(circle at 50% 0%, hsla(30, 70%, 55%, 0.3) 0%, hsla(180, 60%, 45%, 0.15) 50%, transparent 100%);
+    --gradient-border: linear-gradient(135deg, hsl(30 70% 55%), hsl(30 70% 65%), hsl(180 60% 45%));
 
     /* Animations */
     --transition-fast: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
@@ -68,15 +68,15 @@ All colors MUST be HSL.
 
     --radius: 0.75rem;
 
-    /* Sidebar */
+    /* Sidebar with gold accent */
     --sidebar-background: 0 0% 100%;
     --sidebar-foreground: 220 15% 25%;
-    --sidebar-primary: 180 60% 45%;
+    --sidebar-primary: 30 70% 55%;
     --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 180 60% 97%;
-    --sidebar-accent-foreground: 180 60% 25%;
-    --sidebar-border: 180 60% 90%;
-    --sidebar-ring: 180 60% 45%;
+    --sidebar-accent: 30 70% 97%;
+    --sidebar-accent-foreground: 30 70% 25%;
+    --sidebar-border: 30 70% 90%;
+    --sidebar-ring: 30 70% 55%;
   }
 
   .dark {
@@ -271,9 +271,9 @@ All colors MUST be HSL.
   .card-3d:hover {
     transform: translateY(-4px) scale(1.02);
     box-shadow: 
-      0 20px 60px hsla(180, 60%, 45%, 0.25),
-      0 10px 30px hsla(30, 70%, 55%, 0.15),
-      0 4px 15px hsla(180, 60%, 45%, 0.1),
+      0 20px 60px hsla(30, 70%, 55%, 0.25),
+      0 10px 30px hsla(30, 70%, 60%, 0.15),
+      0 4px 15px hsla(30, 70%, 55%, 0.1),
       inset 0 1px 0 rgba(255,255,255,0.7);
   }
 
@@ -335,8 +335,8 @@ All colors MUST be HSL.
   .hover-lift:hover {
     transform: translateY(-6px) translateZ(20px);
     box-shadow: 
-      0 25px 50px hsla(180, 60%, 45%, 0.22),
-      0 12px 25px hsla(30, 70%, 55%, 0.14);
+      0 25px 50px hsla(30, 70%, 55%, 0.22),
+      0 12px 25px hsla(30, 70%, 60%, 0.14);
   }
 
   .hover-scale {
@@ -413,8 +413,8 @@ All colors MUST be HSL.
     .card-3d:hover {
       transform: translateY(-3px) scale(1.01);
       box-shadow: 
-        0 12px 40px hsla(180, 60%, 45%, 0.2),
-        0 6px 20px hsla(30, 70%, 55%, 0.12);
+        0 12px 40px hsla(30, 70%, 55%, 0.2),
+        0 6px 20px hsla(30, 70%, 60%, 0.12);
     }
     
     .card-3d:active {
@@ -448,9 +448,9 @@ All colors MUST be HSL.
   /* Gradient Shadow Utility */
   .shadow-gradient-glow {
     box-shadow: 
-      0 20px 60px hsla(180, 60%, 45%, 0.25),
-      0 10px 30px hsla(30, 70%, 55%, 0.15),
-      0 4px 15px hsla(180, 60%, 45%, 0.1);
+      0 20px 60px hsla(30, 70%, 55%, 0.25),
+      0 10px 30px hsla(30, 70%, 60%, 0.15),
+      0 4px 15px hsla(30, 70%, 55%, 0.1);
   }
 
 }
