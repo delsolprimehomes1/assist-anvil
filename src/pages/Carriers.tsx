@@ -577,7 +577,7 @@ const Carriers = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
+    <div className="container mx-auto px-4 md:px-6 lg:px-8 py-8 space-y-6 animate-fade-in">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold">Insurance Carriers</h1>
@@ -623,16 +623,18 @@ const Carriers = () => {
           <p className="text-muted-foreground">Check back soon as we add carriers to the system.</p>
         </Card>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
           {filteredCarriers.map((carrier, index) => (
-            <Card key={carrier.id} className="carrier-card" style={{ animationDelay: `${index * 0.1}s` }}>
+            <Card key={carrier.id} className="carrier-card animate-fade-in" style={{ animationDelay: `${index * 0.08}s`, animationFillMode: 'both' }}>
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
                     {carrier.logo_url ? (
-                      <img src={carrier.logo_url} alt={carrier.name} className="w-12 h-12 object-contain" />
+                      <div className="w-14 h-14 rounded-lg bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center p-2 border border-primary/10">
+                        <img src={carrier.logo_url} alt={carrier.name} className="w-full h-full object-contain" />
+                      </div>
                     ) : (
-                      <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
+                      <div className="w-14 h-14 bg-gradient-to-br from-primary/10 to-primary/5 rounded-lg flex items-center justify-center border border-primary/10">
                         <Building2 className="h-6 w-6 text-primary" />
                       </div>
                     )}
@@ -642,7 +644,7 @@ const Carriers = () => {
                     </div>
                   </div>
                   {carrier.am_best_rating && (
-                    <Badge variant="outline" className="text-xs">
+                    <Badge variant="outline" className="text-xs font-semibold border-primary/30 text-primary bg-primary/5">
                       A.M. Best: {carrier.am_best_rating}
                     </Badge>
                   )}
@@ -652,7 +654,7 @@ const Carriers = () => {
                 {carrier.turnaround && (
                   <div className="flex items-center justify-between">
                     <span className="text-sm text-muted-foreground">Turnaround</span>
-                    <Badge className={`text-xs ${getTurnaroundColor(carrier.turnaround)}`}>
+                    <Badge className={`text-xs font-bold shadow-sm ${getTurnaroundColor(carrier.turnaround)}`}>
                       {carrier.turnaround}
                     </Badge>
                   </div>
@@ -689,7 +691,7 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    className="h-12 md:h-9 cursor-pointer touch-manipulation"
+                    className="h-12 md:h-10 cursor-pointer touch-manipulation font-medium border-2 hover:border-primary/50 hover:bg-primary/5 transition-all"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -703,13 +705,13 @@ const Carriers = () => {
                       setIsModalOpen(true);
                     }}
                   >
-                    <Info className="h-4 w-4 md:h-3 md:w-3 mr-1" />
-                    <span className="text-sm">Details</span>
+                    <Info className="h-4 w-4 mr-2" />
+                    Details
                   </Button>
                   {carrier.portal_url && (
-                    <Button size="sm" className="h-12 md:h-9" asChild>
+                    <Button size="sm" className="h-12 md:h-10 font-medium shadow-sm hover:shadow-md bg-primary hover:bg-primary/90" asChild>
                       <a href={carrier.portal_url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="h-3 w-3 mr-1" />
+                        <ExternalLink className="h-4 w-4 mr-2" />
                         Portal
                       </a>
                     </Button>
