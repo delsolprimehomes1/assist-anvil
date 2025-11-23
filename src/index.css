@@ -347,19 +347,90 @@ All colors MUST be HSL.
     transform: scale(1.05) translateZ(10px);
   }
 
-  /* Insurance Carrier Cards - Light & Professional */
+  /* Insurance Carrier Cards - Premium 3D Floating Design */
   .carrier-card {
     @apply bg-background border border-border/40;
-    transition: all 0.2s ease-in-out;
-    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+    position: relative;
+    transform-style: preserve-3d;
+    transform: translateZ(0);
+    transition: all 0.35s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    
+    /* Multi-layer Material Design shadow for depth */
+    box-shadow: 
+      0 2px 4px rgba(0, 0, 0, 0.04),           /* Ambient shadow */
+      0 4px 8px rgba(0, 0, 0, 0.06),           /* Key light */
+      0 8px 16px rgba(0, 0, 0, 0.08),          /* Soft spread */
+      0 0 1px rgba(0, 0, 0, 0.04),             /* Crisp edge */
+      inset 0 1px 0 rgba(255, 255, 255, 0.6); /* Inner highlight */
+  }
+
+  /* Gradient border effect (hidden by default) */
+  .carrier-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: var(--gradient-border);
+    -webkit-mask: 
+      linear-gradient(#fff 0 0) content-box, 
+      linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+    opacity: 0;
+    transition: opacity 0.35s ease;
+    pointer-events: none;
   }
 
   .carrier-card:hover {
-    border-color: hsl(var(--primary) / 0.3);
+    border-color: hsl(var(--primary) / 0.4);
+    transform: translateY(-8px) translateZ(20px); /* Dramatic lift */
+    
+    /* Dramatic multi-layer shadow with gold accent glow */
     box-shadow: 
-      0 4px 12px rgba(0, 0, 0, 0.08),
-      0 0 0 1px hsl(var(--primary) / 0.1);
-    transform: translateY(-2px);
+      0 4px 8px rgba(0, 0, 0, 0.06),              /* Close ambient */
+      0 12px 24px rgba(0, 0, 0, 0.1),             /* Mid-range shadow */
+      0 24px 48px rgba(0, 0, 0, 0.12),            /* Far shadow for depth */
+      0 0 40px hsla(30, 70%, 55%, 0.25),          /* Gold glow */
+      0 0 80px hsla(30, 70%, 55%, 0.15),          /* Extended gold aura */
+      inset 0 1px 0 rgba(255, 255, 255, 0.8);     /* Bright inner highlight */
+  }
+
+  /* Show gradient border on hover */
+  .carrier-card:hover::before {
+    opacity: 1;
+  }
+
+  /* Active/press state */
+  .carrier-card:active {
+    transform: translateY(-6px) translateZ(15px) scale(0.98);
+    transition-duration: 0.1s;
+    box-shadow: 
+      0 8px 16px rgba(0, 0, 0, 0.08),
+      0 16px 32px rgba(0, 0, 0, 0.1),
+      0 0 30px hsla(30, 70%, 55%, 0.2);
+  }
+
+  /* Mobile optimization for carrier cards */
+  @media (max-width: 768px) {
+    .carrier-card:hover {
+      transform: translateY(-6px) translateZ(15px);
+      box-shadow: 
+        0 8px 16px rgba(0, 0, 0, 0.08),
+        0 16px 32px rgba(0, 0, 0, 0.1),
+        0 0 30px hsla(30, 70%, 55%, 0.2),
+        inset 0 1px 0 rgba(255, 255, 255, 0.7);
+    }
+  }
+
+  @media (hover: none) {
+    .carrier-card:hover {
+      transform: translateY(-4px);
+    }
+    
+    .carrier-card:active {
+      transform: translateY(-2px) scale(0.98);
+    }
   }
 
   /* Orders/Leads Premium Styling */
