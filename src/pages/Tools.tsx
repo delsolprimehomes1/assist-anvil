@@ -20,7 +20,6 @@ interface CarrierGuide {
 }
 
 const Tools = () => {
-  const [searchTerm, setSearchTerm] = useState("");
   const [activeTab, setActiveTab] = useState("resources");
   const [guideSearchTerm, setGuideSearchTerm] = useState("");
   const [carrierGuides, setCarrierGuides] = useState<CarrierGuide[]>([]);
@@ -84,11 +83,6 @@ const Tools = () => {
     });
   };
 
-  const filteredResources = resources.filter(resource =>
-    resource.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    resource.tags.some(tag => tag.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
-
   const filteredGuides = carrierGuides.filter(guide =>
     guide.carrier_name.toLowerCase().includes(guideSearchTerm.toLowerCase()) ||
     guide.guide_title.toLowerCase().includes(guideSearchTerm.toLowerCase())
@@ -131,21 +125,6 @@ const Tools = () => {
         </TabsList>
 
         <TabsContent value="resources" className="space-y-6">
-          {/* Search */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search tools and resources..."
-                  value={searchTerm}
-                  onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Resources Grid */}
           <Card>
             <CardContent className="py-12 text-center">
