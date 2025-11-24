@@ -1,6 +1,6 @@
 import { Search, Menu, Bell, User, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import batterboxLogo from "@/assets/batterbox-logo.png";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -8,6 +8,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
+import { useGlobalSearch } from "@/hooks/useGlobalSearch";
+import { SearchResults } from "@/components/layout/SearchResults";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -25,6 +27,10 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
   const navigate = useNavigate();
   const { user, signOut } = useAuth();
   const [userProfile, setUserProfile] = useState<{ full_name: string | null; avatar_url: string | null } | null>(null);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [showResults, setShowResults] = useState(false);
+  const searchRef = useRef<HTMLDivElement>(null);
+  const searchResults = useGlobalSearch(searchQuery);
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -41,6 +47,17 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
     
     fetchProfile();
   }, [user?.id]);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (searchRef.current && !searchRef.current.contains(event.target as Node)) {
+        setShowResults(false);
+      }
+    };
+
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   const handleSignOut = async () => {
     await signOut();
@@ -87,12 +104,28 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
         </div>
 
         <div className="hidden md:flex flex-1 max-w-md mx-8">
-          <div className="relative w-full">
+          <div ref={searchRef} className="relative w-full">
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search carriers, tools, training..."
               className="pl-10"
+              value={searchQuery}
+              onChange={(e) => {
+                setSearchQuery(e.target.value);
+                setShowResults(true);
+              }}
+              onFocus={() => setShowResults(true)}
             />
+            {showResults && (
+              <SearchResults
+                results={searchResults}
+                query={searchQuery}
+                onResultClick={() => {
+                  setShowResults(false);
+                  setSearchQuery("");
+                }}
+              />
+            )}
           </div>
         </div>
 
