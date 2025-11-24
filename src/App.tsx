@@ -19,6 +19,7 @@ import Auth from "./pages/Auth";
 import AcceptInvitation from "./pages/AcceptInvitation";
 import ProfileSettings from "./pages/ProfileSettings";
 import NotFound from "./pages/NotFound";
+import News from "./pages/News";
 
 const queryClient = new QueryClient();
 
@@ -38,6 +39,7 @@ const App = () => (
         }>
             <Route index element={<Dashboard />} />
             <Route path="carriers" element={<Carriers />} />
+            <Route path="news" element={<News />} />
           <Route path="ai-assist" element={<AIAssist />} />
           <Route path="tools" element={<Tools />} />
           <Route path="training" element={<Training />} />

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Upload, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus } from "lucide-react";
+import { Settings, Upload, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus, Newspaper } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -18,6 +18,7 @@ import { InviteAgentDialog } from "@/components/admin/InviteAgentDialog";
 import { InvitationsList } from "@/components/admin/InvitationsList";
 import { TrainingManagementTab } from "@/components/admin/training/TrainingManagementTab";
 import { ScheduleManagement } from "@/components/admin/schedule/ScheduleManagement";
+import { NewsManagement } from "@/components/admin/news/NewsManagement";
 
 type ApprovedEmail = {
   id: string;
@@ -191,7 +192,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="upload" className="w-full">
-        <TabsList className="grid w-full grid-cols-8">
+        <TabsList className="grid w-full grid-cols-9">
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="approvals">Admin Approvals</TabsTrigger>
           <TabsTrigger value="carriers">Carriers</TabsTrigger>
@@ -200,6 +201,7 @@ const Admin = () => {
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="training">Training</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
+          <TabsTrigger value="news">Carrier News</TabsTrigger>
         </TabsList>
 
         <TabsContent value="training" className="space-y-6">
@@ -208,6 +210,10 @@ const Admin = () => {
         
         <TabsContent value="schedule" className="space-y-6">
           <ScheduleManagement />
+        </TabsContent>
+
+        <TabsContent value="news" className="space-y-6">
+          <NewsManagement />
         </TabsContent>
 
         <TabsContent value="upload" className="space-y-6">

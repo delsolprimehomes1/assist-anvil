@@ -202,6 +202,71 @@ export type Database = {
           },
         ]
       }
+      carrier_news: {
+        Row: {
+          archive_date: string | null
+          attachment_url: string | null
+          carrier_id: string | null
+          carrier_name: string | null
+          content: string
+          created_at: string
+          created_by: string | null
+          id: string
+          news_type: string
+          priority: string
+          published_date: string
+          status: string
+          tags: string[] | null
+          title: string
+          updated_at: string
+          views_count: number
+        }
+        Insert: {
+          archive_date?: string | null
+          attachment_url?: string | null
+          carrier_id?: string | null
+          carrier_name?: string | null
+          content: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          news_type: string
+          priority?: string
+          published_date?: string
+          status?: string
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          views_count?: number
+        }
+        Update: {
+          archive_date?: string | null
+          attachment_url?: string | null
+          carrier_id?: string | null
+          carrier_name?: string | null
+          content?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          news_type?: string
+          priority?: string
+          published_date?: string
+          status?: string
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          views_count?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "carrier_news_carrier_id_fkey"
+            columns: ["carrier_id"]
+            isOneToOne: false
+            referencedRelation: "carriers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       carriers: {
         Row: {
           am_best_rating: string | null
