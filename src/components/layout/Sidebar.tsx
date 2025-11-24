@@ -26,7 +26,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { 
     name: "Order Leads", 
-    href: "https://leads.agoraassurancesolutions.com/order", 
+    href: "https://leads.lifecoimo.com/leads", 
     icon: ShoppingBag,
     external: true
   },
