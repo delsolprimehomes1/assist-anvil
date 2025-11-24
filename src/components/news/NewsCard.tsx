@@ -11,11 +11,11 @@ interface NewsCardProps {
 }
 
 const newsTypeConfig = {
-  state_approval: { label: "State Approval", color: "bg-blue-500/10 text-blue-600 border-blue-500/20" },
-  product_update: { label: "Product Update", color: "bg-purple-500/10 text-purple-600 border-purple-500/20" },
-  new_product: { label: "New Product", color: "bg-green-500/10 text-green-600 border-green-500/20" },
-  rate_change: { label: "Rate Change", color: "bg-orange-500/10 text-orange-600 border-orange-500/20" },
-  underwriting_change: { label: "Underwriting Update", color: "bg-yellow-500/10 text-yellow-600 border-yellow-500/20" },
+  state_approval: { label: "State Approval", color: "bg-primary/10 text-primary border border-primary/30" },
+  product_update: { label: "Product Update", color: "bg-gold/10 text-gold border border-gold/30" },
+  new_product: { label: "New Product", color: "border-transparent bg-gradient-to-r from-gold to-gold/80 text-white" },
+  rate_change: { label: "Rate Change", color: "bg-warning/10 text-warning border border-warning/30" },
+  underwriting_change: { label: "Underwriting Update", color: "bg-primary/10 text-primary border border-primary/30" },
   general: { label: "General News", color: "bg-muted text-muted-foreground border-border" },
 };
 
@@ -25,7 +25,7 @@ export const NewsCard = ({ news, onReadMore }: NewsCardProps) => {
 
   return (
     <Card 
-      className={`carrier-card group ${isHighPriority ? 'border-primary/40' : ''}`}
+      className={`brand-card-teal group ${isHighPriority ? 'border-l-4 border-l-gold' : ''}`}
     >
       <CardHeader className="space-y-3">
         <div className="flex items-start justify-between gap-2">

@@ -39,16 +39,15 @@ export const BottomNav = () => {
             );
           }
           
-          return (
             <NavLink
               key={item.name}
               to={item.href}
               className={({ isActive }) =>
                 cn(
-                  "flex flex-col items-center px-3 py-2 text-xs font-medium transition-smooth",
+                  "flex flex-col items-center px-3 py-2 text-xs font-medium transition-all",
                   isActive
                     ? "text-primary"
-                    : "text-muted-foreground"
+                    : "text-muted-foreground hover:text-primary"
                 )
               }
             >
@@ -56,15 +55,17 @@ export const BottomNav = () => {
                 <>
                   <div className="relative">
                     <item.icon className={cn(
-                      "h-5 w-5 mb-1",
+                      "h-5 w-5 mb-1 transition-all",
                       isActive ? "text-primary" : "text-muted-foreground"
                     )} />
+                    {isActive && (
+                      <div className="absolute -bottom-1 left-1/2 -translate-x-1/2 w-1 h-1 rounded-full bg-gold" />
+                    )}
                   </div>
                   <span>{item.name}</span>
                 </>
               )}
             </NavLink>
-          );
         })}
       </nav>
     </div>

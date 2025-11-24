@@ -29,7 +29,15 @@ const config = {
         foreground: "hsl(var(--foreground))",
         primary: {
           DEFAULT: "hsl(var(--primary))",
+          dark: "hsl(var(--primary-dark))",
+          light: "hsl(var(--primary-light))",
           foreground: "hsl(var(--primary-foreground))",
+        },
+        gold: {
+          DEFAULT: "hsl(var(--accent-gold))",
+          dark: "hsl(var(--accent-gold-dark))",
+          light: "hsl(var(--accent-gold-light))",
+          foreground: "hsl(var(--accent-gold-foreground))",
         },
         secondary: {
           DEFAULT: "hsl(var(--secondary))",

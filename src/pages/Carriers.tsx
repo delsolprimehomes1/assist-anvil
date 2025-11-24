@@ -569,9 +569,9 @@ const Carriers = () => {
 
   const getTurnaroundColor = (turnaround: string) => {
     switch (turnaround) {
-      case "fast": return "bg-success text-success-foreground";
-      case "avg": return "bg-warning text-warning-foreground";
-      case "slow": return "bg-destructive text-destructive-foreground";
+      case "fast": return "bg-primary/10 text-primary border border-primary/30";
+      case "avg": return "bg-warning/10 text-warning border border-warning/30";
+      case "slow": return "bg-destructive/10 text-destructive border border-destructive/30";
       default: return "bg-muted text-muted-foreground";
     }
   };
@@ -586,7 +586,7 @@ const Carriers = () => {
       </div>
 
       {/* Filters */}
-      <Card className="stat-card">
+      <Card className="brand-card">
         <CardContent className="pt-6">
           <div className="flex flex-col sm:flex-row gap-4">
             <div className="relative flex-1">
@@ -624,15 +624,17 @@ const Carriers = () => {
         </Card>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredCarriers.map((carrier, index) => (
-            <Card key={carrier.id} className="carrier-card" style={{ animationDelay: `${index * 0.1}s` }}>
+          {filteredCarriers.map((carrier, index) => {
+            const isFeatured = carrier.am_best_rating === "A+" || carrier.am_best_rating === "A";
+            return (
+            <Card key={carrier.id} className={isFeatured ? "featured-card" : "brand-card"} style={{ animationDelay: `${index * 0.1}s` }}>
               <CardHeader className="pb-4">
                 <div className="flex items-start justify-between">
                   <div className="flex items-center space-x-3">
                     {carrier.logo_url ? (
                       <img src={carrier.logo_url} alt={carrier.name} className="w-12 h-12 object-contain" />
                     ) : (
-                      <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
+                      <div className="w-12 h-12 bg-gradient-to-br from-primary/10 to-gold/10 rounded-lg flex items-center justify-center">
                         <Building2 className="h-6 w-6 text-primary" />
                       </div>
                     )}
@@ -642,8 +644,8 @@ const Carriers = () => {
                     </div>
                   </div>
                   {carrier.am_best_rating && (
-                    <Badge variant="outline" className="text-xs">
-                      A.M. Best: {carrier.am_best_rating}
+                    <Badge variant={isFeatured ? "premium" : "outline"} className="text-xs">
+                      {isFeatured ? "★ " : ""}A.M. Best: {carrier.am_best_rating}
                     </Badge>
                   )}
                 </div>
@@ -663,7 +665,7 @@ const Carriers = () => {
                     <span className="text-sm text-muted-foreground">Products</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {carrier.products.map((product: string) => (
-                        <Badge key={product} variant="secondary" className="text-xs">
+                        <Badge key={product} variant="teal" className="text-xs">
                           {product}
                         </Badge>
                       ))}
@@ -676,7 +678,7 @@ const Carriers = () => {
                     <span className="text-sm text-muted-foreground">Specialties</span>
                     <div className="flex flex-wrap gap-1 mt-1">
                       {carrier.niches.map((niche: string) => (
-                        <Badge key={niche} variant="outline" className="text-xs">
+                        <Badge key={niche} variant="outline" className="text-xs border-primary/30">
                           {niche.replace('_', ' ')}
                         </Badge>
                       ))}
@@ -689,7 +691,7 @@ const Carriers = () => {
                   <Button 
                     size="sm" 
                     variant="outline"
-                    className="h-12 md:h-9 cursor-pointer touch-manipulation"
+                    className="h-12 md:h-9 cursor-pointer touch-manipulation hover:bg-primary/5 hover:border-primary/50"
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
@@ -707,7 +709,7 @@ const Carriers = () => {
                     <span className="text-sm">Details</span>
                   </Button>
                   {carrier.portal_url && (
-                    <Button size="sm" className="h-12 md:h-9" asChild>
+                    <Button size="sm" variant="gold" className="h-12 md:h-9" asChild>
                       <a href={carrier.portal_url} target="_blank" rel="noopener noreferrer">
                         <ExternalLink className="h-3 w-3 mr-1" />
                         Portal
@@ -723,11 +725,11 @@ const Carriers = () => {
                       <Button 
                         key={pdfIndex}
                         size="sm" 
-                        variant="secondary" 
-                        className="text-xs sm:text-sm px-3 sm:px-4 whitespace-nowrap"
+                        variant="outline" 
+                        className="text-xs sm:text-sm px-3 sm:px-4 whitespace-nowrap border-primary/30 hover:bg-primary/5"
                         onClick={() => handleDownload(pdf.url, pdf.title)}
                       >
-                        <Download className="h-3 w-3 mr-1 flex-shrink-0" />
+                        <Download className="h-3 w-3 mr-1 flex-shrink-0 text-primary" />
                         <span className="overflow-hidden text-ellipsis">{pdf.button_label || pdf.name || 'Download'}</span>
                       </Button>
                     ))}
@@ -735,7 +737,7 @@ const Carriers = () => {
                 )}
               </CardContent>
             </Card>
-          ))}
+          )})}
         </div>
       )}
 

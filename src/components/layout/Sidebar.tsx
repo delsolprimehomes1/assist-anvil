@@ -81,8 +81,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   rel="noopener noreferrer"
                   onClick={onClose}
                   className={cn(
-                    "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
-                    "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all group",
+                    "text-muted-foreground hover:text-primary hover:bg-primary/5"
                   )}
                 >
                   <item.icon className="h-5 w-5 flex-shrink-0" />
@@ -99,15 +99,22 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 onClick={onClose}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all group",
                     isActive 
-                      ? "bg-primary text-primary-foreground" 
-                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
+                      ? "bg-primary/10 text-primary border-l-4 border-l-primary" 
+                      : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                   )
                 }
               >
-                <item.icon className="h-5 w-5 flex-shrink-0" />
-                <span className="flex-1">{item.name}</span>
+                {({ isActive }) => (
+                  <>
+                    <item.icon className={cn(
+                      "h-5 w-5 flex-shrink-0 transition-colors",
+                      isActive ? "text-primary" : "text-muted-foreground group-hover:text-primary"
+                    )} />
+                    <span className="flex-1">{item.name}</span>
+                  </>
+                )}
               </NavLink>
             );
           })}

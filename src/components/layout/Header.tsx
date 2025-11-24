@@ -97,22 +97,24 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
         </div>
 
         <div className="flex items-center space-x-3">
-          <Button variant="ghost" size="sm" className="relative">
-            <Bell className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center">
+          <Button variant="ghost" size="sm" className="relative hover:bg-primary/5">
+            <Bell className="h-5 w-5 text-muted-foreground" />
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center bg-gold text-gold-foreground">
               3
             </Badge>
           </Button>
 
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
-              <Button variant="ghost" className="relative h-10 w-10 rounded-full">
-                <Avatar className="h-9 w-9">
+              <Button variant="ghost" className="relative h-10 w-10 rounded-full hover:bg-primary/5">
+                <Avatar className="h-9 w-9 ring-2 ring-gold/20">
                   <AvatarImage 
                     src={userProfile?.avatar_url || undefined} 
                     alt={userProfile?.full_name || "Agent"} 
                   />
-                  <AvatarFallback className="bg-primary text-primary-foreground">{getUserInitials()}</AvatarFallback>
+                  <AvatarFallback className="bg-gradient-to-br from-primary to-gold text-white font-semibold">
+                    {getUserInitials()}
+                  </AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>
