@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { TrendingUp, Target, Calendar, Users, Award, DollarSign, Building2, FileText, Clock } from "lucide-react";
+import { TrendingUp, Target, Calendar, Users, Award, DollarSign, Building2, FileText, Clock, Newspaper, Megaphone, Calculator } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -8,6 +8,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { ScheduleCalendarDialog } from "@/components/dashboard/ScheduleCalendarDialog";
 import { formatDistanceToNow, parseISO, isAfter, isBefore, format } from "date-fns";
 import { useAuth } from "@/hooks/useAuth";
+import { Link } from "react-router-dom";
 
 interface ScheduleItem {
   id: string;
@@ -319,19 +320,20 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { icon: Building2, text: "Add New Carrier" },
-                { icon: Calendar, text: "Schedule Appointment" },
-                { icon: FileText, text: "Upload Document" }
+                { icon: Newspaper, text: "Latest News", href: "/news" },
+                { icon: Megaphone, text: "Marketing Tools", href: "/marketing" },
+                { icon: Calculator, text: "Calculators", href: "/tools" }
               ].map((item) => (
-                <Button 
-                  key={item.text}
-                  variant="outline" 
-                  className="w-full justify-start text-sm md:text-base" 
-                  size="sm"
-                >
-                  <item.icon className="mr-2 h-4 w-4" />
-                  {item.text}
-                </Button>
+                <Link key={item.text} to={item.href}>
+                  <Button 
+                    variant="outline" 
+                    className="w-full justify-start text-sm md:text-base hover:bg-primary/5 hover:border-primary/50 hover:text-primary transition-all" 
+                    size="sm"
+                  >
+                    <item.icon className="mr-2 h-4 w-4" />
+                    {item.text}
+                  </Button>
+                </Link>
               ))}
             </CardContent>
           </Card>
