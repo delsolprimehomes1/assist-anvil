@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Shield, Plus, AlertTriangle, CheckCircle, Clock, Loader2 } from "lucide-react";
+import { Shield, Plus, AlertTriangle, CheckCircle, Clock, Loader2, Copy, ExternalLink, GraduationCap, BookOpen } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { useAgentProfile } from "@/hooks/useAgentProfile";
 import { useNonResidentLicenses } from "@/hooks/useNonResidentLicenses";
 import { useComplianceRecords } from "@/hooks/useComplianceRecords";
+import { toast } from "@/hooks/use-toast";
 
 const Compliance = () => {
   const { user, loading: authLoading } = useAuth();
@@ -71,6 +72,14 @@ const Compliance = () => {
 
     setNewLicense({ state: "", npn: "", expiresOn: "" });
     setShowAddDialog(false);
+  };
+
+  const handleCopy = (text: string, label: string) => {
+    navigator.clipboard.writeText(text);
+    toast({
+      title: "Copied!",
+      description: `${label} copied to clipboard`,
+    });
   };
 
   if (isLoading) {
@@ -314,35 +323,125 @@ const Compliance = () => {
         <CardHeader>
           <CardTitle>Compliance Resources</CardTitle>
           <CardDescription>
-            Important links and information for staying compliant
+            Educational resources with exclusive discounts for our agents
           </CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Button variant="outline" className="justify-start h-auto p-4">
-              <div className="text-left">
-                <div className="font-medium">State CE Requirements</div>
-                <div className="text-sm text-muted-foreground">Continuing education by state</div>
+        <CardContent className="space-y-6">
+          {/* Premium Resource Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            
+            {/* FastrackCE Card */}
+            <Card className="relative overflow-hidden border-2 hover:shadow-lg transition-all duration-300">
+              <div className="absolute top-4 right-4">
+                <Badge className="bg-primary text-primary-foreground">20% OFF</Badge>
               </div>
-            </Button>
-            <Button variant="outline" className="justify-start h-auto p-4">
-              <div className="text-left">
-                <div className="font-medium">NAIC Producer Database</div>
-                <div className="text-sm text-muted-foreground">Verify license status</div>
+              
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <GraduationCap className="h-8 w-8 text-primary" />
+                  <div>
+                    <CardTitle className="text-xl">Continuing Education</CardTitle>
+                    <p className="text-sm text-muted-foreground">FastrackCE</p>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Complete your required continuing education hours with convenient online courses
+                </p>
+                
+                <div className="bg-primary/10 rounded-lg p-3 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">Exclusive Discount Code</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <code className="text-lg font-bold text-primary">BB25HOF</code>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => handleCopy("BB25HOF", "Discount code")}
+                      className="hover:bg-primary/20"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                </div>
+                
+                <Button asChild className="w-full">
+                  <a href="https://www.fastrackce.com/" target="_blank" rel="noopener noreferrer">
+                    Visit FastrackCE <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* ExamFX Card */}
+            <Card className="relative overflow-hidden border-2 hover:shadow-lg transition-all duration-300">
+              <div className="absolute top-4 right-4">
+                <Badge className="bg-success text-success-foreground">55% OFF</Badge>
               </div>
-            </Button>
-            <Button variant="outline" className="justify-start h-auto p-4">
-              <div className="text-left">
-                <div className="font-medium">DOI Contact Information</div>
-                <div className="text-sm text-muted-foreground">Department of Insurance contacts</div>
-              </div>
-            </Button>
-            <Button variant="outline" className="justify-start h-auto p-4">
-              <div className="text-left">
-                <div className="font-medium">Renewal Reminders</div>
-                <div className="text-sm text-muted-foreground">Set up email and SMS alerts</div>
-              </div>
-            </Button>
+              
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <BookOpen className="h-8 w-8 text-success" />
+                  <div>
+                    <CardTitle className="text-xl">Pre-Licensing Courses</CardTitle>
+                    <p className="text-sm text-muted-foreground">ExamFX</p>
+                  </div>
+                </div>
+              </CardHeader>
+              
+              <CardContent className="space-y-4">
+                <p className="text-sm text-muted-foreground">
+                  Get licensed with comprehensive insurance pre-licensing courses for unlicensed agents
+                </p>
+                
+                <div className="bg-success/10 rounded-lg p-3 space-y-2">
+                  <p className="text-xs font-medium text-muted-foreground">For 55% Discount, Contact:</p>
+                  <div className="flex items-center justify-between gap-2">
+                    <code className="text-xs font-bold text-success break-all">kjenson@lifeconetwork.com</code>
+                    <Button 
+                      size="sm" 
+                      variant="ghost" 
+                      onClick={() => handleCopy("kjenson@lifeconetwork.com", "Email address")}
+                      className="hover:bg-success/20 flex-shrink-0"
+                    >
+                      <Copy className="h-4 w-4" />
+                    </Button>
+                  </div>
+                  <p className="text-xs text-muted-foreground">Mention: Insurance Courses</p>
+                </div>
+                
+                <Button asChild className="w-full">
+                  <a href="https://www.examfx.com/product-registration" target="_blank" rel="noopener noreferrer">
+                    Visit ExamFX <ExternalLink className="ml-2 h-4 w-4" />
+                  </a>
+                </Button>
+              </CardContent>
+            </Card>
+            
+          </div>
+          
+          {/* Additional Resources */}
+          <div className="pt-4 border-t">
+            <h3 className="text-sm font-medium mb-3">Additional Resources</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+              <Button variant="outline" className="justify-start h-auto p-3" asChild>
+                <a href="https://www.naic.org/state_web_map.htm" target="_blank" rel="noopener noreferrer">
+                  <div className="text-left">
+                    <div className="font-medium text-sm">State CE Requirements</div>
+                    <div className="text-xs text-muted-foreground">Continuing education by state</div>
+                  </div>
+                </a>
+              </Button>
+              <Button variant="outline" className="justify-start h-auto p-3" asChild>
+                <a href="https://pdb.nipr.com/" target="_blank" rel="noopener noreferrer">
+                  <div className="text-left">
+                    <div className="font-medium text-sm">NAIC Producer Database</div>
+                    <div className="text-xs text-muted-foreground">Verify license status</div>
+                  </div>
+                </a>
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
