@@ -65,7 +65,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
   };
 
   return (
-    <header className="sticky top-0 z-50 w-full border-b bg-secondary backdrop-blur supports-[backdrop-filter]:bg-secondary/90">
+    <header className="sticky top-0 z-50 w-full border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
       <div className="w-full flex h-16 items-center justify-between px-4 md:px-6">
         <div className="flex items-center space-x-4">
           <Button
@@ -81,7 +81,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             <img 
               src={batterboxLogo} 
               alt="BatterBox Logo" 
-              className="h-14 w-auto object-contain"
+              className="h-12 w-auto object-contain"
             />
           </div>
         </div>
@@ -91,7 +91,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
             <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               placeholder="Search carriers, tools, training..."
-              className="pl-10 bg-muted/50 border-none"
+              className="pl-10"
             />
           </div>
         </div>
@@ -99,7 +99,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
         <div className="flex items-center space-x-3">
           <Button variant="ghost" size="sm" className="relative">
             <Bell className="h-5 w-5" />
-            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs bg-destructive">
+            <Badge className="absolute -top-1 -right-1 h-5 w-5 p-0 text-xs flex items-center justify-center">
               3
             </Badge>
           </Button>
@@ -112,7 +112,7 @@ export const Header = ({ onMenuClick }: HeaderProps) => {
                     src={userProfile?.avatar_url || undefined} 
                     alt={userProfile?.full_name || "Agent"} 
                   />
-                  <AvatarFallback>{getUserInitials()}</AvatarFallback>
+                  <AvatarFallback className="bg-primary text-primary-foreground">{getUserInitials()}</AvatarFallback>
                 </Avatar>
               </Button>
             </DropdownMenuTrigger>

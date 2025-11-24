@@ -10,9 +10,9 @@ import {
   Settings,
   X,
   ShoppingBag,
-  Sparkles,
   Users,
-  Newspaper
+  Newspaper,
+  ExternalLink
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -28,7 +28,6 @@ const navigation = [
     name: "Order Leads", 
     href: "https://lifecoimo.com/", 
     icon: ShoppingBag,
-    special: true,
     external: true
   },
   { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
@@ -48,9 +47,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       {/* Mobile overlay */}
       {isOpen && (
         <div
-          className="fixed inset-0 z-40 md:hidden animate-fade-in duration-300
-                     bg-gradient-to-b from-black/40 via-black/25 to-black/10 
-                     backdrop-blur-lg"
+          className="fixed inset-0 z-40 bg-background/80 backdrop-blur-sm md:hidden"
           onClick={onClose}
         />
       )}
@@ -58,33 +55,23 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed left-0 z-50 w-full bg-white md:relative md:top-0 md:z-0 md:w-64 md:h-[calc(100vh-4rem)] md:border-r",
-          "transition-all duration-700 ease-[cubic-bezier(0.34,1.56,0.64,1)]",
-          isOpen 
-            ? "top-16 opacity-100 scale-100" 
-            : "-top-full opacity-0 scale-y-95",
-          "md:translate-y-0 md:opacity-100 md:scale-100"
+          "fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-64 border-r bg-background transition-transform duration-300 md:relative md:top-0 md:translate-x-0",
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex items-center justify-between p-6 md:hidden border-b bg-gradient-to-r from-primary/5 to-secondary/5">
-          <div className="flex items-center gap-3">
-            <div className="w-1 h-8 bg-gradient-primary rounded-full animate-pulse-glow" />
-            <span className="text-xl font-bold bg-gradient-primary bg-clip-text text-transparent">
-              Navigation
-            </span>
-          </div>
+        <div className="flex items-center justify-between p-4 border-b md:hidden">
+          <span className="text-lg font-semibold">Menu</span>
           <Button 
             variant="ghost" 
             size="sm" 
             onClick={onClose}
-            className="hover:rotate-90 transition-transform duration-300"
           >
             <X className="h-5 w-5" />
           </Button>
         </div>
         
-        <nav className="space-y-1 p-4">
-          {navigation.map((item, index) => {
+        <nav className="space-y-1 p-3">
+          {navigation.map((item) => {
             if (item.external) {
               return (
                 <a
@@ -93,23 +80,14 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={onClose}
-                  style={{ 
-                    animationDelay: `${index * 80}ms`,
-                    animationFillMode: 'backwards'
-                  }}
                   className={cn(
-                    "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-smooth group relative",
-                    isOpen && "animate-slide-up",
-                    item.special && "bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 hover:from-primary/20 hover:via-secondary/20 hover:to-primary/20 shadow-sm border border-primary/20 animate-pulse-subtle",
-                    !item.special && "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    "text-muted-foreground hover:text-foreground hover:bg-accent"
                   )}
                 >
-                  <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                  <item.icon className="h-5 w-5 flex-shrink-0" />
                   <span className="flex-1">{item.name}</span>
-                  
-                  {item.special && (
-                    <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary animate-pulse" />
-                  )}
+                  <ExternalLink className="h-4 w-4" />
                 </a>
               );
             }
@@ -119,27 +97,17 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 key={item.name}
                 to={item.href}
                 onClick={onClose}
-                style={{ 
-                  animationDelay: `${index * 80}ms`,
-                  animationFillMode: 'backwards'
-                }}
                 className={({ isActive }) =>
                   cn(
-                    "flex items-center px-4 py-3 text-sm font-medium rounded-xl transition-smooth group relative",
-                    isOpen && "animate-slide-up",
-                    item.special && !isActive && "bg-gradient-to-r from-primary/10 via-secondary/10 to-primary/10 hover:from-primary/20 hover:via-secondary/20 hover:to-primary/20 shadow-sm border border-primary/20 animate-pulse-subtle",
-                    item.special && isActive && "bg-gradient-to-r from-primary via-secondary to-primary text-white shadow-glow-premium",
-                    !item.special && isActive && "bg-gradient-primary text-white shadow-glow",
-                    !item.special && !isActive && "text-muted-foreground hover:text-foreground hover:bg-accent"
+                    "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-colors",
+                    isActive 
+                      ? "bg-primary text-primary-foreground" 
+                      : "text-muted-foreground hover:text-foreground hover:bg-accent"
                   )
                 }
               >
-                <item.icon className="mr-3 h-5 w-5 flex-shrink-0" />
+                <item.icon className="h-5 w-5 flex-shrink-0" />
                 <span className="flex-1">{item.name}</span>
-                
-                {item.special && (
-                  <Sparkles className="absolute -top-1 -right-1 h-4 w-4 text-primary animate-pulse" />
-                )}
               </NavLink>
             );
           })}
