@@ -45,9 +45,11 @@ export const QuickActions = () => {
             className="block"
             style={{ animationDelay: `${index * 50}ms` }}
           >
-            <div className="group bg-card border border-border rounded-xl p-6 md:p-8 transition-all duration-200 hover:shadow-lg hover:-translate-y-1 flex flex-col items-center justify-center gap-3 md:gap-4 min-h-[140px] md:min-h-[160px]">
-              <action.icon className="h-10 w-10 md:h-12 md:w-12 text-primary transition-transform duration-200 group-hover:scale-110" strokeWidth={1.5} />
-              <span className="text-sm md:text-base font-semibold text-foreground text-center">
+            <div className="group brand-card p-6 md:p-8 flex flex-col items-center justify-center gap-3 md:gap-4 min-h-[140px] md:min-h-[160px]">
+              <div className="rounded-full bg-gradient-to-br from-primary/10 to-gold/10 p-4 group-hover:from-primary/20 group-hover:to-gold/20 transition-all">
+                <action.icon className="h-10 w-10 md:h-12 md:w-12 text-primary group-hover:text-gold transition-all duration-200 group-hover:scale-110" strokeWidth={1.5} />
+              </div>
+              <span className="text-sm md:text-base font-semibold text-foreground text-center group-hover:text-primary transition-colors">
                 {action.title}
               </span>
             </div>

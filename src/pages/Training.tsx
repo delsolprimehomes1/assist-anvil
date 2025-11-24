@@ -32,10 +32,10 @@ const Training = () => {
 
   const getDifficultyColor = (difficulty: string) => {
     switch (difficulty) {
-      case "beginner": return "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200";
-      case "intermediate": return "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-200";
-      case "advanced": return "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-200";
-      default: return "bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200";
+      case "beginner": return "bg-primary/10 text-primary border border-primary/30";
+      case "intermediate": return "bg-gold/10 text-gold border border-gold/30";
+      case "advanced": return "bg-gradient-to-r from-primary to-gold text-white border-0";
+      default: return "bg-muted text-muted-foreground";
     }
   };
 
@@ -58,7 +58,7 @@ const Training = () => {
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
-            <GraduationCap className="h-8 w-8 text-primary" />
+            <GraduationCap className="h-8 w-8 text-gold" />
             Training Center
           </h1>
           <p className="text-muted-foreground">Enhance your skills with our comprehensive training library</p>
@@ -115,35 +115,35 @@ const Training = () => {
 
         {/* Training Progress Overview */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="stat-card">
+          <Card className="brand-card-teal">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Completed</CardTitle>
-              <Star className="h-4 w-4 text-primary" />
+              <Star className="h-4 w-4 text-gold" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.completed}</div>
+              <div className="text-2xl font-bold text-primary">{stats.completed}</div>
               <p className="text-xs text-muted-foreground">Training modules</p>
             </CardContent>
           </Card>
 
-          <Card className="stat-card">
+          <Card className="brand-card-gold">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">In Progress</CardTitle>
-              <Clock className="h-4 w-4 text-warning" />
+              <Clock className="h-4 w-4 text-gold" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.inProgress}</div>
+              <div className="text-2xl font-bold text-gold">{stats.inProgress}</div>
               <p className="text-xs text-muted-foreground">Currently watching</p>
             </CardContent>
           </Card>
 
-          <Card className="stat-card">
+          <Card className="brand-card">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Total Hours</CardTitle>
               <BookOpen className="h-4 w-4 text-primary" />
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold text-primary">
                 {Math.round(stats.totalHours / 60)}
               </div>
               <p className="text-xs text-muted-foreground">Available content</p>
@@ -162,8 +162,10 @@ const Training = () => {
                     alt={item.title}
                     className="w-full h-full object-cover"
                   />
-                  <div className="absolute inset-0 bg-black/40 flex items-center justify-center hover:bg-black/30 transition-colors">
-                    <Play className="h-12 w-12 text-white" />
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-gold/20 flex items-center justify-center hover:from-primary/30 hover:to-gold/30 transition-all">
+                    <div className="rounded-full bg-primary p-3 ring-2 ring-white/50 hover:ring-gold/80 transition-all">
+                      <Play className="h-6 w-6 text-white" />
+                    </div>
                   </div>
                 </div>
                 <CardTitle className="text-base sm:text-lg leading-tight mb-1">
@@ -187,7 +189,7 @@ const Training = () => {
                       <span>Progress</span>
                       <span>{item.progress}%</span>
                     </div>
-                    <Progress value={item.progress} className="h-2" />
+                    <Progress value={item.progress} className="h-2 [&>div]:bg-gradient-to-r [&>div]:from-primary [&>div]:to-gold" />
                   </div>
                 )}
 

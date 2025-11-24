@@ -181,19 +181,19 @@ const Dashboard = () => {
   return (
     <div className="space-y-6 md:space-y-8 animate-fade-in">
       {/* Welcome Section */}
-      <Card className="border-primary/20">
+      <Card className="featured-card">
         <CardHeader className="pb-3">
           <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
             <div>
               <CardTitle className="text-2xl md:text-3xl font-bold text-foreground">
-                {greeting.text}, {userName}! {greeting.emoji}
+                {greeting.text}, <span className="text-gold">{userName}</span>! {greeting.emoji}
               </CardTitle>
               <CardDescription className="text-base mt-1">
                 Ready to close some deals today?
               </CardDescription>
             </div>
             {hasActiveGoals && (
-              <Badge variant="secondary" className="text-sm">
+              <Badge variant="teal" className="text-sm">
                 <Target className="w-4 h-4 mr-1" />
                 Goal: {goalProgress}% this month
               </Badge>
@@ -208,12 +208,12 @@ const Dashboard = () => {
           <QuickActions />
 
           {/* Schedule Card */}
-          <Card>
+          <Card className="brand-card">
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div>
                   <CardTitle className="flex items-center gap-2 text-lg md:text-xl">
-                    <Calendar className="h-5 w-5 text-primary" />
+                    <Calendar className="h-5 w-5 text-gold" />
                     Schedule
                   </CardTitle>
                   <CardDescription className="text-sm">
@@ -229,9 +229,9 @@ const Dashboard = () => {
               ) : (
                 <>
                   {upcomingEvent && (
-                    <div className="p-4 rounded-lg bg-primary/5 border border-primary/10 space-y-3">
+                    <div className="p-4 rounded-lg bg-gradient-to-br from-primary/5 to-gold/5 border border-primary/10 space-y-3">
                       <div className="flex items-center justify-between">
-                        <Badge variant="default" className="bg-primary text-primary-foreground">
+                        <Badge variant="premium" className="bg-gold text-gold-foreground">
                           NEXT UP
                         </Badge>
                         <span className="text-xs text-muted-foreground">
@@ -247,8 +247,8 @@ const Dashboard = () => {
                       </div>
                       
                       <div className="flex items-center gap-2">
-                        <Clock className="h-4 w-4 text-primary" />
-                        <Badge variant="outline" className="font-mono text-xs">
+                        <Clock className="h-4 w-4 text-gold" />
+                        <Badge variant="outline" className="font-mono text-xs border-gold/30">
                           {formatTime12Hour(upcomingEvent.time)}
                         </Badge>
                         {upcomingEvent.date !== format(new Date(), 'yyyy-MM-dd') && (
