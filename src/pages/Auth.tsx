@@ -8,7 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
-import logo from "@/assets/lifeco-logo.png";
+import logo from "@/assets/batterbox-auth-logo.png";
 
 const Auth = () => {
   const navigate = useNavigate();
