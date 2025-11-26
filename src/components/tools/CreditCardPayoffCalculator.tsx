@@ -31,11 +31,11 @@ export const CreditCardPayoffCalculator = () => {
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-2"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20">
-          <CreditCard className="h-4 w-4 text-red-500" />
-          <span className="text-sm font-medium">Credit Card Payoff</span>
+        <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-gradient-to-r from-red-500/10 to-orange-500/10 border border-red-500/20">
+          <CreditCard className="h-3.5 w-3.5 text-red-500" />
+          <span className="text-xs sm:text-sm font-medium">Credit Card Payoff</span>
         </div>
-        <h2 className="text-3xl font-bold">When Will My Credit Card Be Paid Off?</h2>
+        <h2 className="text-xl sm:text-2xl md:text-3xl font-bold">When Will My Credit Card Be Paid Off?</h2>
       </motion.div>
 
       <div className="grid md:grid-cols-2 gap-6">
@@ -47,7 +47,7 @@ export const CreditCardPayoffCalculator = () => {
                 type="number"
                 value={balance}
                 onChange={(e) => setBalance(Number(e.target.value))}
-                className="text-lg"
+                className="text-lg min-h-[48px] min-touch-target"
               />
             </div>
 
@@ -59,7 +59,7 @@ export const CreditCardPayoffCalculator = () => {
                 min={5}
                 max={30}
                 step={0.1}
-                className="py-4"
+                className="py-4 touch-slider"
               />
               <div className="text-sm text-muted-foreground text-right">{apr.toFixed(2)}%</div>
             </div>
@@ -72,7 +72,7 @@ export const CreditCardPayoffCalculator = () => {
                 min={1}
                 max={5}
                 step={0.1}
-                className="py-4"
+                className="py-4 touch-slider"
               />
               <div className="text-sm text-muted-foreground text-right">{minPaymentPercent.toFixed(1)}%</div>
             </div>
@@ -83,6 +83,7 @@ export const CreditCardPayoffCalculator = () => {
                 type="number"
                 value={minPaymentFloor}
                 onChange={(e) => setMinPaymentFloor(Number(e.target.value))}
+                className="min-h-[48px] min-touch-target"
               />
             </div>
 
@@ -93,6 +94,7 @@ export const CreditCardPayoffCalculator = () => {
                 value={extraPayment}
                 onChange={(e) => setExtraPayment(Number(e.target.value))}
                 placeholder="0"
+                className="min-h-[48px] min-touch-target"
               />
             </div>
 
