@@ -18,6 +18,8 @@ import { InviteAgentDialog } from "@/components/admin/InviteAgentDialog";
 import { InvitationsList } from "@/components/admin/InvitationsList";
 import { OnboardingRequestsList } from "@/components/admin/OnboardingRequestsList";
 import { PendingUsersList } from "@/components/admin/PendingUsersList";
+import { ApprovedUsersList } from "@/components/admin/ApprovedUsersList";
+import { RejectedUsersList } from "@/components/admin/RejectedUsersList";
 import { TrainingManagementTab } from "@/components/admin/training/TrainingManagementTab";
 import { ScheduleManagement } from "@/components/admin/schedule/ScheduleManagement";
 import { NewsManagement } from "@/components/admin/news/NewsManagement";
@@ -199,7 +201,7 @@ const Admin = () => {
           <TabsTrigger value="approvals">Admin Approvals</TabsTrigger>
           <TabsTrigger value="carriers">Carriers</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="pending">Pending Users</TabsTrigger>
+          <TabsTrigger value="user-management">User Management</TabsTrigger>
           <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
@@ -469,16 +471,34 @@ const Admin = () => {
           <InvitationsList />
         </TabsContent>
 
-        <TabsContent value="pending" className="space-y-6">
+        <TabsContent value="user-management" className="space-y-6">
           <Card className="stat-card">
             <CardHeader>
-              <CardTitle>Pending User Approvals</CardTitle>
+              <CardTitle>User Management</CardTitle>
               <CardDescription>
-                Review and approve all users awaiting access to BattersBox
+                Manage user access and approval status for BattersBox
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <PendingUsersList />
+              <Tabs defaultValue="pending" className="w-full">
+                <TabsList className="grid w-full grid-cols-3">
+                  <TabsTrigger value="pending">Pending</TabsTrigger>
+                  <TabsTrigger value="approved">Approved</TabsTrigger>
+                  <TabsTrigger value="rejected">Rejected</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="pending" className="mt-6">
+                  <PendingUsersList />
+                </TabsContent>
+                
+                <TabsContent value="approved" className="mt-6">
+                  <ApprovedUsersList />
+                </TabsContent>
+                
+                <TabsContent value="rejected" className="mt-6">
+                  <RejectedUsersList />
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </TabsContent>
