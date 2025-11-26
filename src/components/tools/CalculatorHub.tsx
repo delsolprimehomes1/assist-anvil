@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
 import { Clock, Briefcase, Shield, DollarSign, Calculator, Info, CreditCard, Heart, TrendingUp, Scale, TrendingDown, Users, Coffee, Wallet, Target } from "lucide-react";
-import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { cn } from "@/lib/utils";
 import { LifeExpectancyCalculator } from "./LifeExpectancyCalculator";
 import { LifetimeEarningsCalculator } from "./LifetimeEarningsCalculator";
 import { InsuranceLongevityCalculator } from "./InsuranceLongevityCalculator";
@@ -150,174 +150,130 @@ export const CalculatorHub = () => {
   const activeCalculators = category === "debt" ? debtCalculators : category === "cashflow" ? cashFlowCalculators : category === "retirement" ? retirementCalculators : lifeCalculators;
 
   return (
-    <div className="space-y-8">
-      {/* Category Tabs */}
-      <div className="flex justify-center">
-        <div className="inline-flex p-1 rounded-lg bg-muted">
-          <button
-            onClick={() => {
-              setCategory("debt");
-              setActiveTab("credit-card-payoff");
-            }}
-            className={`
-              inline-flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-all
-              ${category === "debt" 
-                ? "bg-background text-foreground shadow-sm" 
-                : "text-muted-foreground hover:text-foreground"
-              }
-            `}
-          >
-            <CreditCard className="h-4 w-4" />
-            Credit & Debt
-          </button>
-          <button
-            onClick={() => {
-              setCategory("cashflow");
-              setActiveTab("debt-vs-investing");
-            }}
-            className={`
-              inline-flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-all
-              ${category === "cashflow" 
-                ? "bg-background text-foreground shadow-sm" 
-                : "text-muted-foreground hover:text-foreground"
-              }
-            `}
-          >
-            <TrendingUp className="h-4 w-4" />
-            Cash Flow
-          </button>
-          <button
-            onClick={() => {
-              setCategory("retirement");
-              setActiveTab("social-security");
-            }}
-            className={`
-              inline-flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-all
-              ${category === "retirement" 
-                ? "bg-background text-foreground shadow-sm" 
-                : "text-muted-foreground hover:text-foreground"
-              }
-            `}
-          >
-            <Target className="h-4 w-4" />
-            Retirement
-          </button>
-          <button
-            onClick={() => {
-              setCategory("life");
-              setActiveTab("life-expectancy");
-            }}
-            className={`
-              inline-flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-all
-              ${category === "life" 
-                ? "bg-background text-foreground shadow-sm" 
-                : "text-muted-foreground hover:text-foreground"
-              }
-            `}
-          >
-            <Heart className="h-4 w-4" />
-            Life & Income
-          </button>
+    <div className="w-full">
+      {/* Mobile-First Category Navigation */}
+      <div className="overflow-x-auto -mx-4 px-4 mb-6 sm:mb-8 scrollbar-hide">
+        <div className="flex gap-2 min-w-max pb-2">
+          {[
+            { id: "debt", label: "Credit & Debt", icon: CreditCard, defaultTab: "credit-card-payoff" },
+            { id: "cashflow", label: "Cash Flow", icon: TrendingUp, defaultTab: "debt-vs-investing" },
+            { id: "retirement", label: "Retirement", icon: Target, defaultTab: "social-security" },
+            { id: "life", label: "Life & Income", icon: Heart, defaultTab: "life-expectancy" },
+          ].map((cat) => {
+            const Icon = cat.icon;
+            const isActive = category === cat.id;
+            return (
+              <button
+                key={cat.id}
+                onClick={() => {
+                  setCategory(cat.id as typeof category);
+                  setActiveTab(cat.defaultTab);
+                }}
+                className={cn(
+                  "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all whitespace-nowrap min-h-[44px]",
+                  "border text-sm font-medium",
+                  isActive
+                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                    : "bg-card border-border hover:border-primary/50 hover:bg-accent"
+                )}
+              >
+                <Icon className="h-4 w-4 hidden sm:block" />
+                {cat.label}
+              </button>
+            );
+          })}
         </div>
       </div>
 
-      {/* Hero Section */}
+      {/* Simplified Hero Sections */}
       <motion.div
         key={category}
-        initial={{ opacity: 0, y: -20 }}
+        initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="text-center space-y-4 py-8"
+        className="mb-6"
       >
-        {category === "debt" ? (
+        {category === "debt" && (
           <>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 mb-4">
-              <CreditCard className="h-4 w-4 text-red-500" />
-              <span className="text-sm font-medium text-red-500">Debt Control</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
-              Credit & Debt Command Center
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              See your debt. Control it. Destroy it.
-            </p>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto italic">
-              Four calculators that tell you the truth — not what banks hope you never look at.
+            <h2 className="text-xl sm:text-2xl font-bold mb-1 text-foreground">
+              Credit & Debt
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Control your debt journey
             </p>
           </>
-        ) : category === "cashflow" ? (
+        )}
+        {category === "cashflow" && (
           <>
-            <Badge className="bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-700 dark:text-teal-300 border-teal-500/30 mb-4">
-              <TrendingUp className="h-3 w-3 mr-1" />
+            <h2 className="text-xl sm:text-2xl font-bold mb-1 text-foreground">
               Cash Flow Intelligence
-            </Badge>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">
-              Cash Flow Intelligence Hub
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Where money decisions stop being guesses and start being strategy.
-            </p>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto italic">
-              These calculators expose where money goes — and where it should.
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              See what inflation steals — and what strategy protects
             </p>
           </>
-        ) : category === "retirement" ? (
+        )}
+        {category === "retirement" && (
           <>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-4">
-              <Target className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
-              <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">Retirement Intelligence</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
-              Retirement Intelligence Center
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Plan the life you want — not the one inflation leaves you.
-            </p>
-            <p className="text-sm text-muted-foreground max-w-2xl mx-auto italic">
-              Three calculators that turn 'I hope' into 'I'm prepared.'
+            <h2 className="text-xl sm:text-2xl font-bold mb-1 text-foreground">
+              Retirement Intelligence
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Plan the life you want — not the one inflation leaves you
             </p>
           </>
-        ) : (
+        )}
+        {category === "life" && (
           <>
-            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-              <Calculator className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium text-primary">Financial Tools</span>
-            </div>
-            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent-gold to-primary bg-clip-text text-transparent">
-              Financial Clarity Center
-            </h1>
-            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-              Instant calculators that turn confusion into confidence.
+            <h2 className="text-xl sm:text-2xl font-bold mb-1 text-foreground">
+              Life & Income
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              Build trust through education — not pressure
             </p>
           </>
         )}
       </motion.div>
 
-      {/* Calculator Grid Navigation */}
+      {/* Mobile-First Calculator Grid */}
       <motion.div
         key={`grid-${category}`}
         variants={containerVariants}
         initial="hidden"
         animate="visible"
-        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+        className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4 mb-8"
       >
         {activeCalculators.map((calc) => {
           const Icon = calc.icon;
+          const isActive = activeTab === calc.id;
           return (
             <motion.button
               key={calc.id}
               variants={cardVariants}
               onClick={() => setActiveTab(calc.id)}
-              className={`
-                glass-card p-6 text-left transition-all duration-300 cursor-pointer
-                hover:shadow-lg hover:-translate-y-1
-                ${activeTab === calc.id ? 'ring-2 ring-primary shadow-lg' : ''}
-              `}
+              className={cn(
+                "text-left rounded-xl p-4 sm:p-5 transition-all duration-200 min-h-[80px]",
+                "bg-card border hover:shadow-md active:scale-[0.98]",
+                isActive
+                  ? "border-primary shadow-md ring-2 ring-primary/20"
+                  : "border-border hover:border-primary/50"
+              )}
             >
-              <div className={`w-12 h-12 rounded-lg bg-gradient-to-br ${calc.gradient} flex items-center justify-center mb-4`}>
-                <Icon className="h-6 w-6" />
+              <div className="flex items-start gap-3">
+                <div className={cn(
+                  "w-10 h-10 rounded-lg flex items-center justify-center flex-shrink-0",
+                  "bg-primary/10"
+                )}>
+                  <Icon className="h-5 w-5 text-primary" />
+                </div>
+                <div className="flex-1 min-w-0">
+                  <h3 className="font-semibold text-sm sm:text-base mb-0.5 truncate">
+                    {calc.title}
+                  </h3>
+                  <p className="text-xs sm:text-sm text-muted-foreground line-clamp-2">
+                    {calc.subtitle}
+                  </p>
+                </div>
               </div>
-              <h3 className="font-semibold mb-1">{calc.title}</h3>
-              <p className="text-sm text-muted-foreground">{calc.subtitle}</p>
             </motion.button>
           );
         })}
@@ -456,24 +412,18 @@ export const CalculatorHub = () => {
       </Tabs>
 
       {/* Disclaimer */}
-      <motion.div
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.5 }}
-        className="flex items-start gap-3 p-4 bg-muted/50 rounded-lg border border-border"
-      >
-        <Info className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
-        <p className="text-sm text-muted-foreground leading-relaxed">
-          <strong>Disclaimer:</strong> {category === "debt" 
-            ? "These calculations are for educational purposes only and estimates are based on assumptions. Exact figures vary based on lender disclosures and circumstances." 
-            : category === "cashflow"
-            ? "Calculations are estimates based on standard models. Actual results vary by circumstances."
-            : category === "retirement"
-            ? "All projections are estimates based on assumptions and averages. Outcomes vary depending on market conditions and personal factors."
-            : "Estimates are based on averages and assumptions. Actual results vary. This tool is for educational purposes only — not financial advice. Always consult with a qualified financial professional for personalized guidance."
-          }
+      <div className="mt-8 sm:mt-12 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border">
+        <p className="text-xs sm:text-sm text-muted-foreground text-center">
+          {category === "debt" &&
+            "All projections are estimates. Results vary by individual circumstances, interest rates, and payment behavior."}
+          {category === "cashflow" &&
+            "Calculations are estimates based on standard models. Actual results vary by circumstances."}
+          {category === "retirement" &&
+            "All projections are estimates based on assumptions and averages. Outcomes vary depending on market conditions and personal factors."}
+          {category === "life" &&
+            "Estimates are based on averages and assumptions. Actual results vary. This tool is for educational purposes only — not financial advice. Always consult with a qualified financial professional for personalized guidance."}
         </p>
-      </motion.div>
+      </div>
     </div>
   );
 };

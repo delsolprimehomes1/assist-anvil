@@ -11,8 +11,8 @@ export const GlassCard = ({ children, className, hover = true }: GlassCardProps)
   return (
     <div
       className={cn(
-        "glass-card rounded-xl p-6 transition-all duration-300",
-        hover && "hover:shadow-lg hover:-translate-y-1",
+        "bg-card border border-border rounded-xl p-4 sm:p-6 transition-all duration-200",
+        hover && "hover:shadow-md hover:border-primary/50",
         className
       )}
     >
