@@ -81,7 +81,7 @@ const Marketing = () => {
   const [selectedType, setSelectedType] = useState("all");
   const { toast } = useToast();
   
-  const { brandKit, isLoading: isBrandKitLoading } = useBrandKit();
+  const { brandKit, isLoading: isBrandKitLoading, deleteBrandKit } = useBrandKit();
   const { templates: userTemplates, deleteTemplate } = useMarketingTemplates();
   
   const [brandKitEditorOpen, setBrandKitEditorOpen] = useState(false);
@@ -89,6 +89,7 @@ const Marketing = () => {
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
+  const [brandKitDeleteDialogOpen, setBrandKitDeleteDialogOpen] = useState(false);
 
   const handleEditTemplate = (template: any) => {
     setEditingTemplate(template);
@@ -111,6 +112,11 @@ const Marketing = () => {
       setDeleteDialogOpen(false);
       setTemplateToDelete(null);
     }
+  };
+
+  const confirmBrandKitDelete = async () => {
+    await deleteBrandKit.mutateAsync();
+    setBrandKitDeleteDialogOpen(false);
   };
 
   const copyToClipboard = (content: string) => {
@@ -394,7 +400,11 @@ const Marketing = () => {
               </CardContent>
             </Card>
           ) : brandKit ? (
-            <BrandKitDisplay brandKit={brandKit} onEdit={() => setBrandKitEditorOpen(true)} />
+            <BrandKitDisplay 
+              brandKit={brandKit} 
+              onEdit={() => setBrandKitEditorOpen(true)} 
+              onDelete={() => setBrandKitDeleteDialogOpen(true)}
+            />
           ) : (
             <Card className="stat-card">
               <CardContent className="py-12 text-center space-y-4">
@@ -538,6 +548,26 @@ const Marketing = () => {
           <AlertDialogFooter>
             <AlertDialogCancel>Cancel</AlertDialogCancel>
             <AlertDialogAction onClick={confirmDelete}>Delete</AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
+
+      <AlertDialog open={brandKitDeleteDialogOpen} onOpenChange={setBrandKitDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Brand Kit?</AlertDialogTitle>
+            <AlertDialogDescription>
+              This will permanently delete your brand kit including all uploaded images. This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>Cancel</AlertDialogCancel>
+            <AlertDialogAction 
+              onClick={confirmBrandKitDelete}
+              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+            >
+              Delete
+            </AlertDialogAction>
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>

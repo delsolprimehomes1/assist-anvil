@@ -173,11 +173,51 @@ export const useBrandKit = () => {
     return data.publicUrl;
   };
 
+  const deleteBrandKit = useMutation({
+    mutationFn: async () => {
+      if (!user?.id || !brandKit?.id) throw new Error("No brand kit to delete");
+
+      // Delete assets from storage
+      const filesToDelete: string[] = [];
+      if (brandKit.logo_url) {
+        const logoPath = brandKit.logo_url.split("/").slice(-2).join("/");
+        filesToDelete.push(logoPath);
+      }
+      if (brandKit.agent_photo_url) {
+        const photoPath = brandKit.agent_photo_url.split("/").slice(-2).join("/");
+        filesToDelete.push(photoPath);
+      }
+      if (brandKit.secondary_logo_url) {
+        const secondaryPath = brandKit.secondary_logo_url.split("/").slice(-2).join("/");
+        filesToDelete.push(secondaryPath);
+      }
+
+      if (filesToDelete.length > 0) {
+        await supabase.storage.from("brand-assets").remove(filesToDelete);
+      }
+
+      const { error } = await supabase
+        .from("user_brand_kits")
+        .delete()
+        .eq("id", brandKit.id);
+
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["brandKit"] });
+      toast.success("Brand kit deleted successfully!");
+    },
+    onError: (error) => {
+      toast.error("Failed to delete brand kit: " + error.message);
+    },
+  });
+
   return {
     brandKit,
     isLoading,
     createBrandKit,
     updateBrandKit,
+    deleteBrandKit,
     uploadLogo,
     uploadAgentPhoto,
     uploadSecondaryLogo,
