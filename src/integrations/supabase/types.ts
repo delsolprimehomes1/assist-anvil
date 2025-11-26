@@ -495,6 +495,56 @@ export type Database = {
           },
         ]
       }
+      onboarding_requests: {
+        Row: {
+          agency_code: string | null
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          last_name: string
+          phone: string
+          referred_by: string | null
+          status: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          agency_code?: string | null
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          last_name: string
+          phone: string
+          referred_by?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          agency_code?: string | null
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          last_name?: string
+          phone?: string
+          referred_by?: string | null
+          status?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "onboarding_requests_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       products: {
         Row: {
           agent_id: string
@@ -545,6 +595,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          approval_status: string | null
           avatar_url: string | null
           created_at: string
           email: string | null
@@ -553,6 +604,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          approval_status?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null
@@ -561,6 +613,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          approval_status?: string | null
           avatar_url?: string | null
           created_at?: string
           email?: string | null

@@ -16,6 +16,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { CarriersList } from "@/components/admin/CarriersList";
 import { InviteAgentDialog } from "@/components/admin/InviteAgentDialog";
 import { InvitationsList } from "@/components/admin/InvitationsList";
+import { OnboardingRequestsList } from "@/components/admin/OnboardingRequestsList";
 import { TrainingManagementTab } from "@/components/admin/training/TrainingManagementTab";
 import { ScheduleManagement } from "@/components/admin/schedule/ScheduleManagement";
 import { NewsManagement } from "@/components/admin/news/NewsManagement";
@@ -192,11 +193,12 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="upload" className="w-full">
-        <TabsList className="grid w-full grid-cols-9">
+        <TabsList className="grid w-full grid-cols-10">
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="approvals">Admin Approvals</TabsTrigger>
           <TabsTrigger value="carriers">Carriers</TabsTrigger>
           <TabsTrigger value="users">Users</TabsTrigger>
+          <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
           <TabsTrigger value="analytics">Analytics</TabsTrigger>
           <TabsTrigger value="settings">Settings</TabsTrigger>
           <TabsTrigger value="training">Training</TabsTrigger>
@@ -463,6 +465,10 @@ const Admin = () => {
             </CardContent>
           </Card>
           <InvitationsList />
+        </TabsContent>
+
+        <TabsContent value="onboarding" className="space-y-6">
+          <OnboardingRequestsList />
         </TabsContent>
 
         <TabsContent value="analytics" className="space-y-6">

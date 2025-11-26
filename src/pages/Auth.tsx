@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import logo from "@/assets/batterbox-auth-logo.png";
+import { OnboardingDialog } from "@/components/auth/OnboardingDialog";
 
 const Auth = () => {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [showOnboarding, setShowOnboarding] = useState(false);
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
@@ -275,11 +277,38 @@ const Auth = () => {
           </Tabs>
         </Card>
 
+        {/* Onboarding Section */}
+        <Card className="border-2 shadow-lg">
+          <CardContent className="pt-6">
+            <div className="text-center space-y-3">
+              <p className="text-sm text-muted-foreground">
+                Not onboarded with BattersBox yet?
+              </p>
+              <Button
+                variant="outline"
+                className="w-full h-11"
+                onClick={() => setShowOnboarding(true)}
+                style={{
+                  borderColor: "hsl(var(--brand-teal))",
+                  color: "hsl(var(--brand-teal))",
+                }}
+              >
+                Request to Join BattersBox
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground px-4">
           By continuing, you agree to our Terms of Service and Privacy Policy
         </p>
       </div>
+
+      <OnboardingDialog 
+        open={showOnboarding} 
+        onOpenChange={setShowOnboarding} 
+      />
     </div>
   );
 };

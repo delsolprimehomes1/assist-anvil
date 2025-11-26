@@ -17,6 +17,7 @@ import AIAssist from "./pages/AIAssist";
 import Admin from "./pages/Admin";
 import Auth from "./pages/Auth";
 import AcceptInvitation from "./pages/AcceptInvitation";
+import PendingApproval from "./pages/PendingApproval";
 import ProfileSettings from "./pages/ProfileSettings";
 import NotFound from "./pages/NotFound";
 import News from "./pages/News";
@@ -30,8 +31,9 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
       <Routes>
-        <Route path="/auth" element={<Auth />} />
-        <Route path="/accept-invitation" element={<AcceptInvitation />} />
+          <Route path="/auth" element={<Auth />} />
+          <Route path="/accept-invitation" element={<AcceptInvitation />} />
+          <Route path="/pending-approval" element={<PendingApproval />} />
         <Route path="/" element={
           <ProtectedRoute>
             <MainLayout />
