@@ -24,17 +24,25 @@ export const PendingUsersList = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ userId, status }: { userId: string; status: string }) => {
+    mutationFn: async ({ userId, status, userName }: { userId: string; status: string; userName: string }) => {
       const { error } = await supabase
         .from("profiles")
         .update({ approval_status: status })
         .eq("id", userId);
 
       if (error) throw error;
+      return { userName, status };
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["pending-users"] });
-      toast.success("User status updated successfully");
+      queryClient.invalidateQueries({ queryKey: ["approved-users"] });
+      queryClient.invalidateQueries({ queryKey: ["rejected-users"] });
+      
+      if (data.status === "approved") {
+        toast.success(`${data.userName} approved - moved to Approved Users`);
+      } else {
+        toast.success(`${data.userName} rejected - moved to Rejected Users`);
+      }
     },
     onError: (error) => {
       console.error("Error updating user status:", error);
@@ -42,12 +50,12 @@ export const PendingUsersList = () => {
     },
   });
 
-  const handleApprove = (userId: string) => {
-    updateStatusMutation.mutate({ userId, status: "approved" });
+  const handleApprove = (userId: string, userName: string) => {
+    updateStatusMutation.mutate({ userId, status: "approved", userName });
   };
 
-  const handleReject = (userId: string) => {
-    updateStatusMutation.mutate({ userId, status: "rejected" });
+  const handleReject = (userId: string, userName: string) => {
+    updateStatusMutation.mutate({ userId, status: "rejected", userName });
   };
 
   if (isLoading) {
@@ -60,11 +68,16 @@ export const PendingUsersList = () => {
 
   return (
     <div className="space-y-4">
-      <div>
-        <h3 className="text-lg font-semibold">Pending User Approvals</h3>
-        <p className="text-sm text-muted-foreground">
-          Review and approve users waiting for access to BattersBox
-        </p>
+      <div className="flex items-center justify-between">
+        <div>
+          <h3 className="text-lg font-semibold">Pending User Approvals</h3>
+          <p className="text-sm text-muted-foreground">
+            Review and approve users waiting for access to BattersBox
+          </p>
+        </div>
+        <div className="text-sm text-muted-foreground">
+          {pendingUsers?.length || 0} pending
+        </div>
       </div>
 
       <Table>
@@ -89,7 +102,7 @@ export const PendingUsersList = () => {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      onClick={() => handleApprove(user.id)}
+                      onClick={() => handleApprove(user.id, user.full_name || user.email || "User")}
                       disabled={updateStatusMutation.isPending}
                     >
                       {updateStatusMutation.isPending ? (
@@ -101,7 +114,7 @@ export const PendingUsersList = () => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleReject(user.id)}
+                      onClick={() => handleReject(user.id, user.full_name || user.email || "User")}
                       disabled={updateStatusMutation.isPending}
                     >
                       {updateStatusMutation.isPending ? (
