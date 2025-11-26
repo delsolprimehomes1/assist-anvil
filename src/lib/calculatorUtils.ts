@@ -361,3 +361,182 @@ export const getBalanceInsight = (remainingBalance: number, monthsRemaining: num
   
   return "Debt is rent on your own life. The sooner you're free, the sooner you control your future.";
 };
+
+// ============================================================================
+// CASH FLOW CALCULATOR FUNCTIONS
+// ============================================================================
+
+// Historical CPI data (simplified - using annual average CPI)
+const historicalCPI: Record<number, number> = {
+  1950: 24.1, 1960: 29.6, 1970: 38.8, 1980: 82.4, 1990: 130.7,
+  2000: 172.2, 2005: 195.3, 2010: 218.1, 2015: 237.0, 2020: 258.8,
+  2021: 271.0, 2022: 292.7, 2023: 304.7, 2024: 310.0
+};
+
+// Interpolate CPI for missing years
+function getCPI(year: number): number {
+  if (historicalCPI[year]) return historicalCPI[year];
+  
+  // Find surrounding years
+  const years = Object.keys(historicalCPI).map(Number).sort((a, b) => a - b);
+  const lowerYear = years.reverse().find(y => y < year);
+  const upperYear = years.find(y => y > year);
+  
+  if (!lowerYear || !upperYear) return historicalCPI[2024]; // Default to latest
+  
+  // Linear interpolation
+  const lowerCPI = historicalCPI[lowerYear];
+  const upperCPI = historicalCPI[upperYear];
+  const ratio = (year - lowerYear) / (upperYear - lowerYear);
+  
+  return lowerCPI + (upperCPI - lowerCPI) * ratio;
+}
+
+// Debt vs Investing Calculator
+export function calculateDebtVsInvest(
+  debtRate: number,
+  isDeductible: boolean,
+  investReturn: number,
+  isTaxable: boolean,
+  taxBracket: number,
+  monthlyFunds: number
+): {
+  recommendation: "debt" | "invest";
+  debtEffectiveRate: number;
+  investEffectiveReturn: number;
+  wealthDifference10yr: number;
+  breakEvenReturn: number;
+} {
+  // Calculate effective rates after tax
+  const taxRate = taxBracket / 100;
+  const debtEffectiveRate = isDeductible ? debtRate * (1 - taxRate) : debtRate;
+  const investEffectiveReturn = isTaxable ? investReturn * (1 - taxRate) : investReturn;
+  
+  // Determine recommendation
+  const recommendation = investEffectiveReturn > debtEffectiveRate ? "invest" : "debt";
+  
+  // Calculate 10-year wealth difference
+  const months = 120;
+  const monthlyDebtRate = debtEffectiveRate / 100 / 12;
+  const monthlyInvestRate = investEffectiveReturn / 100 / 12;
+  
+  // Future value of monthly payments
+  const debtScenario = monthlyFunds * (Math.pow(1 + monthlyDebtRate, months) - 1) / monthlyDebtRate;
+  const investScenario = monthlyFunds * (Math.pow(1 + monthlyInvestRate, months) - 1) / monthlyInvestRate;
+  
+  const wealthDifference10yr = investScenario - debtScenario;
+  
+  // Break-even return needed to match debt payoff
+  const breakEvenReturn = debtEffectiveRate;
+  
+  return {
+    recommendation,
+    debtEffectiveRate,
+    investEffectiveReturn,
+    wealthDifference10yr,
+    breakEvenReturn
+  };
+}
+
+// Inflation Retirement Impact Calculator
+export function calculateInflationRetirement(
+  currentAge: number,
+  grossIncome: number,
+  retirementAge: number,
+  lifeExpectancy: number,
+  replacementPercent: number,
+  inflationRate: number
+): {
+  requiredIncomeAtRetirement: number;
+  totalRetirementNeeded: number;
+  inflationGap: number;
+  costOfWaitingOneYear: number;
+  yearsToRetirement: number;
+} {
+  const yearsToRetirement = retirementAge - currentAge;
+  const retirementYears = lifeExpectancy - retirementAge;
+  
+  // Calculate required income at retirement (adjusted for inflation)
+  const desiredIncome = grossIncome * (replacementPercent / 100);
+  const inflationMultiplier = Math.pow(1 + inflationRate / 100, yearsToRetirement);
+  const requiredIncomeAtRetirement = desiredIncome * inflationMultiplier;
+  
+  // Total retirement capital needed (simplified - assumes level income need)
+  const totalRetirementNeeded = requiredIncomeAtRetirement * retirementYears;
+  
+  // Inflation gap (difference between today's dollars and future need)
+  const inflationGap = requiredIncomeAtRetirement - desiredIncome;
+  
+  // Cost of waiting one year (compound effect)
+  const nextYearNeed = desiredIncome * Math.pow(1 + inflationRate / 100, yearsToRetirement + 1);
+  const costOfWaitingOneYear = (nextYearNeed - requiredIncomeAtRetirement) * retirementYears;
+  
+  return {
+    requiredIncomeAtRetirement,
+    totalRetirementNeeded,
+    inflationGap,
+    costOfWaitingOneYear,
+    yearsToRetirement
+  };
+}
+
+// Purchasing Power Calculator
+export function calculatePurchasingPower(
+  amount: number,
+  startYear: number,
+  endYear: number
+): {
+  adjustedValue: number;
+  purchasingPowerLoss: number;
+  lossPercent: number;
+  inflationMultiple: number;
+} {
+  const startCPI = getCPI(startYear);
+  const endCPI = getCPI(endYear);
+  
+  // Calculate adjusted value (what the amount from startYear equals in endYear)
+  const adjustedValue = amount * (endCPI / startCPI);
+  
+  // Calculate loss
+  const purchasingPowerLoss = adjustedValue - amount;
+  const lossPercent = (purchasingPowerLoss / adjustedValue) * 100;
+  
+  // Inflation multiple
+  const inflationMultiple = endCPI / startCPI;
+  
+  return {
+    adjustedValue,
+    purchasingPowerLoss,
+    lossPercent,
+    inflationMultiple
+  };
+}
+
+// Insight Generators for Cash Flow Calculators
+export function getDebtVsInvestInsight(recommendation: "debt" | "invest", wealthDiff: number): string {
+  if (recommendation === "debt") {
+    return `A guaranteed return beats a hypothetical return. Paying down debt saves you ${formatCurrency(Math.abs(wealthDiff))} over 10 years compared to investing. Freedom has a math formula — and it says eliminate the certain cost first.`;
+  } else {
+    return `Your investment potential exceeds your debt cost by ${formatCurrency(Math.abs(wealthDiff))} over 10 years. While debt payoff feels safe, the math says your capital works harder in the market. What feels smart is often financially suboptimal.`;
+  }
+}
+
+export function getInflationRetirementInsight(inflationGap: number, yearsToRetirement: number): string {
+  if (yearsToRetirement > 25) {
+    return `Inflation quietly cuts your future in half. Over ${yearsToRetirement} years, your income needs will increase by ${formatCurrency(inflationGap)}. If your money doesn't grow faster than inflation, it shrinks — and so does your retirement dream.`;
+  } else if (yearsToRetirement > 15) {
+    return `Today's lifestyle becomes tomorrow's shock. Your retirement is ${yearsToRetirement} years away, but inflation never sleeps. The gap between today's income and what you'll need is ${formatCurrency(inflationGap)} — and growing every year.`;
+  } else {
+    return `Time is running out to outpace inflation. With only ${yearsToRetirement} years until retirement, you need ${formatCurrency(inflationGap)} more than today's dollars just to maintain your lifestyle. Every year of delay compounds the damage.`;
+  }
+}
+
+export function getPurchasingPowerInsight(lossPercent: number, yearsSpan: number): string {
+  if (lossPercent > 60) {
+    return `Time is a thief. Inflation is its partner. Over ${yearsSpan} years, your money lost ${lossPercent.toFixed(0)}% of its purchasing power. What used to buy a house now buys a car. Your savings are melting — invisibly but relentlessly.`;
+  } else if (lossPercent > 30) {
+    return `In ${yearsSpan} years, inflation ate ${lossPercent.toFixed(0)}% of your money's value. That's not theoretical — that's the real cost of holding cash. Money sitting still is actually moving backward.`;
+  } else {
+    return `Even "low" inflation compounds brutally. Over ${yearsSpan} years, ${lossPercent.toFixed(0)}% of purchasing power vanished. The dollar in your pocket today is worth less every single day — and tomorrow won't be any different.`;
+  }
+}

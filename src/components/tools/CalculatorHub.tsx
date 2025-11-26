@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Briefcase, Shield, DollarSign, Calculator, Info, CreditCard, Heart } from "lucide-react";
+import { Clock, Briefcase, Shield, DollarSign, Calculator, Info, CreditCard, Heart, TrendingUp, Scale, TrendingDown } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LifeExpectancyCalculator } from "./LifeExpectancyCalculator";
 import { LifetimeEarningsCalculator } from "./LifetimeEarningsCalculator";
 import { InsuranceLongevityCalculator } from "./InsuranceLongevityCalculator";
 import { CommissionCalculator } from "./CommissionCalculator";
+import { DebtVsInvestingCalculator } from "./DebtVsInvestingCalculator";
+import { InflationRetirementCalculator } from "./InflationRetirementCalculator";
+import { PurchasingPowerCalculator } from "./PurchasingPowerCalculator";
 import { CreditCardPayoffCalculator } from "./CreditCardPayoffCalculator";
 import { LoanPayoffCalculator } from "./LoanPayoffCalculator";
 import { LoanPaymentCalculator } from "./LoanPaymentCalculator";
@@ -88,11 +92,35 @@ const lifeCalculators = [
   }
 ];
 
+const cashFlowCalculators = [
+  {
+    id: "debt-vs-investing",
+    title: "Debt vs Investing",
+    subtitle: "Should I pay debt or invest?",
+    icon: Scale,
+    gradient: "from-teal-500/20 to-cyan-500/5"
+  },
+  {
+    id: "inflation-retirement",
+    title: "Inflation Retirement",
+    subtitle: "How does inflation change retirement?",
+    icon: TrendingDown,
+    gradient: "from-amber-500/20 to-yellow-500/5"
+  },
+  {
+    id: "purchasing-power",
+    title: "Purchasing Power",
+    subtitle: "How inflation eats your money",
+    icon: DollarSign,
+    gradient: "from-rose-500/20 to-pink-500/5"
+  }
+];
+
 export const CalculatorHub = () => {
-  const [category, setCategory] = useState<"debt" | "life">("debt");
+  const [category, setCategory] = useState<"debt" | "cashflow" | "life">("debt");
   const [activeTab, setActiveTab] = useState("credit-card-payoff");
 
-  const activeCalculators = category === "debt" ? debtCalculators : lifeCalculators;
+  const activeCalculators = category === "debt" ? debtCalculators : category === "cashflow" ? cashFlowCalculators : lifeCalculators;
 
   return (
     <div className="space-y-8">
@@ -114,6 +142,22 @@ export const CalculatorHub = () => {
           >
             <CreditCard className="h-4 w-4" />
             Credit & Debt
+          </button>
+          <button
+            onClick={() => {
+              setCategory("cashflow");
+              setActiveTab("debt-vs-investing");
+            }}
+            className={`
+              inline-flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-all
+              ${category === "cashflow" 
+                ? "bg-background text-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+              }
+            `}
+          >
+            <TrendingUp className="h-4 w-4" />
+            Cash Flow
           </button>
           <button
             onClick={() => {
@@ -155,6 +199,22 @@ export const CalculatorHub = () => {
             </p>
             <p className="text-sm text-muted-foreground max-w-2xl mx-auto italic">
               Four calculators that tell you the truth — not what banks hope you never look at.
+            </p>
+          </>
+        ) : category === "cashflow" ? (
+          <>
+            <Badge className="bg-gradient-to-r from-teal-500/20 to-cyan-500/20 text-teal-700 dark:text-teal-300 border-teal-500/30 mb-4">
+              <TrendingUp className="h-3 w-3 mr-1" />
+              Cash Flow Intelligence
+            </Badge>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-teal-600 to-cyan-600 dark:from-teal-400 dark:to-cyan-400 bg-clip-text text-transparent">
+              Cash Flow Intelligence Hub
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Where money decisions stop being guesses and start being strategy.
+            </p>
+            <p className="text-sm text-muted-foreground max-w-2xl mx-auto italic">
+              These calculators expose where money goes — and where it should.
             </p>
           </>
         ) : (
@@ -213,6 +273,25 @@ export const CalculatorHub = () => {
             </TabsTrigger>
           ))}
         </TabsList>
+
+        {/* Cash Flow Calculators */}
+        <TabsContent value="debt-vs-investing" className="mt-0">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <DebtVsInvestingCalculator />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="inflation-retirement" className="mt-0">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <InflationRetirementCalculator />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="purchasing-power" className="mt-0">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <PurchasingPowerCalculator />
+          </motion.div>
+        </TabsContent>
 
         {/* Debt Calculators */}
         <TabsContent value="credit-card-payoff" className="mt-0">
@@ -309,6 +388,8 @@ export const CalculatorHub = () => {
         <p className="text-sm text-muted-foreground leading-relaxed">
           <strong>Disclaimer:</strong> {category === "debt" 
             ? "These calculations are for educational purposes only and estimates are based on assumptions. Exact figures vary based on lender disclosures and circumstances." 
+            : category === "cashflow"
+            ? "Calculations are estimates based on standard models. Actual results vary by circumstances."
             : "Estimates are based on averages and assumptions. Actual results vary. This tool is for educational purposes only — not financial advice. Always consult with a qualified financial professional for personalized guidance."
           }
         </p>
