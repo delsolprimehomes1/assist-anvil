@@ -1,7 +1,7 @@
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { BrandKit } from "@/hooks/useBrandKit";
-import { Building2, Globe, Mail, Phone, Edit, Copy, MapPin, Linkedin, Facebook, Instagram, User } from "lucide-react";
+import { Building2, Globe, Mail, Phone, Edit, Copy, MapPin, Linkedin, Facebook, Instagram, User, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { GlassCard } from "@/components/tools/shared/GlassCard";
 import { EmailSignatureGenerator } from "./EmailSignatureGenerator";
@@ -9,9 +9,10 @@ import { EmailSignatureGenerator } from "./EmailSignatureGenerator";
 interface BrandKitDisplayProps {
   brandKit: BrandKit;
   onEdit: () => void;
+  onDelete: () => void;
 }
 
-export const BrandKitDisplay = ({ brandKit, onEdit }: BrandKitDisplayProps) => {
+export const BrandKitDisplay = ({ brandKit, onEdit, onDelete }: BrandKitDisplayProps) => {
   const copyToClipboard = (text: string, label: string) => {
     navigator.clipboard.writeText(text);
     toast.success(`${label} copied to clipboard!`);
@@ -29,10 +30,16 @@ export const BrandKitDisplay = ({ brandKit, onEdit }: BrandKitDisplayProps) => {
             <CardTitle className="text-2xl">Your Brand Kit</CardTitle>
             <CardDescription>Your personalized branding and marketing assets</CardDescription>
           </div>
-          <Button onClick={onEdit} size="sm">
-            <Edit className="h-4 w-4 mr-2" />
-            Edit
-          </Button>
+          <div className="flex gap-2">
+            <Button onClick={onEdit} size="sm">
+              <Edit className="h-4 w-4 mr-2" />
+              Edit
+            </Button>
+            <Button onClick={onDelete} size="sm" variant="destructive">
+              <Trash2 className="h-4 w-4 mr-2" />
+              Delete
+            </Button>
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
