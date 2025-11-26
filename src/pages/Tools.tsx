@@ -5,7 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CommissionCalculator } from "@/components/tools/CommissionCalculator";
+import { CalculatorHub } from "@/components/tools/CalculatorHub";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -138,7 +138,7 @@ const Tools = () => {
         </TabsContent>
 
         <TabsContent value="calculators" className="space-y-6">
-          <CommissionCalculator />
+          <CalculatorHub />
         </TabsContent>
 
         <TabsContent value="guides" className="space-y-6">
