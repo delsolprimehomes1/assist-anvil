@@ -23,14 +23,21 @@ import {
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Loader2 } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  agencyCode: z.string().optional(),
-  referredBy: z.string().optional(),
+  agencyCode: z.string().min(1, "Please select an agency code"),
+  referredBy: z.string().min(2, "Please enter who referred you"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
 }).refine((data) => data.password === data.confirmPassword, {
@@ -205,10 +212,25 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
               name="agencyCode"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Agency Code (Optional)</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={loading} className="min-h-[48px]" />
-                  </FormControl>
+                  <FormLabel>Agency Code</FormLabel>
+                  <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                    <FormControl>
+                      <SelectTrigger className="min-h-[48px] bg-background">
+                        <SelectValue placeholder="Select an agency code" />
+                      </SelectTrigger>
+                    </FormControl>
+                    <SelectContent className="bg-background z-50">
+                      <SelectItem value="100">100</SelectItem>
+                      <SelectItem value="200">200</SelectItem>
+                      <SelectItem value="300">300</SelectItem>
+                      <SelectItem value="400">400</SelectItem>
+                      <SelectItem value="500">500</SelectItem>
+                      <SelectItem value="600">600</SelectItem>
+                      <SelectItem value="700">700</SelectItem>
+                      <SelectItem value="800">800</SelectItem>
+                      <SelectItem value="900">900</SelectItem>
+                    </SelectContent>
+                  </Select>
                   <FormMessage />
                 </FormItem>
               )}
@@ -219,7 +241,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
               name="referredBy"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>Who Referred You? (Optional)</FormLabel>
+                  <FormLabel>Who Referred You?</FormLabel>
                   <FormControl>
                     <Input {...field} disabled={loading} className="min-h-[48px]" />
                   </FormControl>
