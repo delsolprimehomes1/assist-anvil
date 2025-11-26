@@ -218,7 +218,7 @@ const Auth = () => {
               <Button variant="outline" className="w-full h-11" onClick={() => setShowOnboarding(true)} style={{
               borderColor: "hsl(var(--brand-teal))",
               color: "hsl(var(--brand-teal))"
-            }}>Request T.  </Button>
+            }}>Request To Be Contracted</Button>
             </div>
           </CardContent>
         </Card>
