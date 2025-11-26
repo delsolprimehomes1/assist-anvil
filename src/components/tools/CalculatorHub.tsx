@@ -151,38 +151,42 @@ export const CalculatorHub = () => {
 
   return (
     <div className="w-full">
-      {/* Mobile-First Category Navigation */}
-      <div className="overflow-x-auto -mx-4 px-4 mb-6 sm:mb-8 scrollbar-hide">
-        <div className="flex gap-2 min-w-max pb-2">
-          {[
-            { id: "debt", label: "Credit & Debt", icon: CreditCard, defaultTab: "credit-card-payoff" },
-            { id: "cashflow", label: "Cash Flow", icon: TrendingUp, defaultTab: "debt-vs-investing" },
-            { id: "retirement", label: "Retirement", icon: Target, defaultTab: "social-security" },
-            { id: "life", label: "Life & Income", icon: Heart, defaultTab: "life-expectancy" },
-          ].map((cat) => {
-            const Icon = cat.icon;
-            const isActive = category === cat.id;
-            return (
-              <button
-                key={cat.id}
-                onClick={() => {
-                  setCategory(cat.id as typeof category);
-                  setActiveTab(cat.defaultTab);
-                }}
-                className={cn(
-                  "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all whitespace-nowrap min-h-[44px]",
-                  "border text-sm font-medium",
-                  isActive
-                    ? "bg-primary text-primary-foreground border-primary shadow-sm"
-                    : "bg-card border-border hover:border-primary/50 hover:bg-accent"
-                )}
-              >
-                <Icon className="h-4 w-4 hidden sm:block" />
-                {cat.label}
-              </button>
-            );
-          })}
+      {/* Mobile-First Category Navigation with scroll indicator */}
+      <div className="relative mb-6 sm:mb-8">
+        <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide scroll-fade-right">
+          <div className="flex gap-2 min-w-max pb-2">
+            {[
+              { id: "debt", label: "Credit & Debt", icon: CreditCard, defaultTab: "credit-card-payoff" },
+              { id: "cashflow", label: "Cash Flow", icon: TrendingUp, defaultTab: "debt-vs-investing" },
+              { id: "retirement", label: "Retirement", icon: Target, defaultTab: "social-security" },
+              { id: "life", label: "Life & Income", icon: Heart, defaultTab: "life-expectancy" },
+            ].map((cat) => {
+              const Icon = cat.icon;
+              const isActive = category === cat.id;
+              return (
+                <button
+                  key={cat.id}
+                  onClick={() => {
+                    setCategory(cat.id as typeof category);
+                    setActiveTab(cat.defaultTab);
+                  }}
+                  className={cn(
+                    "flex items-center gap-2 px-4 py-2.5 rounded-full transition-all whitespace-nowrap min-h-[44px]",
+                    "border text-sm font-medium",
+                    isActive
+                      ? "bg-primary text-primary-foreground border-primary shadow-sm"
+                      : "bg-card border-border hover:border-primary/50 hover:bg-accent"
+                  )}
+                >
+                  <Icon className="h-4 w-4 hidden sm:block" />
+                  {cat.label}
+                </button>
+              );
+            })}
+          </div>
         </div>
+        {/* Fade indicator for mobile scroll */}
+        <div className="absolute right-0 top-0 bottom-2 w-12 bg-gradient-to-l from-background to-transparent pointer-events-none md:hidden" />
       </div>
 
       {/* Simplified Hero Sections */}

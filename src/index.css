@@ -258,10 +258,21 @@
   .min-touch-target {
     min-height: 44px;
     min-width: 44px;
+    touch-action: manipulation;
   }
   
   .safe-touch-spacing {
     padding: 0.75rem;
+  }
+  
+  .safe-bottom {
+    padding-bottom: calc(7rem + env(safe-area-inset-bottom));
+  }
+
+  @media (min-width: 768px) {
+    .safe-bottom {
+      padding-bottom: 0;
+    }
   }
   
   .scrollbar-hide {
@@ -271,6 +282,27 @@
   
   .scrollbar-hide::-webkit-scrollbar {
     display: none;
+  }
+
+  .scroll-fade-right {
+    mask-image: linear-gradient(to left, transparent 0%, black 48px);
+    -webkit-mask-image: linear-gradient(to left, transparent 0%, black 48px);
+  }
+
+  @media (min-width: 768px) {
+    .scroll-fade-right {
+      mask-image: none;
+      -webkit-mask-image: none;
+    }
+  }
+
+  .touch-slider [class*="h-2"] {
+    height: 0.625rem;
+  }
+
+  .touch-slider [class*="h-5"] {
+    height: 1.5rem;
+    width: 1.5rem;
   }
 }
 

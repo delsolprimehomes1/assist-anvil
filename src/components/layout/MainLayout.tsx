@@ -18,7 +18,7 @@ export const MainLayout = () => {
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
         
         <main className={cn(
-          "flex-1 min-h-screen transition-all duration-700 pb-20 md:pb-0",
+          "flex-1 min-h-screen transition-all duration-700 pb-28 md:pb-0 safe-bottom",
           sidebarOpen && isMobile && "scale-95 blur-[2px]"
         )}>
           <div className="w-full max-w-none px-4 md:px-6 py-6">
