@@ -8,6 +8,8 @@ export interface BrandKit {
   user_id: string;
   company_name: string;
   logo_url: string | null;
+  agent_photo_url: string | null;
+  secondary_logo_url: string | null;
   primary_color: string;
   secondary_color: string;
   accent_color: string;
@@ -16,6 +18,18 @@ export interface BrandKit {
   website: string | null;
   phone: string | null;
   email: string | null;
+  address_line1: string | null;
+  address_line2: string | null;
+  city: string | null;
+  state: string | null;
+  zip_code: string | null;
+  linkedin_url: string | null;
+  facebook_url: string | null;
+  instagram_url: string | null;
+  font_heading: string;
+  font_body: string;
+  brand_voice: string | null;
+  credentials_display: string | null;
   created_at: string;
   updated_at: string;
 }
@@ -111,11 +125,61 @@ export const useBrandKit = () => {
     return data.publicUrl;
   };
 
+  const uploadAgentPhoto = async (file: File): Promise<string> => {
+    if (!user?.id) throw new Error("User not authenticated");
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${user.id}/agent-photo.${fileExt}`;
+
+    if (brandKit?.agent_photo_url) {
+      const oldPath = brandKit.agent_photo_url.split("/").slice(-2).join("/");
+      await supabase.storage.from("brand-assets").remove([oldPath]);
+    }
+
+    const { error: uploadError } = await supabase.storage
+      .from("brand-assets")
+      .upload(fileName, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from("brand-assets")
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
+  const uploadSecondaryLogo = async (file: File): Promise<string> => {
+    if (!user?.id) throw new Error("User not authenticated");
+
+    const fileExt = file.name.split(".").pop();
+    const fileName = `${user.id}/secondary-logo.${fileExt}`;
+
+    if (brandKit?.secondary_logo_url) {
+      const oldPath = brandKit.secondary_logo_url.split("/").slice(-2).join("/");
+      await supabase.storage.from("brand-assets").remove([oldPath]);
+    }
+
+    const { error: uploadError } = await supabase.storage
+      .from("brand-assets")
+      .upload(fileName, file, { upsert: true });
+
+    if (uploadError) throw uploadError;
+
+    const { data } = supabase.storage
+      .from("brand-assets")
+      .getPublicUrl(fileName);
+
+    return data.publicUrl;
+  };
+
   return {
     brandKit,
     isLoading,
     createBrandKit,
     updateBrandKit,
     uploadLogo,
+    uploadAgentPhoto,
+    uploadSecondaryLogo,
   };
 };
