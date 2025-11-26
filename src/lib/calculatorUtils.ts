@@ -131,3 +131,233 @@ export const getCommissionInsight = (annualIncome: number): string => {
   }
   return "Most agents dramatically underestimate their scaling potential. Small changes create exponential results.";
 };
+
+// ============================================
+// CREDIT & DEBT CALCULATOR FUNCTIONS
+// ============================================
+
+/**
+ * Calculate credit card payoff timeline
+ */
+export const calculateCreditCardPayoff = (
+  balance: number,
+  apr: number,
+  minPaymentPercent: number,
+  minPaymentFloor: number,
+  extraPayment: number = 0
+): {
+  monthsToPayoff: number;
+  totalInterest: number;
+  totalPaid: number;
+} => {
+  const monthlyRate = apr / 100 / 12;
+  const minPayment = Math.max(balance * (minPaymentPercent / 100), minPaymentFloor);
+  const payment = minPayment + extraPayment;
+
+  if (payment <= balance * monthlyRate) {
+    // Payment doesn't cover interest - infinite payoff
+    return {
+      monthsToPayoff: 999,
+      totalInterest: balance * 10,
+      totalPaid: balance * 11
+    };
+  }
+
+  // Calculate months to payoff
+  const monthsToPayoff = Math.ceil(
+    -Math.log(1 - (balance * monthlyRate) / payment) / Math.log(1 + monthlyRate)
+  );
+
+  const totalPaid = payment * monthsToPayoff;
+  const totalInterest = totalPaid - balance;
+
+  return {
+    monthsToPayoff: Math.max(1, monthsToPayoff),
+    totalInterest: Math.max(0, totalInterest),
+    totalPaid
+  };
+};
+
+/**
+ * Calculate loan payoff timeline
+ */
+export const calculateLoanPayoff = (
+  balance: number,
+  apr: number,
+  monthlyPayment: number
+): {
+  monthsRemaining: number;
+  payoffDate: string;
+  totalInterest: number;
+} => {
+  const monthlyRate = apr / 100 / 12;
+
+  if (monthlyPayment <= balance * monthlyRate) {
+    return {
+      monthsRemaining: 999,
+      payoffDate: "Never (payment too low)",
+      totalInterest: balance * 10
+    };
+  }
+
+  const monthsRemaining = Math.ceil(
+    -Math.log(1 - (balance * monthlyRate) / monthlyPayment) / Math.log(1 + monthlyRate)
+  );
+
+  const totalPaid = monthlyPayment * monthsRemaining;
+  const totalInterest = totalPaid - balance;
+
+  // Calculate payoff date
+  const payoffDate = new Date();
+  payoffDate.setMonth(payoffDate.getMonth() + monthsRemaining);
+  const formattedDate = payoffDate.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  return {
+    monthsRemaining: Math.max(1, monthsRemaining),
+    payoffDate: formattedDate,
+    totalInterest: Math.max(0, totalInterest)
+  };
+};
+
+/**
+ * Calculate loan payment (PMT formula)
+ */
+export const calculateLoanPayment = (
+  amount: number,
+  rate: number,
+  termMonths: number
+): {
+  monthlyPayment: number;
+  totalCost: number;
+  totalInterest: number;
+} => {
+  const monthlyRate = rate / 100 / 12;
+
+  if (monthlyRate === 0) {
+    // No interest
+    const monthlyPayment = amount / termMonths;
+    return {
+      monthlyPayment,
+      totalCost: amount,
+      totalInterest: 0
+    };
+  }
+
+  const monthlyPayment = amount * (monthlyRate * Math.pow(1 + monthlyRate, termMonths)) / 
+    (Math.pow(1 + monthlyRate, termMonths) - 1);
+
+  const totalCost = monthlyPayment * termMonths;
+  const totalInterest = totalCost - amount;
+
+  return {
+    monthlyPayment,
+    totalCost,
+    totalInterest: Math.max(0, totalInterest)
+  };
+};
+
+/**
+ * Estimate remaining balance from payment info
+ */
+export const estimateRemainingBalance = (
+  monthlyPayment: number,
+  rate: number,
+  monthsRemaining: number
+): {
+  balance: number;
+  totalAlreadyPaid: number;
+  remainingInterest: number;
+} => {
+  const monthlyRate = rate / 100 / 12;
+
+  if (monthlyRate === 0) {
+    const balance = monthlyPayment * monthsRemaining;
+    return {
+      balance,
+      totalAlreadyPaid: 0,
+      remainingInterest: 0
+    };
+  }
+
+  // Present value of annuity formula
+  const balance = monthlyPayment * ((1 - Math.pow(1 + monthlyRate, -monthsRemaining)) / monthlyRate);
+  const totalToPay = monthlyPayment * monthsRemaining;
+  const remainingInterest = totalToPay - balance;
+
+  return {
+    balance: Math.max(0, balance),
+    totalAlreadyPaid: balance * 0.3, // Rough estimate
+    remainingInterest: Math.max(0, remainingInterest)
+  };
+};
+
+// ============================================
+// DEBT INSIGHT GENERATORS
+// ============================================
+
+export const getCreditCardInsight = (
+  monthsToPayoff: number,
+  totalInterest: number,
+  balance: number,
+  extraPayment: number
+): string => {
+  const interestPercent = (totalInterest / balance) * 100;
+  
+  if (monthsToPayoff > 60) {
+    return "Minimum payments are designed to keep you trapped — not debt-free. Every extra dollar attacks YEARS of interest.";
+  }
+  
+  if (interestPercent > 50) {
+    return `You'll pay ${interestPercent.toFixed(0)}% in interest alone. Interest is silent theft — but it's optional.`;
+  }
+  
+  if (extraPayment > 0) {
+    return "Every extra dollar you pay goes straight to destroying the principal — not lining the bank's pocket.";
+  }
+  
+  return "Banks sell convenience — and collect slavery. The faster you pay, the more of YOUR money you keep.";
+};
+
+export const getLoanPayoffInsight = (totalInterest: number, originalBalance: number): string => {
+  const interestPercent = (totalInterest / originalBalance) * 100;
+  
+  if (interestPercent > 40) {
+    return `You're not paying for the loan. You're paying for TIME. ${interestPercent.toFixed(0)}% of your payments go to interest.`;
+  }
+  
+  if (interestPercent > 25) {
+    return "Most people underestimate their total interest by 30-50%. You're seeing the truth now.";
+  }
+  
+  return "Extra payments reduce the future — not just the balance. Every dollar over the minimum cuts months off your sentence.";
+};
+
+export const getLoanPaymentInsight = (
+  monthlyPayment: number,
+  totalInterest: number,
+  termMonths: number
+): string => {
+  if (termMonths > 72) {
+    return "Longer loans equal smaller payments — and bigger losses. The term is the real enemy, not the rate.";
+  }
+  
+  if (totalInterest > monthlyPayment * 12) {
+    return "You'll pay more than a year's worth of payments in pure interest. Cheap payments are expensive freedom.";
+  }
+  
+  return "The interest rate is not the enemy. The term is. Shorter terms mean less time for interest to compound against you.";
+};
+
+export const getBalanceInsight = (remainingBalance: number, monthsRemaining: number): string => {
+  const yearsRemaining = monthsRemaining / 12;
+  
+  if (yearsRemaining > 4) {
+    return "You don't just owe money — you owe FUTURE time. Every payment has two jobs: interest and escape.";
+  }
+  
+  if (monthsRemaining < 24) {
+    return "You're in the home stretch. The finish line is visible now. Stay consistent.";
+  }
+  
+  return "Debt is rent on your own life. The sooner you're free, the sooner you control your future.";
+};

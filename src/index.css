@@ -214,6 +214,35 @@
   background: linear-gradient(135deg, hsl(var(--accent-gold)) 0%, hsl(var(--accent-gold-dark)) 100%);
 }
 
+/* Glass card effect */
+.glass-card {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+/* Premium gradient backgrounds */
+.gradient-premium {
+  background: linear-gradient(135deg, var(--card) 0%, rgba(139, 186, 196, 0.05) 100%);
+}
+
+/* Debt calculator gradients */
+.gradient-debt-danger {
+  background: linear-gradient(135deg, hsl(0 84% 60% / 0.2) 0%, hsl(25 95% 53% / 0.05) 100%);
+}
+
+.gradient-debt-warning {
+  background: linear-gradient(135deg, hsl(38 92% 50% / 0.2) 0%, hsl(48 96% 53% / 0.05) 100%);
+}
+
+.gradient-debt-progress {
+  background: linear-gradient(135deg, hsl(217 91% 60% / 0.2) 0%, hsl(188 95% 68% / 0.05) 100%);
+}
+
+.gradient-debt-success {
+  background: linear-gradient(135deg, hsl(142 76% 36% / 0.2) 0%, hsl(160 84% 39% / 0.05) 100%);
+}
+
 /* ===== Accessibility ===== */
 @media (prefers-reduced-motion: reduce) {
   *,

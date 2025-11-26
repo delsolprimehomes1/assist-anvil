@@ -1,11 +1,15 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Briefcase, Shield, DollarSign, Calculator, Info } from "lucide-react";
+import { Clock, Briefcase, Shield, DollarSign, Calculator, Info, CreditCard, Heart } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LifeExpectancyCalculator } from "./LifeExpectancyCalculator";
 import { LifetimeEarningsCalculator } from "./LifetimeEarningsCalculator";
 import { InsuranceLongevityCalculator } from "./InsuranceLongevityCalculator";
 import { CommissionCalculator } from "./CommissionCalculator";
+import { CreditCardPayoffCalculator } from "./CreditCardPayoffCalculator";
+import { LoanPayoffCalculator } from "./LoanPayoffCalculator";
+import { LoanPaymentCalculator } from "./LoanPaymentCalculator";
+import { BalanceEstimatorCalculator } from "./BalanceEstimatorCalculator";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -22,7 +26,38 @@ const cardVariants = {
   visible: { opacity: 1, y: 0 }
 };
 
-const calculators = [
+const debtCalculators = [
+  {
+    id: "credit-card-payoff",
+    title: "Credit Card Payoff",
+    subtitle: "When will I be debt-free?",
+    icon: CreditCard,
+    gradient: "from-red-500/20 to-orange-500/5"
+  },
+  {
+    id: "loan-payoff",
+    title: "Loan Payoff Timeline",
+    subtitle: "How long until my loan is paid off?",
+    icon: Clock,
+    gradient: "from-blue-500/20 to-cyan-500/5"
+  },
+  {
+    id: "loan-payment",
+    title: "Loan Payment Estimator",
+    subtitle: "What will my loan payment be?",
+    icon: Calculator,
+    gradient: "from-purple-500/20 to-pink-500/5"
+  },
+  {
+    id: "balance-estimator",
+    title: "Balance Estimator",
+    subtitle: "What's my actual loan balance?",
+    icon: DollarSign,
+    gradient: "from-green-500/20 to-emerald-500/5"
+  }
+];
+
+const lifeCalculators = [
   {
     id: "life-expectancy",
     title: "Life Expectancy",
@@ -54,36 +89,99 @@ const calculators = [
 ];
 
 export const CalculatorHub = () => {
-  const [activeTab, setActiveTab] = useState("life-expectancy");
+  const [category, setCategory] = useState<"debt" | "life">("debt");
+  const [activeTab, setActiveTab] = useState("credit-card-payoff");
+
+  const activeCalculators = category === "debt" ? debtCalculators : lifeCalculators;
 
   return (
     <div className="space-y-8">
+      {/* Category Tabs */}
+      <div className="flex justify-center">
+        <div className="inline-flex p-1 rounded-lg bg-muted">
+          <button
+            onClick={() => {
+              setCategory("debt");
+              setActiveTab("credit-card-payoff");
+            }}
+            className={`
+              inline-flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-all
+              ${category === "debt" 
+                ? "bg-background text-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+              }
+            `}
+          >
+            <CreditCard className="h-4 w-4" />
+            Credit & Debt
+          </button>
+          <button
+            onClick={() => {
+              setCategory("life");
+              setActiveTab("life-expectancy");
+            }}
+            className={`
+              inline-flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-all
+              ${category === "life" 
+                ? "bg-background text-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+              }
+            `}
+          >
+            <Heart className="h-4 w-4" />
+            Life & Income
+          </button>
+        </div>
+      </div>
+
       {/* Hero Section */}
       <motion.div
+        key={category}
         initial={{ opacity: 0, y: -20 }}
         animate={{ opacity: 1, y: 0 }}
         className="text-center space-y-4 py-8"
       >
-        <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
-          <Calculator className="h-4 w-4 text-primary" />
-          <span className="text-sm font-medium text-primary">Financial Tools</span>
-        </div>
-        <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent-gold to-primary bg-clip-text text-transparent">
-          Financial Clarity Center
-        </h1>
-        <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-          Instant calculators that turn confusion into confidence.
-        </p>
+        {category === "debt" ? (
+          <>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-red-500/10 border border-red-500/20 mb-4">
+              <CreditCard className="h-4 w-4 text-red-500" />
+              <span className="text-sm font-medium text-red-500">Debt Control</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-red-500 via-orange-500 to-red-500 bg-clip-text text-transparent">
+              Credit & Debt Command Center
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              See your debt. Control it. Destroy it.
+            </p>
+            <p className="text-sm text-muted-foreground max-w-2xl mx-auto italic">
+              Four calculators that tell you the truth — not what banks hope you never look at.
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
+              <Calculator className="h-4 w-4 text-primary" />
+              <span className="text-sm font-medium text-primary">Financial Tools</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-primary via-accent-gold to-primary bg-clip-text text-transparent">
+              Financial Clarity Center
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Instant calculators that turn confusion into confidence.
+            </p>
+          </>
+        )}
       </motion.div>
 
       {/* Calculator Grid Navigation */}
       <motion.div
+        key={`grid-${category}`}
         variants={containerVariants}
         initial="hidden"
         animate="visible"
         className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
       >
-        {calculators.map((calc) => {
+        {activeCalculators.map((calc) => {
           const Icon = calc.icon;
           return (
             <motion.button
@@ -109,12 +207,55 @@ export const CalculatorHub = () => {
       {/* Calculator Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="hidden">
-          {calculators.map((calc) => (
+          {[...debtCalculators, ...lifeCalculators].map((calc) => (
             <TabsTrigger key={calc.id} value={calc.id}>
               {calc.title}
             </TabsTrigger>
           ))}
         </TabsList>
+
+        {/* Debt Calculators */}
+        <TabsContent value="credit-card-payoff" className="mt-0">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <CreditCardPayoffCalculator />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="loan-payoff" className="mt-0">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <LoanPayoffCalculator />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="loan-payment" className="mt-0">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <LoanPaymentCalculator />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="balance-estimator" className="mt-0">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.3 }}
+          >
+            <BalanceEstimatorCalculator />
+          </motion.div>
+        </TabsContent>
+
+        {/* Life & Income Calculators */}
 
         <TabsContent value="life-expectancy" className="mt-0">
           <motion.div
@@ -166,9 +307,10 @@ export const CalculatorHub = () => {
       >
         <Info className="h-5 w-5 text-muted-foreground flex-shrink-0 mt-0.5" />
         <p className="text-sm text-muted-foreground leading-relaxed">
-          <strong>Disclaimer:</strong> Estimates are based on averages and assumptions. Actual results vary. 
-          This tool is for educational purposes only — not financial advice. Always consult with a qualified 
-          financial professional for personalized guidance.
+          <strong>Disclaimer:</strong> {category === "debt" 
+            ? "These calculations are for educational purposes only and estimates are based on assumptions. Exact figures vary based on lender disclosures and circumstances." 
+            : "Estimates are based on averages and assumptions. Actual results vary. This tool is for educational purposes only — not financial advice. Always consult with a qualified financial professional for personalized guidance."
+          }
         </p>
       </motion.div>
     </div>
