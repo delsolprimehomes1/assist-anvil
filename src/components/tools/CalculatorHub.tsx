@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Briefcase, Shield, DollarSign, Calculator, Info, CreditCard, Heart, TrendingUp, Scale, TrendingDown } from "lucide-react";
+import { Clock, Briefcase, Shield, DollarSign, Calculator, Info, CreditCard, Heart, TrendingUp, Scale, TrendingDown, Users, Coffee, Wallet, Target } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { LifeExpectancyCalculator } from "./LifeExpectancyCalculator";
@@ -10,6 +10,9 @@ import { CommissionCalculator } from "./CommissionCalculator";
 import { DebtVsInvestingCalculator } from "./DebtVsInvestingCalculator";
 import { InflationRetirementCalculator } from "./InflationRetirementCalculator";
 import { PurchasingPowerCalculator } from "./PurchasingPowerCalculator";
+import { SocialSecurityCalculator } from "./SocialSecurityCalculator";
+import { InflationDamageCalculator } from "./InflationDamageCalculator";
+import { HabitsWealthCalculator } from "./HabitsWealthCalculator";
 import { CreditCardPayoffCalculator } from "./CreditCardPayoffCalculator";
 import { LoanPayoffCalculator } from "./LoanPayoffCalculator";
 import { LoanPaymentCalculator } from "./LoanPaymentCalculator";
@@ -61,37 +64,6 @@ const debtCalculators = [
   }
 ];
 
-const lifeCalculators = [
-  {
-    id: "life-expectancy",
-    title: "Life Expectancy",
-    subtitle: "How long am I likely to live?",
-    icon: Clock,
-    gradient: "from-primary/20 to-primary/5"
-  },
-  {
-    id: "lifetime-earnings",
-    title: "Lifetime Earnings",
-    subtitle: "How much will I earn in my lifetime?",
-    icon: Briefcase,
-    gradient: "from-success/20 to-success/5"
-  },
-  {
-    id: "insurance-longevity",
-    title: "Insurance Longevity",
-    subtitle: "How long would your insurance last?",
-    icon: Shield,
-    gradient: "from-accent-gold/20 to-accent-gold/5"
-  },
-  {
-    id: "commission",
-    title: "Commission Estimator",
-    subtitle: "Advanced agent commission calculator",
-    icon: DollarSign,
-    gradient: "from-secondary/40 to-secondary/10"
-  }
-];
-
 const cashFlowCalculators = [
   {
     id: "debt-vs-investing",
@@ -116,11 +88,66 @@ const cashFlowCalculators = [
   }
 ];
 
+const retirementCalculators = [
+    {
+      id: "social-security",
+      title: "Social Security",
+      subtitle: "Estimate my Social Security income",
+      icon: Users,
+      gradient: "from-indigo-500/20 to-purple-500/5"
+    },
+    {
+      id: "inflation-damage",
+      title: "Inflation Damage",
+      subtitle: "How inflation changes retirement",
+      icon: TrendingDown,
+      gradient: "from-rose-500/20 to-orange-500/5"
+    },
+    {
+      id: "habits-wealth",
+      title: "Habits → Wealth",
+      subtitle: "Turn spending into future wealth",
+      icon: Coffee,
+      gradient: "from-emerald-500/20 to-green-500/5"
+    }
+  ];
+
+  const lifeCalculators = [
+    {
+      id: "life-expectancy",
+      title: "Life Expectancy",
+      subtitle: "Estimate your life expectancy",
+      icon: Heart,
+      gradient: "from-rose-500/20 to-pink-500/5"
+    },
+    {
+      id: "lifetime-earnings",
+      title: "Lifetime Earnings",
+      subtitle: "Calculate total career earnings",
+      icon: Wallet,
+      gradient: "from-blue-500/20 to-cyan-500/5"
+    },
+    {
+      id: "insurance-longevity",
+      title: "Insurance Longevity",
+      subtitle: "How long will coverage last?",
+      icon: Shield,
+      gradient: "from-emerald-500/20 to-teal-500/5"
+    },
+    {
+      id: "commission",
+      title: "Commission Calculator",
+      subtitle: "Calculate agent commissions",
+      icon: Calculator,
+      gradient: "from-purple-500/20 to-purple-500/5"
+    }
+  ];
+
 export const CalculatorHub = () => {
-  const [category, setCategory] = useState<"debt" | "cashflow" | "life">("debt");
+  const [category, setCategory] = useState<"debt" | "cashflow" | "retirement" | "life">("debt");
   const [activeTab, setActiveTab] = useState("credit-card-payoff");
 
-  const activeCalculators = category === "debt" ? debtCalculators : category === "cashflow" ? cashFlowCalculators : lifeCalculators;
+  const activeCalculators = category === "debt" ? debtCalculators : category === "cashflow" ? cashFlowCalculators : category === "retirement" ? retirementCalculators : lifeCalculators;
 
   return (
     <div className="space-y-8">
@@ -158,6 +185,22 @@ export const CalculatorHub = () => {
           >
             <TrendingUp className="h-4 w-4" />
             Cash Flow
+          </button>
+          <button
+            onClick={() => {
+              setCategory("retirement");
+              setActiveTab("social-security");
+            }}
+            className={`
+              inline-flex items-center gap-2 px-6 py-3 rounded-md font-medium transition-all
+              ${category === "retirement" 
+                ? "bg-background text-foreground shadow-sm" 
+                : "text-muted-foreground hover:text-foreground"
+              }
+            `}
+          >
+            <Target className="h-4 w-4" />
+            Retirement
           </button>
           <button
             onClick={() => {
@@ -217,6 +260,22 @@ export const CalculatorHub = () => {
               These calculators expose where money goes — and where it should.
             </p>
           </>
+        ) : category === "retirement" ? (
+          <>
+            <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/10 border border-indigo-500/20 mb-4">
+              <Target className="h-4 w-4 text-indigo-600 dark:text-indigo-400" />
+              <span className="text-sm font-medium text-indigo-600 dark:text-indigo-400">Retirement Intelligence</span>
+            </div>
+            <h1 className="text-4xl md:text-5xl font-bold bg-gradient-to-r from-indigo-600 to-purple-600 dark:from-indigo-400 dark:to-purple-400 bg-clip-text text-transparent">
+              Retirement Intelligence Center
+            </h1>
+            <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
+              Plan the life you want — not the one inflation leaves you.
+            </p>
+            <p className="text-sm text-muted-foreground max-w-2xl mx-auto italic">
+              Three calculators that turn 'I hope' into 'I'm prepared.'
+            </p>
+          </>
         ) : (
           <>
             <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 mb-4">
@@ -267,7 +326,7 @@ export const CalculatorHub = () => {
       {/* Calculator Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="hidden">
-          {[...debtCalculators, ...lifeCalculators].map((calc) => (
+          {[...debtCalculators, ...cashFlowCalculators, ...retirementCalculators, ...lifeCalculators].map((calc) => (
             <TabsTrigger key={calc.id} value={calc.id}>
               {calc.title}
             </TabsTrigger>
@@ -290,6 +349,25 @@ export const CalculatorHub = () => {
         <TabsContent value="purchasing-power" className="mt-0">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
             <PurchasingPowerCalculator />
+          </motion.div>
+        </TabsContent>
+
+        {/* Retirement Calculators */}
+        <TabsContent value="social-security" className="mt-0">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <SocialSecurityCalculator />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="inflation-damage" className="mt-0">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <InflationDamageCalculator />
+          </motion.div>
+        </TabsContent>
+
+        <TabsContent value="habits-wealth" className="mt-0">
+          <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.3 }}>
+            <HabitsWealthCalculator />
           </motion.div>
         </TabsContent>
 
@@ -390,6 +468,8 @@ export const CalculatorHub = () => {
             ? "These calculations are for educational purposes only and estimates are based on assumptions. Exact figures vary based on lender disclosures and circumstances." 
             : category === "cashflow"
             ? "Calculations are estimates based on standard models. Actual results vary by circumstances."
+            : category === "retirement"
+            ? "All projections are estimates based on assumptions and averages. Outcomes vary depending on market conditions and personal factors."
             : "Estimates are based on averages and assumptions. Actual results vary. This tool is for educational purposes only — not financial advice. Always consult with a qualified financial professional for personalized guidance."
           }
         </p>
