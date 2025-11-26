@@ -553,7 +553,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                 style={{ 
                   background: "linear-gradient(135deg, hsl(var(--brand-teal)) 0%, hsl(var(--brand-teal)/0.85) 100%)",
                   boxShadow: "0 10px 30px -5px hsl(var(--brand-teal) / 0.3)",
-                  color: "white" 
+                  color: "black" 
                 }}
               >
                 Continue
@@ -568,7 +568,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                 style={{ 
                   background: "linear-gradient(135deg, hsl(var(--brand-teal)) 0%, hsl(var(--brand-teal)/0.85) 100%)",
                   boxShadow: "0 10px 30px -5px hsl(var(--brand-teal) / 0.3)",
-                  color: "white" 
+                  color: "black" 
                 }}
               >
                 {loading ? (
