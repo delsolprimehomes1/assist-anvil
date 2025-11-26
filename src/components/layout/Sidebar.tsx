@@ -26,7 +26,7 @@ const navigation = [
   { name: "Dashboard", href: "/", icon: BarChart3 },
   { 
     name: "Order Leads", 
-    href: "https://leads.lifecoimo.com/leads", 
+    href: "https://leads.lifecoimo.com/", 
     icon: ShoppingBag,
     external: true
   },
