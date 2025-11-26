@@ -9,6 +9,9 @@ import { Separator } from "@/components/ui/separator";
 import { Progress } from "@/components/ui/progress";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+import { InsightBox } from "./shared/InsightBox";
+import { CalculatorCTA } from "./shared/CalculatorCTA";
+import { getCommissionInsight } from "@/lib/calculatorUtils";
 
 interface CalculationResult {
   totalCommission: number;
@@ -21,6 +24,8 @@ interface CalculationResult {
   };
   monthly: number;
   annually: number;
+  chargebackBuffer: number;
+  netTrueIncome: number;
 }
 
 const containerVariants = {
@@ -54,6 +59,8 @@ export const CommissionCalculator = () => {
       const totalCommission = (avgPremium * contractPercent / 100) * policyCount;
       const advanceAmount = totalCommission * (advance / 100);
       const residualAmount = totalCommission - advanceAmount;
+      const chargebackBuffer = advanceAmount * 0.15; // 15% buffer for potential chargebacks
+      const netTrueIncome = advanceAmount - chargebackBuffer;
       
       setResult({
         totalCommission,
@@ -65,7 +72,9 @@ export const CommissionCalculator = () => {
           residual: (avgPremium * contractPercent / 100) * ((100 - advance) / 100)
         },
         monthly: totalCommission,
-        annually: totalCommission * 12
+        annually: totalCommission * 12,
+        chargebackBuffer,
+        netTrueIncome
       });
     } else {
       setResult(null);
@@ -243,6 +252,26 @@ export const CommissionCalculator = () => {
                 </div>
               </div>
             </motion.div>
+
+            {/* Net True Income */}
+            <motion.div variants={cardVariants} className="p-4 bg-warning/10 border border-warning/20 rounded-lg">
+              <div className="text-sm text-muted-foreground mb-2">Net True Income (After 15% Chargeback Buffer)</div>
+              <div className="text-2xl font-bold text-warning">${result.netTrueIncome.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}</div>
+              <div className="text-xs text-muted-foreground mt-1">
+                Buffer: ${result.chargebackBuffer.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+            </motion.div>
+
+            {/* Agent Insights */}
+            <InsightBox type="success">
+              {getCommissionInsight(result.annually)}
+            </InsightBox>
+
+            <InsightBox type="tip">
+              <strong>Scaling Potential:</strong> If you doubled your policies to {parseFloat(policies) * 2}/month, your annual income would be ${(result.annually * 2).toLocaleString()}. Income is controlled by math — not motivation.
+            </InsightBox>
+
+            <CalculatorCTA calculatorName="Commission" />
           </motion.div>
         )}
       </CardContent>
