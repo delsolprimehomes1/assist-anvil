@@ -787,51 +787,93 @@ export type Database = {
       user_brand_kits: {
         Row: {
           accent_color: string | null
+          address_line1: string | null
+          address_line2: string | null
+          agent_photo_url: string | null
+          brand_voice: string | null
+          city: string | null
           company_name: string
           created_at: string
+          credentials_display: string | null
           email: string | null
+          facebook_url: string | null
+          font_body: string | null
+          font_heading: string | null
           id: string
+          instagram_url: string | null
+          linkedin_url: string | null
           logo_url: string | null
           phone: string | null
           primary_color: string | null
           secondary_color: string | null
+          secondary_logo_url: string | null
+          state: string | null
           tagline: string | null
           text_color: string | null
           updated_at: string
           user_id: string
           website: string | null
+          zip_code: string | null
         }
         Insert: {
           accent_color?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          agent_photo_url?: string | null
+          brand_voice?: string | null
+          city?: string | null
           company_name: string
           created_at?: string
+          credentials_display?: string | null
           email?: string | null
+          facebook_url?: string | null
+          font_body?: string | null
+          font_heading?: string | null
           id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
           logo_url?: string | null
           phone?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          secondary_logo_url?: string | null
+          state?: string | null
           tagline?: string | null
           text_color?: string | null
           updated_at?: string
           user_id: string
           website?: string | null
+          zip_code?: string | null
         }
         Update: {
           accent_color?: string | null
+          address_line1?: string | null
+          address_line2?: string | null
+          agent_photo_url?: string | null
+          brand_voice?: string | null
+          city?: string | null
           company_name?: string
           created_at?: string
+          credentials_display?: string | null
           email?: string | null
+          facebook_url?: string | null
+          font_body?: string | null
+          font_heading?: string | null
           id?: string
+          instagram_url?: string | null
+          linkedin_url?: string | null
           logo_url?: string | null
           phone?: string | null
           primary_color?: string | null
           secondary_color?: string | null
+          secondary_logo_url?: string | null
+          state?: string | null
           tagline?: string | null
           text_color?: string | null
           updated_at?: string
           user_id?: string
           website?: string | null
+          zip_code?: string | null
         }
         Relationships: [
           {
