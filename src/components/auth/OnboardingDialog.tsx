@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button";
 import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
+import { useIsMobile } from "@/hooks/use-mobile";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -77,6 +78,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const isMobile = useIsMobile();
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -475,20 +477,18 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                 </AnimatePresence>
 
                 {/* Navigation */}
-                <div className="flex items-center justify-between pt-8">
-                  {currentStep > 1 ? (
+                <div className={isMobile ? "flex flex-col gap-3 pt-8" : "flex items-center justify-between pt-8"}>
+                  {currentStep > 1 && (
                     <Button
                       type="button"
                       variant="ghost"
                       onClick={goToPrev}
                       disabled={loading}
-                      className="text-muted-foreground hover:text-foreground"
+                      className={isMobile ? "w-full h-12 text-base order-2" : "text-muted-foreground hover:text-foreground"}
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />
                       Back
                     </Button>
-                  ) : (
-                    <div />
                   )}
 
                   {currentStep < steps.length ? (
@@ -496,7 +496,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                       type="button"
                       onClick={goToNext}
                       disabled={loading}
-                      className="h-12 px-8 text-lg"
+                      className={isMobile ? "w-full h-14 text-lg order-1" : "h-12 px-8 text-lg"}
                       style={{ backgroundColor: "hsl(var(--brand-teal))", color: "white" }}
                     >
                       Continue
@@ -506,7 +506,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                     <Button
                       type="submit"
                       disabled={loading}
-                      className="h-12 px-8 text-lg"
+                      className={isMobile ? "w-full h-14 text-lg order-1" : "h-12 px-8 text-lg"}
                       style={{ backgroundColor: "hsl(var(--brand-teal))", color: "white" }}
                     >
                       {loading ? (
@@ -521,12 +521,14 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                   )}
                 </div>
 
-                {/* Keyboard Hint */}
-                <div className="text-center pt-4">
-                  <p className="text-sm text-muted-foreground">
-                    Press <kbd className="px-2 py-1 text-xs font-semibold text-foreground bg-muted rounded">Enter ↵</kbd> to continue
-                  </p>
-                </div>
+                {/* Keyboard Hint - Desktop only */}
+                {!isMobile && (
+                  <div className="text-center pt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Press <kbd className="px-2 py-1 text-xs font-semibold text-foreground bg-muted rounded">Enter ↵</kbd> to continue
+                    </p>
+                  </div>
+                )}
               </form>
             </Form>
           </div>
