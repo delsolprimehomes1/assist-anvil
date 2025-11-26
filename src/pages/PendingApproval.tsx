@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, Mail, Phone } from "lucide-react";
+import { Clock, Mail } from "lucide-react";
 
 export default function PendingApproval() {
   const [userName, setUserName] = useState("");
@@ -76,10 +76,6 @@ export default function PendingApproval() {
               <div className="flex items-center gap-2 justify-center">
                 <Mail className="h-4 w-4" />
                 <span>support@battersbox.com</span>
-              </div>
-              <div className="flex items-center gap-2 justify-center">
-                <Phone className="h-4 w-4" />
-                <span>1-800-BATTERS</span>
               </div>
             </div>
           </div>
