@@ -540,3 +540,191 @@ export function getPurchasingPowerInsight(lossPercent: number, yearsSpan: number
     return `Even "low" inflation compounds brutally. Over ${yearsSpan} years, ${lossPercent.toFixed(0)}% of purchasing power vanished. The dollar in your pocket today is worth less every single day — and tomorrow won't be any different.`;
   }
 }
+
+// ============================================================================
+// RETIREMENT CALCULATORS
+// ============================================================================
+
+export const calculateSocialSecurity = (
+  yourIncome: number,
+  yourAge: number,
+  yourRetirementAge: number,
+  spouseIncome: number,
+  spouseAge: number,
+  spouseRetirementAge: number,
+  inflationRate: number
+) => {
+  // Simplified Social Security benefit estimation
+  // Based on AIME (Average Indexed Monthly Earnings) bend points
+  
+  const calculateBenefit = (income: number, age: number, retirementAge: number) => {
+    const monthlyIncome = income / 12;
+    const aime = monthlyIncome * 0.9; // Simplified AIME calculation
+    
+    // 2024 bend points (simplified)
+    let benefit = 0;
+    if (aime <= 1115) {
+      benefit = aime * 0.90;
+    } else if (aime <= 6721) {
+      benefit = 1115 * 0.90 + (aime - 1115) * 0.32;
+    } else {
+      benefit = 1115 * 0.90 + (6721 - 1115) * 0.32 + (aime - 6721) * 0.15;
+    }
+    
+    // Adjust for claiming age (simplified)
+    const fra = 67; // Full Retirement Age
+    if (retirementAge < fra) {
+      const monthsEarly = (fra - retirementAge) * 12;
+      benefit *= (1 - monthsEarly * 0.00556); // ~6.67% per year reduction
+    } else if (retirementAge > fra) {
+      const monthsLate = (retirementAge - fra) * 12;
+      benefit *= (1 + monthsLate * 0.00667); // 8% per year increase
+    }
+    
+    return benefit;
+  };
+  
+  const yourBenefit = calculateBenefit(yourIncome, yourAge, yourRetirementAge);
+  const spouseBenefit = calculateBenefit(spouseIncome, spouseAge, spouseRetirementAge);
+  const combinedBenefit = yourBenefit + spouseBenefit;
+  
+  // Calculate inflation-adjusted value
+  const yourYearsToRetirement = yourRetirementAge - yourAge;
+  const inflationMultiplier = Math.pow(1 + inflationRate / 100, yourYearsToRetirement);
+  const inflationAdjustedValue = combinedBenefit / inflationMultiplier;
+  
+  // Calculate replacement percentage
+  const combinedIncome = yourIncome + spouseIncome;
+  const replacementPercentage = (combinedBenefit * 12 / combinedIncome) * 100;
+  
+  return {
+    yourBenefit,
+    spouseBenefit,
+    combinedBenefit,
+    inflationAdjustedValue,
+    replacementPercentage
+  };
+};
+
+export const getSocialSecurityInsight = (result: ReturnType<typeof calculateSocialSecurity>): string => {
+  const { replacementPercentage, inflationAdjustedValue, combinedBenefit } = result;
+  
+  if (replacementPercentage < 40) {
+    return `Social Security replaces only ${replacementPercentage.toFixed(0)}% of your income. It's a cushion—not a plan. Most families rely on more than they should… and save less than they should. Without additional income, retirement becomes survival mode.`;
+  } else if (replacementPercentage < 60) {
+    return `Your Social Security covers ${replacementPercentage.toFixed(0)}% of income needs. That leaves a ${(100 - replacementPercentage).toFixed(0)}% gap to fill. Longevity creates the real risk—not retirement. Living longer than your money is the hidden crisis.`;
+  } else {
+    return `Social Security provides ${replacementPercentage.toFixed(0)}% replacement. But inflation turns ${formatCurrency(combinedBenefit)} into ${formatCurrency(inflationAdjustedValue)} in today's dollars. Time erodes guarantees. Planning preserves them.`;
+  }
+};
+
+export const calculateInflationDamage = (
+  currentAge: number,
+  annualIncome: number,
+  inflationRate: number,
+  retirementAge: number,
+  lifeExpectancy: number,
+  replacementPercent: number
+) => {
+  const yearsToRetirement = retirementAge - currentAge;
+  const retirementYears = lifeExpectancy - retirementAge;
+  
+  // Calculate required income at retirement
+  const inflationMultiplier = Math.pow(1 + inflationRate / 100, yearsToRetirement);
+  const requiredIncomeAtRetirement = (annualIncome * (replacementPercent / 100)) * inflationMultiplier;
+  
+  // Current income replacement target
+  const currentIncomeTarget = annualIncome * (replacementPercent / 100);
+  
+  // Inflation gap
+  const inflationGap = requiredIncomeAtRetirement - currentIncomeTarget;
+  
+  // Cost of delaying one year (compounding effect)
+  const oneYearLaterMultiplier = Math.pow(1 + inflationRate / 100, yearsToRetirement - 1);
+  const costOfDelayOneYear = (requiredIncomeAtRetirement - (currentIncomeTarget * oneYearLaterMultiplier)) * retirementYears;
+  
+  // Purchasing power loss percentage
+  const purchasingPowerLoss = ((1 - (1 / inflationMultiplier)) * 100);
+  
+  // Generate purchasing power data for chart
+  const purchasingPowerData = [];
+  for (let i = 0; i <= yearsToRetirement; i += Math.max(1, Math.floor(yearsToRetirement / 10))) {
+    const year = currentAge + i;
+    const value = currentIncomeTarget / Math.pow(1 + inflationRate / 100, i);
+    purchasingPowerData.push({ year, value });
+  }
+  
+  return {
+    requiredIncomeAtRetirement,
+    inflationGap,
+    costOfDelayOneYear,
+    purchasingPowerLoss,
+    yearsToRetirement,
+    purchasingPowerData
+  };
+};
+
+export const getInflationDamageInsight = (result: ReturnType<typeof calculateInflationDamage>): string => {
+  const { inflationGap, yearsToRetirement, purchasingPowerLoss } = result;
+  
+  if (purchasingPowerLoss > 60) {
+    return `Inflation will destroy ${purchasingPowerLoss.toFixed(0)}% of your purchasing power over ${yearsToRetirement} years. Time makes wealth—but it also destroys unprotected income. If your retirement doesn't grow… it dies quietly.`;
+  } else if (purchasingPowerLoss > 40) {
+    return `You'll need an extra ${formatCurrency(inflationGap)}/year just to maintain today's lifestyle. Inflation is the slow leak in your future. Most people plan for retirement. Few plan for inflation's compound damage.`;
+  } else {
+    return `Even with "moderate" inflation, your income needs increase by ${formatCurrency(inflationGap)}/year. Today's lifestyle becomes tomorrow's shock. Protection isn't optional—it's mathematical.`;
+  }
+};
+
+export const calculateHabitsToWealth = (
+  oneTimeExpense: number,
+  recurringExpense: number,
+  frequency: number,
+  yearsToRetirement: number,
+  expectedReturn: number,
+  taxBracket: number
+) => {
+  const monthlySpending = recurringExpense * frequency;
+  const annualSpending = monthlySpending * 12;
+  const totalSpent = oneTimeExpense + (annualSpending * yearsToRetirement);
+  
+  // Calculate future value if invested instead
+  const afterTaxReturn = expectedReturn * (1 - taxBracket / 100);
+  const monthlyRate = afterTaxReturn / 100 / 12;
+  const months = yearsToRetirement * 12;
+  
+  // Future value of recurring investments
+  let futureValueRecurring = 0;
+  if (monthlyRate > 0) {
+    futureValueRecurring = monthlySpending * (Math.pow(1 + monthlyRate, months) - 1) / monthlyRate;
+  } else {
+    futureValueRecurring = monthlySpending * months;
+  }
+  
+  // Future value of one-time investment
+  const futureValueOneTime = oneTimeExpense * Math.pow(1 + afterTaxReturn / 100, yearsToRetirement);
+  
+  const futureValue = futureValueRecurring + futureValueOneTime;
+  const totalOpportunityCost = futureValue - totalSpent;
+  const wealthMultiplier = futureValue / totalSpent;
+  
+  return {
+    totalSpent,
+    futureValue,
+    totalOpportunityCost,
+    wealthMultiplier,
+    monthlySpending
+  };
+};
+
+export const getHabitsWealthInsight = (result: ReturnType<typeof calculateHabitsToWealth>): string => {
+  const { totalOpportunityCost, wealthMultiplier, monthlySpending } = result;
+  
+  if (wealthMultiplier > 4) {
+    return `Small habits build massive futures. Your ${formatCurrency(monthlySpending)}/month habit costs you ${formatCurrency(totalOpportunityCost)} in future wealth. What you cut today feeds you tomorrow. Lifestyle is financial programming.`;
+  } else if (wealthMultiplier > 2) {
+    return `Every dollar not spent becomes ${wealthMultiplier.toFixed(1)} dollars in retirement. That's ${formatCurrency(totalOpportunityCost)} in opportunity cost. Freedom isn't about sacrifice—it's about strategy.`;
+  } else {
+    return `This habit represents ${formatCurrency(totalOpportunityCost)} in lost retirement wealth. Small daily decisions compound into life-changing outcomes. The question isn't "Can I afford this?"—it's "What does this really cost?"`;
+  }
+};

@@ -128,6 +128,11 @@
     --gradient-cashflow-decision: linear-gradient(135deg, hsl(174 62% 47% / 0.2), hsl(189 94% 43% / 0.05));
     --gradient-cashflow-inflation: linear-gradient(135deg, hsl(38 92% 50% / 0.2), hsl(45 93% 47% / 0.05));
     --gradient-cashflow-power: linear-gradient(135deg, hsl(346 87% 60% / 0.2), hsl(330 81% 60% / 0.05));
+    
+    /* Retirement gradients */
+    --gradient-retirement-security: linear-gradient(135deg, hsl(231 48% 48% / 0.2), hsl(270 60% 50% / 0.05));
+    --gradient-retirement-inflation: linear-gradient(135deg, hsl(346 87% 60% / 0.2), hsl(27 87% 67% / 0.05));
+    --gradient-retirement-habits: linear-gradient(135deg, hsl(142 71% 45% / 0.2), hsl(160 60% 45% / 0.05));
     --shadow-md: 0 2px 4px 0 rgb(0 0 0 / 0.3);
     --shadow-lg: 0 4px 6px -1px rgb(0 0 0 / 0.4);
     --shadow-teal: 0 4px 14px rgba(139, 186, 196, 0.25);

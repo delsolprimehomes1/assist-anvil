@@ -13,9 +13,13 @@ export const CalculatorCTA = ({ calculatorName, ctaText = "Talk to an Expert Abo
                            calculatorName.includes("Loan");
   
   const isCashFlowCalculator = calculatorName.includes("Investing") ||
-                               calculatorName.includes("Inflation") ||
                                calculatorName.includes("Purchasing Power") ||
                                calculatorName.includes("Cash Flow");
+  
+  const isRetirementCalculator = calculatorName.includes("Social Security") ||
+                                 calculatorName.includes("Inflation Damage") ||
+                                 calculatorName.includes("Habits") ||
+                                 calculatorName.includes("Retirement");
   
   // Determine CTA text and subtext based on calculator type
   let finalCtaText = ctaText;
@@ -31,6 +35,11 @@ export const CalculatorCTA = ({ calculatorName, ctaText = "Talk to an Expert Abo
       finalCtaText = "Build My Financial Plan";
     }
     subText = "10 minutes. Zero pressure. Real insight.";
+  } else if (isRetirementCalculator) {
+    if (ctaText === "Talk to an Expert About This") {
+      finalCtaText = "Build My Retirement Strategy";
+    }
+    subText = "Clarity first. Pressure never.";
   }
 
   return (
