@@ -1,35 +1,17 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import {
-  Dialog,
-  DialogContent,
-  DialogDescription,
-  DialogHeader,
-  DialogTitle,
-} from "@/components/ui/dialog";
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormLabel,
-  FormMessage,
-} from "@/components/ui/form";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
+import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock } from "lucide-react";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { motion, AnimatePresence } from "framer-motion";
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -52,7 +34,47 @@ interface OnboardingDialogProps {
   onOpenChange: (open: boolean) => void;
 }
 
+const steps = [
+  {
+    id: 1,
+    question: "Let's start with your name",
+    icon: User,
+    fields: ["firstName", "lastName"] as const,
+  },
+  {
+    id: 2,
+    question: "What's your email address?",
+    icon: Mail,
+    fields: ["email"] as const,
+  },
+  {
+    id: 3,
+    question: "What's your phone number?",
+    icon: Phone,
+    fields: ["phone"] as const,
+  },
+  {
+    id: 4,
+    question: "Select your agency code",
+    icon: Building2,
+    fields: ["agencyCode"] as const,
+  },
+  {
+    id: 5,
+    question: "Who referred you to BattersBox?",
+    icon: Users,
+    fields: ["referredBy"] as const,
+  },
+  {
+    id: 6,
+    question: "Create a secure password",
+    icon: Lock,
+    fields: ["password", "confirmPassword"] as const,
+  },
+];
+
 export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
+  const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
@@ -70,10 +92,31 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
     },
   });
 
+  const currentStepConfig = steps[currentStep - 1];
+  const progress = (currentStep / steps.length) * 100;
+
+  const validateCurrentStep = async () => {
+    const fieldsToValidate = currentStepConfig.fields;
+    const result = await form.trigger(fieldsToValidate);
+    return result;
+  };
+
+  const nextStep = async () => {
+    const isValid = await validateCurrentStep();
+    if (isValid && currentStep < steps.length) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const prevStep = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      // Create Supabase account
       const { data: authData, error: authError } = await supabase.auth.signUp({
         email: values.email,
         password: values.password,
@@ -86,12 +129,8 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
       });
 
       if (authError) throw authError;
+      if (!authData.user) throw new Error("Failed to create account");
 
-      if (!authData.user) {
-        throw new Error("Failed to create account");
-      }
-
-      // Insert onboarding request
       const { error: dbError } = await supabase
         .from("onboarding_requests")
         .insert({
@@ -106,7 +145,6 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
 
       if (dbError) throw dbError;
 
-      // Send webhook
       const { error: webhookError } = await supabase.functions.invoke(
         "send-onboarding-webhook",
         {
@@ -123,7 +161,6 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
 
       if (webhookError) {
         console.error("Webhook error:", webhookError);
-        // Don't block the flow if webhook fails
       }
 
       toast.success("Request submitted successfully!");
@@ -137,164 +174,363 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
     }
   };
 
+  // Keyboard navigation
+  useEffect(() => {
+    const handleKeyPress = (e: KeyboardEvent) => {
+      if (e.key === "Enter" && !loading) {
+        e.preventDefault();
+        if (currentStep === steps.length) {
+          form.handleSubmit(onSubmit)();
+        } else {
+          nextStep();
+        }
+      }
+    };
+
+    if (open) {
+      window.addEventListener("keypress", handleKeyPress);
+      return () => window.removeEventListener("keypress", handleKeyPress);
+    }
+  }, [open, currentStep, loading]);
+
+  // Reset to step 1 when dialog opens
+  useEffect(() => {
+    if (open) {
+      setCurrentStep(1);
+    }
+  }, [open]);
+
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 1000 : -1000,
+      opacity: 0,
+    }),
+    center: {
+      x: 0,
+      opacity: 1,
+    },
+    exit: (direction: number) => ({
+      x: direction < 0 ? 1000 : -1000,
+      opacity: 0,
+    }),
+  };
+
+  const [direction, setDirection] = useState(0);
+
+  const goToNext = async () => {
+    setDirection(1);
+    await nextStep();
+  };
+
+  const goToPrev = () => {
+    setDirection(-1);
+    prevStep();
+  };
+
+  const Icon = currentStepConfig.icon;
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[500px] max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle>Request to Join BattersBox</DialogTitle>
-          <DialogDescription>
-            Fill out the form below and our team will review your application.
-          </DialogDescription>
-        </DialogHeader>
+      <DialogContent className="max-w-none w-full h-screen m-0 p-0 rounded-none border-0">
+        {/* Progress Bar */}
+        <div className="absolute top-0 left-0 w-full h-1 bg-muted">
+          <motion.div
+            className="h-full bg-[hsl(var(--brand-teal))]"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3, ease: "easeInOut" }}
+          />
+        </div>
 
-        <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
-            <div className="grid grid-cols-2 gap-4">
-              <FormField
-                control={form.control}
-                name="firstName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>First Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled={loading} className="min-h-[48px]" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
+        {/* Close Button */}
+        <button
+          onClick={() => onOpenChange(false)}
+          className="absolute top-6 right-6 text-muted-foreground hover:text-foreground transition-colors z-50"
+          aria-label="Close"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          >
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
 
-              <FormField
-                control={form.control}
-                name="lastName"
-                render={({ field }) => (
-                  <FormItem>
-                    <FormLabel>Last Name</FormLabel>
-                    <FormControl>
-                      <Input {...field} disabled={loading} className="min-h-[48px]" />
-                    </FormControl>
-                    <FormMessage />
-                  </FormItem>
-                )}
-              />
-            </div>
+        <div className="flex items-center justify-center min-h-screen p-6">
+          <div className="w-full max-w-2xl">
+            <Form {...form}>
+              <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
+                {/* Step Indicator */}
+                <div className="flex items-center gap-3 text-sm text-muted-foreground mb-8">
+                  <span style={{ color: "hsl(var(--brand-gold))" }} className="font-semibold">
+                    Step {currentStep} of {steps.length}
+                  </span>
+                </div>
 
-            <FormField
-              control={form.control}
-              name="email"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Email</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="email" disabled={loading} className="min-h-[48px]" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={currentStep}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{
+                      x: { type: "spring", stiffness: 300, damping: 30 },
+                      opacity: { duration: 0.2 },
+                    }}
+                  >
+                    {/* Question */}
+                    <div className="flex items-center gap-4 mb-8">
+                      <div className="w-12 h-12 rounded-full bg-[hsl(var(--brand-teal))]/10 flex items-center justify-center">
+                        <Icon className="w-6 h-6" style={{ color: "hsl(var(--brand-teal))" }} />
+                      </div>
+                      <h2 className="text-3xl md:text-4xl font-bold">{currentStepConfig.question}</h2>
+                    </div>
 
-            <FormField
-              control={form.control}
-              name="phone"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Phone</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="tel" disabled={loading} className="min-h-[48px]" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                    {/* Fields */}
+                    <div className="space-y-6">
+                      {currentStep === 1 && (
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          <FormField
+                            control={form.control}
+                            name="firstName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="First name"
+                                    disabled={loading}
+                                    className="h-14 text-lg"
+                                    autoFocus
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="lastName"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    placeholder="Last name"
+                                    disabled={loading}
+                                    className="h-14 text-lg"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
 
-            <FormField
-              control={form.control}
-              name="agencyCode"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Agency Code</FormLabel>
-                  <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
-                    <FormControl>
-                      <SelectTrigger className="min-h-[48px] bg-background">
-                        <SelectValue placeholder="Select an agency code" />
-                      </SelectTrigger>
-                    </FormControl>
-                    <SelectContent className="bg-background z-50">
-                      <SelectItem value="100">100</SelectItem>
-                      <SelectItem value="200">200</SelectItem>
-                      <SelectItem value="300">300</SelectItem>
-                      <SelectItem value="400">400</SelectItem>
-                      <SelectItem value="500">500</SelectItem>
-                      <SelectItem value="600">600</SelectItem>
-                      <SelectItem value="700">700</SelectItem>
-                      <SelectItem value="800">800</SelectItem>
-                      <SelectItem value="900">900</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      {currentStep === 2 && (
+                        <FormField
+                          control={form.control}
+                          name="email"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="email"
+                                  placeholder="yourname@example.com"
+                                  disabled={loading}
+                                  className="h-14 text-lg"
+                                  autoFocus
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
 
-            <FormField
-              control={form.control}
-              name="referredBy"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Who Referred You?</FormLabel>
-                  <FormControl>
-                    <Input {...field} disabled={loading} className="min-h-[48px]" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      {currentStep === 3 && (
+                        <FormField
+                          control={form.control}
+                          name="phone"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  type="tel"
+                                  placeholder="(555) 123-4567"
+                                  disabled={loading}
+                                  className="h-14 text-lg"
+                                  autoFocus
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
 
-            <FormField
-              control={form.control}
-              name="password"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Password</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="password" disabled={loading} className="min-h-[48px]" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      {currentStep === 4 && (
+                        <FormField
+                          control={form.control}
+                          name="agencyCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                                <FormControl>
+                                  <SelectTrigger className="h-14 text-lg bg-background">
+                                    <SelectValue placeholder="Choose your agency code" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="bg-background z-50">
+                                  {["100", "200", "300", "400", "500", "600", "700", "800", "900"].map((code) => (
+                                    <SelectItem key={code} value={code} className="text-lg">
+                                      {code}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
 
-            <FormField
-              control={form.control}
-              name="confirmPassword"
-              render={({ field }) => (
-                <FormItem>
-                  <FormLabel>Confirm Password</FormLabel>
-                  <FormControl>
-                    <Input {...field} type="password" disabled={loading} className="min-h-[48px]" />
-                  </FormControl>
-                  <FormMessage />
-                </FormItem>
-              )}
-            />
+                      {currentStep === 5 && (
+                        <FormField
+                          control={form.control}
+                          name="referredBy"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="Name of person who referred you"
+                                  disabled={loading}
+                                  className="h-14 text-lg"
+                                  autoFocus
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
 
-            <Button
-              type="submit"
-              className="w-full"
-              disabled={loading}
-              style={{ backgroundColor: "hsl(var(--brand-teal))", color: "white" }}
-            >
-              {loading ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Submitting...
-                </>
-              ) : (
-                "Submit Request"
-              )}
-            </Button>
-          </form>
-        </Form>
+                      {currentStep === 6 && (
+                        <div className="space-y-4">
+                          <FormField
+                            control={form.control}
+                            name="password"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type="password"
+                                    placeholder="Enter password (min. 8 characters)"
+                                    disabled={loading}
+                                    className="h-14 text-lg"
+                                    autoFocus
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                          <FormField
+                            control={form.control}
+                            name="confirmPassword"
+                            render={({ field }) => (
+                              <FormItem>
+                                <FormControl>
+                                  <Input
+                                    {...field}
+                                    type="password"
+                                    placeholder="Confirm password"
+                                    disabled={loading}
+                                    className="h-14 text-lg"
+                                  />
+                                </FormControl>
+                                <FormMessage />
+                              </FormItem>
+                            )}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+
+                {/* Navigation */}
+                <div className="flex items-center justify-between pt-8">
+                  {currentStep > 1 ? (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      onClick={goToPrev}
+                      disabled={loading}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
+                      <ArrowLeft className="mr-2 h-4 w-4" />
+                      Back
+                    </Button>
+                  ) : (
+                    <div />
+                  )}
+
+                  {currentStep < steps.length ? (
+                    <Button
+                      type="button"
+                      onClick={goToNext}
+                      disabled={loading}
+                      className="h-12 px-8 text-lg"
+                      style={{ backgroundColor: "hsl(var(--brand-teal))", color: "white" }}
+                    >
+                      Continue
+                      <ArrowRight className="ml-2 h-5 w-5" />
+                    </Button>
+                  ) : (
+                    <Button
+                      type="submit"
+                      disabled={loading}
+                      className="h-12 px-8 text-lg"
+                      style={{ backgroundColor: "hsl(var(--brand-teal))", color: "white" }}
+                    >
+                      {loading ? (
+                        <>
+                          <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                          Submitting...
+                        </>
+                      ) : (
+                        "Submit Request"
+                      )}
+                    </Button>
+                  )}
+                </div>
+
+                {/* Keyboard Hint */}
+                <div className="text-center pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Press <kbd className="px-2 py-1 text-xs font-semibold text-foreground bg-muted rounded">Enter ↵</kbd> to continue
+                  </p>
+                </div>
+              </form>
+            </Form>
+          </div>
+        </div>
       </DialogContent>
     </Dialog>
   );
