@@ -539,61 +539,61 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
               </form>
             </Form>
           </div>
-
-          {/* Mobile Fixed Bottom Navigation */}
-          {isMobile && (
-            <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-background/95 backdrop-blur-xl border-t border-border/50 z-50">
-              {currentStep < steps.length ? (
-                <Button
-                  type="button"
-                  onClick={goToNext}
-                  disabled={loading}
-                  className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-                  style={{ 
-                    background: "linear-gradient(135deg, hsl(var(--brand-teal)) 0%, hsl(var(--brand-teal)/0.85) 100%)",
-                    boxShadow: "0 10px 30px -5px hsl(var(--brand-teal) / 0.3)",
-                    color: "white" 
-                  }}
-                >
-                  Continue
-                  <ArrowRight className="ml-2 h-5 w-5" />
-                </Button>
-              ) : (
-                <Button
-                  type="button"
-                  onClick={form.handleSubmit(onSubmit)}
-                  disabled={loading}
-                  className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-                  style={{ 
-                    background: "linear-gradient(135deg, hsl(var(--brand-teal)) 0%, hsl(var(--brand-teal)/0.85) 100%)",
-                    boxShadow: "0 10px 30px -5px hsl(var(--brand-teal) / 0.3)",
-                    color: "white" 
-                  }}
-                >
-                  {loading ? (
-                    <>
-                      <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    "Submit Request"
-                  )}
-                </Button>
-              )}
-              
-              {currentStep > 1 && (
-                <button
-                  type="button"
-                  onClick={goToPrev}
-                  disabled={loading}
-                  className="w-full mt-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
-                >
-                  ← Back to previous step
-                </button>
-              )}
-            </div>
-          )}
         </div>
+
+        {/* Mobile Fixed Bottom Navigation */}
+        {isMobile && (
+          <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-background/95 backdrop-blur-xl border-t border-border/50 z-50">
+            {currentStep < steps.length ? (
+              <Button
+                type="button"
+                onClick={goToNext}
+                disabled={loading}
+                className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                style={{ 
+                  background: "linear-gradient(135deg, hsl(var(--brand-teal)) 0%, hsl(var(--brand-teal)/0.85) 100%)",
+                  boxShadow: "0 10px 30px -5px hsl(var(--brand-teal) / 0.3)",
+                  color: "white" 
+                }}
+              >
+                Continue
+                <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+            ) : (
+              <Button
+                type="button"
+                onClick={form.handleSubmit(onSubmit)}
+                disabled={loading}
+                className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                style={{ 
+                  background: "linear-gradient(135deg, hsl(var(--brand-teal)) 0%, hsl(var(--brand-teal)/0.85) 100%)",
+                  boxShadow: "0 10px 30px -5px hsl(var(--brand-teal) / 0.3)",
+                  color: "white" 
+                }}
+              >
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Request"
+                )}
+              </Button>
+            )}
+            
+            {currentStep > 1 && (
+              <button
+                type="button"
+                onClick={goToPrev}
+                disabled={loading}
+                className="w-full mt-3 text-sm text-muted-foreground hover:text-foreground transition-colors"
+              >
+                ← Back to previous step
+              </button>
+            )}
+          </div>
+        )}
       </DialogContent>
     </Dialog>
   );
