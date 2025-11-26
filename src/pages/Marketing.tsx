@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { useBrandKit } from "@/hooks/useBrandKit";
 import { useMarketingTemplates } from "@/hooks/useMarketingTemplates";
+import { useMarketingResources } from "@/hooks/useMarketingResources";
 import { BrandKitEditor } from "@/components/marketing/BrandKitEditor";
 import { BrandKitDisplay } from "@/components/marketing/BrandKitDisplay";
 import { TemplateEditor } from "@/components/marketing/TemplateEditor";
@@ -83,6 +84,9 @@ const Marketing = () => {
   
   const { brandKit, isLoading: isBrandKitLoading, deleteBrandKit } = useBrandKit();
   const { templates: userTemplates, deleteTemplate } = useMarketingTemplates();
+  const { resources: agencyTemplates, isLoading: isAgencyLoading } = useMarketingResources("canva_template");
+  const { resources: agencyScripts } = useMarketingResources();
+  const { resources: agencyCreatives } = useMarketingResources("creative");
   
   const [brandKitEditorOpen, setBrandKitEditorOpen] = useState(false);
   const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
@@ -160,9 +164,10 @@ const Marketing = () => {
       </div>
 
       <Tabs defaultValue="templates" className="w-full">
-        <TabsList className="grid w-full grid-cols-4">
+        <TabsList className="grid w-full grid-cols-5">
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="scripts">Scripts</TabsTrigger>
+          <TabsTrigger value="creatives">Creatives</TabsTrigger>
           <TabsTrigger value="brand">Brand Kit</TabsTrigger>
           <TabsTrigger value="funnels">Funnels</TabsTrigger>
         </TabsList>
@@ -237,48 +242,52 @@ const Marketing = () => {
             </>
           )}
 
-          {/* System Canva Templates */}
-          <h3 className="text-lg font-semibold">System Templates</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {templates.filter(t => t.type === "canva_template").map((template, index) => {
-              const Icon = getTypeIcon(template.type);
-              return (
-                <Card key={template.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardHeader className="pb-4">
-                    <div className="flex items-start justify-between">
-                      <div className="flex items-center space-x-3 flex-1">
-                        <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
-                          <Icon className="h-6 w-6 text-primary" />
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <CardTitle className="text-lg truncate">{template.title}</CardTitle>
-                          <CardDescription className="text-sm">
-                            {template.description}
-                          </CardDescription>
+          {/* Agency Canva Templates */}
+          <h3 className="text-lg font-semibold">Agency Templates</h3>
+          {isAgencyLoading ? (
+            <div className="text-center py-8 text-muted-foreground">Loading agency templates...</div>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {agencyTemplates.map((template, index) => {
+                const Icon = getTypeIcon(template.type);
+                return (
+                  <Card key={template.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
+                    <CardHeader className="pb-4">
+                      <div className="flex items-start justify-between">
+                        <div className="flex items-center space-x-3 flex-1">
+                          <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
+                            <Icon className="h-6 w-6 text-primary" />
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <CardTitle className="text-lg truncate">{template.title}</CardTitle>
+                            <CardDescription className="text-sm">
+                              {template.description}
+                            </CardDescription>
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex flex-wrap gap-1">
-                      {template.tags.map(tag => (
-                        <Badge key={tag} variant="outline" className="text-xs">
-                          {tag.replace('_', ' ')}
-                        </Badge>
-                      ))}
-                    </div>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div className="flex flex-wrap gap-1">
+                        {template.tags.map((tag, i) => (
+                          <Badge key={i} variant="outline" className="text-xs">
+                            {tag.replace('_', ' ')}
+                          </Badge>
+                        ))}
+                      </div>
 
-                    <Button className="w-full" asChild>
-                      <a href={template.url} target="_blank" rel="noopener noreferrer">
-                        <ExternalLink className="mr-2 h-4 w-4" />
-                        Open in Canva
-                      </a>
-                    </Button>
-                  </CardContent>
-                </Card>
-              );
-            })}
-          </div>
+                      <Button className="w-full" asChild>
+                        <a href={template.url || "#"} target="_blank" rel="noopener noreferrer">
+                          <ExternalLink className="mr-2 h-4 w-4" />
+                          Open in Canva
+                        </a>
+                      </Button>
+                    </CardContent>
+                  </Card>
+                );
+              })}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="scripts" className="space-y-6">
@@ -347,10 +356,10 @@ const Marketing = () => {
             </>
           )}
 
-          {/* System Scripts */}
-          <h3 className="text-lg font-semibold">System Scripts</h3>
+          {/* Agency Scripts */}
+          <h3 className="text-lg font-semibold">Agency Scripts</h3>
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {templates.filter(t => t.type === "email_script" || t.type === "sms_script").map((script, index) => {
+            {agencyScripts.filter(s => s.type === "email_script" || s.type === "sms_script").map((script, index) => {
               const Icon = getTypeIcon(script.type);
               return (
                 <Card key={script.id} className="stat-card" style={{ animationDelay: `${index * 0.1}s` }}>
@@ -369,8 +378,8 @@ const Marketing = () => {
                     </div>
                     
                     <div className="flex flex-wrap gap-1">
-                      {script.tags.map(tag => (
-                        <Badge key={tag} variant="outline" className="text-xs">
+                      {script.tags.map((tag, i) => (
+                        <Badge key={i} variant="outline" className="text-xs">
                           {tag.replace('_', ' ')}
                         </Badge>
                       ))}
@@ -389,6 +398,58 @@ const Marketing = () => {
               );
             })}
           </div>
+        </TabsContent>
+
+        <TabsContent value="creatives" className="space-y-6">
+          <h3 className="text-lg font-semibold">Agency Creatives</h3>
+          {agencyCreatives.length === 0 ? (
+            <Card className="stat-card">
+              <CardContent className="py-12 text-center">
+                <p className="text-muted-foreground">No creatives available yet</p>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {agencyCreatives.map((creative, index) => (
+                <Card key={creative.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
+                  <CardHeader className="pb-4">
+                    <CardTitle className="text-lg">{creative.title}</CardTitle>
+                    <CardDescription className="text-sm">
+                      {creative.description}
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent className="space-y-4">
+                    {creative.thumbnail_url && (
+                      <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+                        <img 
+                          src={creative.thumbnail_url} 
+                          alt={creative.title}
+                          className="w-full h-full object-cover"
+                        />
+                      </div>
+                    )}
+                    
+                    <div className="flex flex-wrap gap-1">
+                      {creative.tags.map((tag, i) => (
+                        <Badge key={i} variant="outline" className="text-xs">
+                          {tag.replace('_', ' ')}
+                        </Badge>
+                      ))}
+                    </div>
+
+                    {creative.file_url && (
+                      <Button className="w-full" asChild>
+                        <a href={creative.file_url} download target="_blank" rel="noopener noreferrer">
+                          <Download className="mr-2 h-4 w-4" />
+                          Download
+                        </a>
+                      </Button>
+                    )}
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          )}
         </TabsContent>
 
         <TabsContent value="brand" className="space-y-6">
