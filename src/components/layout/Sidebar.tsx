@@ -30,7 +30,7 @@ const navigation = [
     icon: ShoppingBag,
     external: true
   },
-  { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
+  { name: "CRM", href: "https://app.battersbox.ai", icon: Users, external: true },
   { name: "Carriers", href: "/carriers", icon: Building2 },
   { name: "News", href: "/news", icon: Newspaper },
   { name: "Tools", href: "/tools", icon: Calculator },
