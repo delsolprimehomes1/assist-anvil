@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Megaphone, Copy, ExternalLink, Download, Palette, Mail, MessageSquare, Plus, Edit, Trash2 } from "lucide-react";
+import { Megaphone, Copy, ExternalLink, Download, Palette, Mail, MessageSquare, Plus, Edit, Trash2, Eye } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -22,6 +22,12 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
 
 const templates = [
   {
@@ -94,6 +100,7 @@ const Marketing = () => {
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
   const [brandKitDeleteDialogOpen, setBrandKitDeleteDialogOpen] = useState(false);
+  const [selectedCreative, setSelectedCreative] = useState<any>(null);
 
   const handleEditTemplate = (template: any) => {
     setEditingTemplate(template);
@@ -410,44 +417,54 @@ const Marketing = () => {
             </Card>
           ) : (
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {agencyCreatives.map((creative, index) => (
-                <Card key={creative.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
-                  <CardHeader className="pb-4">
-                    <CardTitle className="text-lg">{creative.title}</CardTitle>
-                    <CardDescription className="text-sm">
-                      {creative.description}
-                    </CardDescription>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {creative.thumbnail_url && (
-                      <div className="aspect-video rounded-lg overflow-hidden bg-muted">
+              {agencyCreatives.map((creative, index) => {
+                const isImageFile = creative.file_url && /\.(jpg|jpeg|png|gif|webp|svg)$/i.test(creative.file_url);
+                const previewUrl = creative.thumbnail_url || (isImageFile ? creative.file_url : null);
+                
+                return (
+                  <Card key={creative.id} className="stat-card hover-lift overflow-hidden" style={{ animationDelay: `${index * 0.1}s` }}>
+                    {previewUrl && (
+                      <div 
+                        className="aspect-[4/3] bg-muted cursor-pointer group relative"
+                        onClick={() => setSelectedCreative(creative)}
+                      >
                         <img 
-                          src={creative.thumbnail_url} 
+                          src={previewUrl} 
                           alt={creative.title}
-                          className="w-full h-full object-cover"
+                          className="w-full h-full object-cover transition-transform group-hover:scale-105"
                         />
+                        <div className="absolute inset-0 bg-black/0 group-hover:bg-black/20 transition-colors flex items-center justify-center">
+                          <Eye className="h-8 w-8 text-white opacity-0 group-hover:opacity-100 transition-opacity" />
+                        </div>
                       </div>
                     )}
                     
-                    <div className="flex flex-wrap gap-1">
-                      {creative.tags.map((tag, i) => (
-                        <Badge key={i} variant="outline" className="text-xs">
-                          {tag.replace('_', ' ')}
-                        </Badge>
-                      ))}
-                    </div>
+                    <CardHeader className="pb-2">
+                      <CardTitle className="text-lg">{creative.title}</CardTitle>
+                      <CardDescription className="text-sm">{creative.description}</CardDescription>
+                    </CardHeader>
+                    
+                    <CardContent className="space-y-3">
+                      <div className="flex flex-wrap gap-1">
+                        {creative.tags.map((tag, i) => (
+                          <Badge key={i} variant="outline" className="text-xs">
+                            {tag.replace('_', ' ')}
+                          </Badge>
+                        ))}
+                      </div>
 
-                    {creative.file_url && (
-                      <Button className="w-full" asChild>
-                        <a href={creative.file_url} download target="_blank" rel="noopener noreferrer">
-                          <Download className="mr-2 h-4 w-4" />
-                          Download
-                        </a>
-                      </Button>
-                    )}
-                  </CardContent>
-                </Card>
-              ))}
+                      {creative.file_url && (
+                        <Button className="w-full" asChild>
+                          <a href={creative.file_url} download target="_blank" rel="noopener noreferrer">
+                            <Download className="mr-2 h-4 w-4" />
+                            Download
+                          </a>
+                        </Button>
+                      )}
+                    </CardContent>
+                  </Card>
+                );
+              })}
             </div>
           )}
         </TabsContent>
@@ -632,6 +649,43 @@ const Marketing = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+
+      <Dialog open={!!selectedCreative} onOpenChange={() => setSelectedCreative(null)}>
+        <DialogContent className="max-w-4xl">
+          <DialogHeader>
+            <DialogTitle>{selectedCreative?.title}</DialogTitle>
+          </DialogHeader>
+          {selectedCreative && (
+            <div className="space-y-4">
+              {(selectedCreative.thumbnail_url || selectedCreative.file_url) && (
+                <div className="bg-muted rounded-lg overflow-hidden">
+                  <img 
+                    src={selectedCreative.thumbnail_url || selectedCreative.file_url} 
+                    alt={selectedCreative.title}
+                    className="w-full h-auto max-h-[70vh] object-contain"
+                  />
+                </div>
+              )}
+              <p className="text-sm text-muted-foreground">{selectedCreative.description}</p>
+              <div className="flex flex-wrap gap-2">
+                {selectedCreative.tags?.map((tag: string, i: number) => (
+                  <Badge key={i} variant="outline">
+                    {tag.replace('_', ' ')}
+                  </Badge>
+                ))}
+              </div>
+              {selectedCreative.file_url && (
+                <Button className="w-full" asChild>
+                  <a href={selectedCreative.file_url} download target="_blank" rel="noopener noreferrer">
+                    <Download className="mr-2 h-4 w-4" />
+                    Download
+                  </a>
+                </Button>
+              )}
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
