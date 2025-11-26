@@ -17,7 +17,20 @@ export const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       }
 
       if (user) {
-        // Check approval status
+        // Check if user is admin - admins bypass approval
+        const { data: adminRole } = await supabase
+          .from("user_roles")
+          .select("role")
+          .eq("user_id", user.id)
+          .eq("role", "admin")
+          .single();
+
+        if (adminRole) {
+          // Admin users bypass approval check
+          return;
+        }
+
+        // Check approval status for non-admin users
         const { data: profile } = await supabase
           .from("profiles")
           .select("approval_status")
