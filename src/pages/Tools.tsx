@@ -109,19 +109,17 @@ const Tools = () => {
   };
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
-        <div>
-          <h1 className="text-3xl font-bold">Tools & Resources</h1>
-          <p className="text-muted-foreground">Calculators, guides, and reference materials to help you close more deals</p>
-        </div>
+    <div className="space-y-4 sm:space-y-6 animate-fade-in">
+      <div className="flex flex-col gap-2">
+        <h1 className="text-2xl sm:text-3xl font-bold">Tools & Resources</h1>
+        <p className="text-sm sm:text-base text-muted-foreground">Essential calculators, guides, and resources</p>
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3">
-          <TabsTrigger value="resources">Resources</TabsTrigger>
-          <TabsTrigger value="calculators">Calculators</TabsTrigger>
-          <TabsTrigger value="guides">Quick Guides</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-3 h-10 sm:h-11">
+          <TabsTrigger value="resources" className="text-sm sm:text-base">Resources</TabsTrigger>
+          <TabsTrigger value="calculators" className="text-sm sm:text-base">Calculators</TabsTrigger>
+          <TabsTrigger value="guides" className="text-sm sm:text-base">Guides</TabsTrigger>
         </TabsList>
 
         <TabsContent value="resources" className="space-y-6">
