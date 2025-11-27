@@ -9,7 +9,7 @@ export interface RAGResponse {
 
 export const sendRAGQuery = async (question: string): Promise<RAGResponse> => {
   const response = await fetch(
-    'https://n8n2.a3innercircle.com/webhook-test/6ebdb724-be3e-493b-87ae-edcfb94856c9',
+    `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-query`,
     {
       method: 'POST',
       headers: {
