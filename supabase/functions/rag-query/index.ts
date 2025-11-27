@@ -27,7 +27,7 @@ serve(async (req) => {
     console.log('Forwarding question to n8n webhook:', question);
 
     // Forward request to n8n webhook using POST with JSON body
-    const webhookUrl = 'https://n8n2.a3innercircle.com/webhook-test/82f0a7a2-26cf-4cc5-876a-f55c4cb0cf1e';
+    const webhookUrl = 'https://n8n2.a3innercircle.com/webhook-test/6ebdb724-be3e-493b-87ae-edcfb94856c9';
     
     const response = await fetch(webhookUrl, {
       method: 'POST',
