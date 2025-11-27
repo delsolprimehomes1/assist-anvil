@@ -198,20 +198,20 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="upload" className="w-full">
-        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-13 gap-1">
-          <TabsTrigger value="upload">Upload</TabsTrigger>
-          <TabsTrigger value="approvals">Admin Approvals</TabsTrigger>
-          <TabsTrigger value="carriers">Carriers</TabsTrigger>
-          <TabsTrigger value="users">Users</TabsTrigger>
-          <TabsTrigger value="user-management">User Management</TabsTrigger>
-          <TabsTrigger value="onboarding">Onboarding</TabsTrigger>
-          <TabsTrigger value="analytics">Analytics</TabsTrigger>
-          <TabsTrigger value="settings">Settings</TabsTrigger>
-          <TabsTrigger value="training">Training</TabsTrigger>
-          <TabsTrigger value="schedule">Schedule</TabsTrigger>
-          <TabsTrigger value="news">Carrier News</TabsTrigger>
-          <TabsTrigger value="marketing">Marketing</TabsTrigger>
-          <TabsTrigger value="rag-upload">RAG Upload</TabsTrigger>
+        <TabsList className="h-auto flex w-full overflow-x-auto gap-1 p-1 justify-start scrollbar-hide">
+          <TabsTrigger value="upload" className="whitespace-nowrap px-4 py-2">Upload</TabsTrigger>
+          <TabsTrigger value="approvals" className="whitespace-nowrap px-4 py-2">Admin Approvals</TabsTrigger>
+          <TabsTrigger value="carriers" className="whitespace-nowrap px-4 py-2">Carriers</TabsTrigger>
+          <TabsTrigger value="users" className="whitespace-nowrap px-4 py-2">Users</TabsTrigger>
+          <TabsTrigger value="user-management" className="whitespace-nowrap px-4 py-2">User Management</TabsTrigger>
+          <TabsTrigger value="onboarding" className="whitespace-nowrap px-4 py-2">Onboarding</TabsTrigger>
+          <TabsTrigger value="analytics" className="whitespace-nowrap px-4 py-2">Analytics</TabsTrigger>
+          <TabsTrigger value="settings" className="whitespace-nowrap px-4 py-2">Settings</TabsTrigger>
+          <TabsTrigger value="training" className="whitespace-nowrap px-4 py-2">Training</TabsTrigger>
+          <TabsTrigger value="schedule" className="whitespace-nowrap px-4 py-2">Schedule</TabsTrigger>
+          <TabsTrigger value="news" className="whitespace-nowrap px-4 py-2">Carrier News</TabsTrigger>
+          <TabsTrigger value="marketing" className="whitespace-nowrap px-4 py-2">Marketing</TabsTrigger>
+          <TabsTrigger value="rag-upload" className="whitespace-nowrap px-4 py-2">RAG Upload</TabsTrigger>
         </TabsList>
 
         <TabsContent value="training" className="space-y-6">
