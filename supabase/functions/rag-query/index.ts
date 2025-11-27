@@ -34,8 +34,15 @@ serve(async (req) => {
       method: 'GET',
     });
 
+    console.log('n8n webhook response status:', response.status);
+    console.log('n8n webhook response headers:', Object.fromEntries(response.headers.entries()));
+    
+    // Get response as text first to see what we're dealing with
+    const responseText = await response.text();
+    console.log('n8n webhook raw response:', responseText);
+
     if (!response.ok) {
-      console.error('n8n webhook error:', response.status, await response.text());
+      console.error('n8n webhook error:', response.status, responseText);
       if (response.status === 429) {
         return new Response(
           JSON.stringify({ error: 'Too many requests. Please try again later.' }),
@@ -63,8 +70,25 @@ serve(async (req) => {
       );
     }
 
-    const data = await response.json();
-    console.log('n8n webhook response received');
+    // Try to parse as JSON
+    let data;
+    try {
+      data = JSON.parse(responseText);
+      console.log('n8n webhook response parsed successfully');
+    } catch (parseError) {
+      console.error('Failed to parse n8n response as JSON:', parseError);
+      console.error('Response text was:', responseText);
+      return new Response(
+        JSON.stringify({ 
+          error: 'Invalid response format from webhook',
+          details: responseText.substring(0, 200) // First 200 chars for debugging
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
 
     return new Response(JSON.stringify(data), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
