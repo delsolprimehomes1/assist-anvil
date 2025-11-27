@@ -9,7 +9,7 @@ export interface RAGResponse {
 
 export const sendRAGQuery = async (question: string): Promise<RAGResponse> => {
   const response = await fetch(
-    'https://n8n2.a3innercircle.com/webhook/67a2bb5c-71e7-46f0-b350-9f5aeec61d99',
+    'https://n8n2.a3innercircle.com/webhook-test/6ebdb724-be3e-493b-87ae-edcfb94856c9',
     {
       method: 'POST',
       headers: {
