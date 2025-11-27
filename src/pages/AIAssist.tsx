@@ -7,6 +7,7 @@ import { useToast } from "@/hooks/use-toast";
 import { sendRAGQuery } from "@/services/ragApi";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { useAuth } from "@/hooks/useAuth";
 
 interface QueryResult {
   id: string;
@@ -16,6 +17,7 @@ interface QueryResult {
 }
 
 const AIAssist = () => {
+  const { user } = useAuth();
   const [question, setQuestion] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [results, setResults] = useState<QueryResult[]>([]);
@@ -32,7 +34,9 @@ const AIAssist = () => {
     const currentQuestion = question.trim();
 
     try {
-      const response = await sendRAGQuery(currentQuestion);
+      const sessionId = user?.id || crypto.randomUUID();
+      console.log('Sending question with sessionId:', sessionId);
+      const response = await sendRAGQuery(currentQuestion, sessionId);
       
       const newResult: QueryResult = {
         id: Date.now().toString(),

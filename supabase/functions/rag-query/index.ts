@@ -12,7 +12,7 @@ serve(async (req) => {
   }
 
   try {
-    const { question } = await req.json();
+    const { question, sessionId } = await req.json();
 
     if (!question) {
       return new Response(
@@ -24,17 +24,22 @@ serve(async (req) => {
       );
     }
 
-    console.log('Forwarding question to n8n webhook:', question);
-
-    // Forward request to n8n webhook using POST with JSON body
     const webhookUrl = 'https://n8n2.a3innercircle.com/webhook/6ebdb724-be3e-493b-87ae-edcfb94856c9';
+    const payload = {
+      question,
+      sessionId: sessionId || crypto.randomUUID(),
+      webhookUrl,
+      executionMode: 'production'
+    };
+
+    console.log('Forwarding to n8n webhook with payload:', payload);
     
     const response = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify(payload),
     });
 
     console.log('n8n webhook response status:', response.status);

@@ -1,5 +1,6 @@
 export interface RAGRequest {
   question: string;
+  sessionId?: string;
 }
 
 export interface RAGResponse {
@@ -7,7 +8,7 @@ export interface RAGResponse {
   sources?: string[];
 }
 
-export const sendRAGQuery = async (question: string): Promise<RAGResponse> => {
+export const sendRAGQuery = async (question: string, sessionId?: string): Promise<RAGResponse> => {
   const response = await fetch(
     `${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-query`,
     {
@@ -15,7 +16,7 @@ export const sendRAGQuery = async (question: string): Promise<RAGResponse> => {
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({ question }),
+      body: JSON.stringify({ question, sessionId }),
     }
   );
 
