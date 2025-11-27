@@ -105,12 +105,36 @@ export const RAGUploadManagement = () => {
 
       if (dbError) throw dbError;
 
-      // TODO: Send to n8n for RAG processing
-      // You can add the webhook call here
-      // await fetch('https://n8n2.a3innercircle.com/webhook/...', {
-      //   method: 'POST',
-      //   body: JSON.stringify({ fileUrl: publicUrl, fileName: file.name })
-      // });
+      // Send to n8n for RAG processing
+      try {
+        const webhookResponse = await fetch(
+          'https://n8n2.a3innercircle.com/webhook/2fe6e7d2-08eb-44f3-811e-7bc702092c08',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              fileUrl: publicUrl,
+              fileName: file.name,
+              fileSize: file.size,
+              uploadedBy: user.id,
+              uploadedAt: new Date().toISOString(),
+            }),
+          }
+        );
+        
+        // Update status to 'processing' if webhook succeeded
+        if (webhookResponse.ok) {
+          await supabase
+            .from('rag_uploads')
+            .update({ status: 'processing' })
+            .eq('file_url', publicUrl);
+        }
+      } catch (webhookError) {
+        console.error('Webhook call failed:', webhookError);
+        // File is still uploaded, just mark as pending for manual retry
+      }
 
       return publicUrl;
     },
