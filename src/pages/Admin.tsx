@@ -24,6 +24,7 @@ import { TrainingManagementTab } from "@/components/admin/training/TrainingManag
 import { ScheduleManagement } from "@/components/admin/schedule/ScheduleManagement";
 import { NewsManagement } from "@/components/admin/news/NewsManagement";
 import { MarketingManagement } from "@/components/admin/marketing/MarketingManagement";
+import { RAGUploadManagement } from "@/components/admin/rag/RAGUploadManagement";
 
 type ApprovedEmail = {
   id: string;
@@ -197,7 +198,7 @@ const Admin = () => {
       </div>
 
       <Tabs defaultValue="upload" className="w-full">
-        <TabsList className="grid w-full grid-cols-12">
+        <TabsList className="grid w-full grid-cols-6 lg:grid-cols-13 gap-1">
           <TabsTrigger value="upload">Upload</TabsTrigger>
           <TabsTrigger value="approvals">Admin Approvals</TabsTrigger>
           <TabsTrigger value="carriers">Carriers</TabsTrigger>
@@ -210,6 +211,7 @@ const Admin = () => {
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
           <TabsTrigger value="news">Carrier News</TabsTrigger>
           <TabsTrigger value="marketing">Marketing</TabsTrigger>
+          <TabsTrigger value="rag-upload">RAG Upload</TabsTrigger>
         </TabsList>
 
         <TabsContent value="training" className="space-y-6">
@@ -226,6 +228,10 @@ const Admin = () => {
 
         <TabsContent value="marketing" className="space-y-6">
           <MarketingManagement />
+        </TabsContent>
+
+        <TabsContent value="rag-upload" className="space-y-6">
+          <RAGUploadManagement />
         </TabsContent>
 
         <TabsContent value="upload" className="space-y-6">
