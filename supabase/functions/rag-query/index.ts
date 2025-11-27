@@ -5,6 +5,31 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
+function formatObjectAsMarkdown(obj: Record<string, any>): string {
+  const lines: string[] = [];
+  
+  for (const [key, value] of Object.entries(obj)) {
+    // Skip internal/metadata fields
+    if (key.startsWith('_')) continue;
+    
+    // Format key as bold header
+    const formattedKey = key.replace(/([A-Z])/g, ' $1').replace(/^./, s => s.toUpperCase());
+    
+    if (Array.isArray(value)) {
+      lines.push(`**${formattedKey}:**`);
+      value.forEach(item => lines.push(`- ${item}`));
+    } else if (typeof value === 'object' && value !== null) {
+      lines.push(`**${formattedKey}:**`);
+      lines.push(formatObjectAsMarkdown(value));
+    } else {
+      lines.push(`**${formattedKey}:** ${value}`);
+    }
+    lines.push(''); // Add spacing
+  }
+  
+  return lines.join('\n');
+}
+
 serve(async (req) => {
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
@@ -98,7 +123,36 @@ serve(async (req) => {
       );
     }
 
-    return new Response(JSON.stringify(data), {
+    // Smart response normalization
+    let outputText = '';
+    const possibleFields = ['output', 'answer', 'response', 'text', 'message', 'result', 'content', 'myField'];
+
+    if (typeof data === 'string') {
+      // Response is plain text
+      outputText = data;
+    } else if (typeof data === 'object' && data !== null) {
+      // Find the first matching field
+      for (const field of possibleFields) {
+        if (data[field] && typeof data[field] === 'string') {
+          outputText = data[field];
+          break;
+        }
+      }
+      
+      // If no matching field found, format the entire object as readable markdown
+      if (!outputText) {
+        outputText = formatObjectAsMarkdown(data);
+      }
+    }
+
+    const normalizedResponse = {
+      output: outputText || 'No response received',
+      sources: data.sources || []
+    };
+
+    console.log('Returning normalized response:', normalizedResponse);
+
+    return new Response(JSON.stringify(normalizedResponse), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' },
     });
   } catch (error) {
