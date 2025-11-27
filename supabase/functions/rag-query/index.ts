@@ -28,7 +28,7 @@ serve(async (req) => {
 
     // Forward request to n8n webhook
     const response = await fetch(
-      'https://n8n2.a3innercircle.com/webhook-test/6ebdb724-be3e-493b-87ae-edcfb94856c9',
+      'https://n8n2.a3innercircle.com/webhook/6ebdb724-be3e-493b-87ae-edcfb94856c9',
       {
         method: 'POST',
         headers: {
