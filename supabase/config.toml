@@ -8,3 +8,6 @@ verify_jwt = true
 
 [functions.send-onboarding-webhook]
 verify_jwt = false
+
+[functions.rag-query]
+verify_jwt = false
