@@ -5,9 +5,7 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { Upload, FileText, Trash2, Calendar, User } from "lucide-react";
-import { useDropzone } from "react-dropzone";
-import { Badge } from "@/components/ui/badge";
+import { FileText, Trash2, Calendar, User, Plus } from "lucide-react";
 import { format } from "date-fns";
 import {
   Table,
@@ -27,6 +25,7 @@ interface RAGUpload {
   uploaded_by: string | null;
   uploaded_at: string;
   processed_at: string | null;
+  notes: string | null;
 }
 
 interface Profile {
@@ -37,8 +36,9 @@ interface Profile {
 export const RAGUploadManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const [uploading, setUploading] = useState(false);
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
+  const [fileName, setFileName] = useState("");
+  const [notes, setNotes] = useState("");
 
   // Fetch all RAG uploads
   const { data: uploads, isLoading } = useQuery({
@@ -70,84 +70,37 @@ export const RAGUploadManagement = () => {
     },
   });
 
-  // Upload file mutation
-  const uploadMutation = useMutation({
-    mutationFn: async (file: File) => {
+  // Add manual entry mutation
+  const addEntryMutation = useMutation({
+    mutationFn: async ({ fileName, notes }: { fileName: string; notes: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      // Upload to storage
-      const fileExt = file.name.split(".").pop();
-      const fileName = `${Date.now()}.${fileExt}`;
-      const filePath = `${user.id}/${fileName}`;
-
-      const { error: uploadError } = await supabase.storage
-        .from("rag-documents")
-        .upload(filePath, file);
-
-      if (uploadError) throw uploadError;
-
-      // Get public URL
-      const { data: { publicUrl } } = supabase.storage
-        .from("rag-documents")
-        .getPublicUrl(filePath);
-
-      // Create database record
-      const { error: dbError } = await supabase
+      const { error } = await supabase
         .from("rag_uploads")
         .insert({
-          file_name: file.name,
-          file_url: publicUrl,
-          file_size: file.size,
+          file_name: fileName,
+          file_url: "",
+          file_size: 0,
           status: "pending",
           uploaded_by: user.id,
+          notes: notes || null,
         });
 
-      if (dbError) throw dbError;
-
-      // Send to n8n for RAG processing
-      try {
-        const webhookResponse = await fetch(
-          'https://n8n2.a3innercircle.com/webhook/2fe6e7d2-08eb-44f3-811e-7bc702092c08',
-          {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              fileUrl: publicUrl,
-              fileName: file.name,
-              fileSize: file.size,
-              uploadedBy: user.id,
-              uploadedAt: new Date().toISOString(),
-            }),
-          }
-        );
-        
-        // Update status to 'processing' if webhook succeeded
-        if (webhookResponse.ok) {
-          await supabase
-            .from('rag_uploads')
-            .update({ status: 'processing' })
-            .eq('file_url', publicUrl);
-        }
-      } catch (webhookError) {
-        console.error('Webhook call failed:', webhookError);
-        // File is still uploaded, just mark as pending for manual retry
-      }
-
-      return publicUrl;
+      if (error) throw error;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rag-uploads"] });
+      setFileName("");
+      setNotes("");
       toast({
         title: "Success",
-        description: "Document uploaded successfully",
+        description: "Document entry added successfully",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Upload failed",
+        title: "Failed to add entry",
         description: error.message,
         variant: "destructive",
       });
@@ -156,16 +109,12 @@ export const RAGUploadManagement = () => {
 
   // Delete mutation
   const deleteMutation = useMutation({
-    mutationFn: async (upload: RAGUpload) => {
-      // Delete from storage
-      const filePath = upload.file_url.split("/").slice(-2).join("/");
-      await supabase.storage.from("rag-documents").remove([filePath]);
-
-      // Delete from database
+    mutationFn: async (uploadId: string) => {
+      // Delete from database only (manual entries have no storage files)
       const { error } = await supabase
         .from("rag_uploads")
         .delete()
-        .eq("id", upload.id);
+        .eq("id", uploadId);
 
       if (error) throw error;
     },
@@ -185,104 +134,73 @@ export const RAGUploadManagement = () => {
     },
   });
 
-  const onDrop = async (acceptedFiles: File[]) => {
-    if (acceptedFiles.length === 0) return;
-    
-    setUploading(true);
-    try {
-      for (const file of acceptedFiles) {
-        await uploadMutation.mutateAsync(file);
-      }
-    } finally {
-      setUploading(false);
-    }
-  };
-
-  const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
-    accept: {
-      "application/pdf": [".pdf"],
-      "application/msword": [".doc"],
-      "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
-      "text/plain": [".txt"],
-    },
-    maxSize: 10485760, // 10MB
-  });
-
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Math.round(bytes / Math.pow(k, i) * 100) / 100 + " " + sizes[i];
-  };
-
-  const getStatusBadge = (status: string) => {
-    const variants: Record<string, "default" | "secondary" | "destructive" | "outline"> = {
-      pending: "secondary",
-      processing: "default",
-      completed: "outline",
-      failed: "destructive",
-    };
-
-    return (
-      <Badge variant={variants[status] || "default"}>
-        {status}
-      </Badge>
-    );
+  const handleAddEntry = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!fileName.trim()) return;
+    addEntryMutation.mutate({ fileName: fileName.trim(), notes: notes.trim() });
   };
 
   return (
     <div className="space-y-6">
-      {/* Upload Section */}
+      {/* n8n Upload Form */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Upload Documents to RAG Store</h3>
-        
-        <div
-          {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
-            isDragActive
-              ? "border-primary bg-primary/5"
-              : "border-muted-foreground/25 hover:border-primary/50"
-          }`}
-        >
-          <input {...getInputProps()} />
-          <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
-          {uploading ? (
-            <p className="text-sm text-muted-foreground">Uploading...</p>
-          ) : isDragActive ? (
-            <p className="text-sm text-muted-foreground">Drop files here...</p>
-          ) : (
-            <>
-              <p className="text-sm text-muted-foreground mb-2">
-                Drag & drop documents here, or click to select
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Supported: PDF, DOC, DOCX, TXT (Max 10MB)
-              </p>
-            </>
-          )}
+        <p className="text-sm text-muted-foreground mb-4">
+          Use the form below to upload documents for RAG processing
+        </p>
+        <div className="w-full rounded-lg overflow-hidden border border-border bg-white">
+          <iframe 
+            src="https://n8n2.a3innercircle.com/form-test/53507463-04ff-4627-a563-c1fcee98d7cb"
+            className="w-full h-[600px]"
+            title="RAG Document Upload"
+          />
         </div>
       </Card>
 
-      {/* Upload History */}
+      {/* Manual Tracking Form */}
       <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Upload History</h3>
+        <h3 className="text-lg font-semibold mb-4">Track Uploaded Documents</h3>
+        <p className="text-sm text-muted-foreground mb-4">
+          Manually log documents you've uploaded via the form above for your records
+        </p>
+        <form onSubmit={handleAddEntry} className="flex flex-col sm:flex-row gap-3">
+          <Input 
+            placeholder="Document name (e.g., underwriting-guide.pdf)"
+            value={fileName}
+            onChange={(e) => setFileName(e.target.value)}
+            className="flex-1"
+            required
+          />
+          <Input 
+            placeholder="Notes (optional)"
+            value={notes}
+            onChange={(e) => setNotes(e.target.value)}
+            className="flex-1"
+          />
+          <Button type="submit" disabled={addEntryMutation.isPending}>
+            <Plus className="h-4 w-4 mr-2" />
+            Add Entry
+          </Button>
+        </form>
+      </Card>
+
+      {/* Document Log */}
+      <Card className="p-6">
+        <h3 className="text-lg font-semibold mb-4">Document Log</h3>
         
         {isLoading ? (
           <p className="text-sm text-muted-foreground">Loading...</p>
         ) : !uploads || uploads.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No documents uploaded yet</p>
+          <p className="text-sm text-muted-foreground">No documents logged yet</p>
         ) : (
           <div className="overflow-x-auto">
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Document Name</TableHead>
-                  <TableHead>Size</TableHead>
+                  <TableHead>Notes</TableHead>
                   <TableHead>Uploaded By</TableHead>
-                  <TableHead>Upload Date</TableHead>
-                  <TableHead>Status</TableHead>
+                  <TableHead>Date</TableHead>
                   <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -295,8 +213,8 @@ export const RAGUploadManagement = () => {
                         {upload.file_name}
                       </div>
                     </TableCell>
-                    <TableCell className="text-sm text-muted-foreground">
-                      {formatFileSize(upload.file_size)}
+                    <TableCell className="text-sm text-muted-foreground max-w-xs truncate">
+                      {upload.notes || "-"}
                     </TableCell>
                     <TableCell>
                       <div className="flex items-center gap-2 text-sm">
@@ -317,12 +235,11 @@ export const RAGUploadManagement = () => {
                         {format(new Date(upload.uploaded_at), "MMM d, yyyy h:mm a")}
                       </div>
                     </TableCell>
-                    <TableCell>{getStatusBadge(upload.status)}</TableCell>
                     <TableCell className="text-right">
                       <Button
                         variant="ghost"
                         size="sm"
-                        onClick={() => deleteMutation.mutate(upload)}
+                        onClick={() => deleteMutation.mutate(upload.id)}
                         disabled={deleteMutation.isPending}
                       >
                         <Trash2 className="h-4 w-4 text-destructive" />
