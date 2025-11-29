@@ -103,6 +103,21 @@ serve(async (req) => {
       );
     }
 
+    // Check for empty response
+    if (!responseText || responseText.trim() === '') {
+      console.error('n8n webhook returned empty response');
+      return new Response(
+        JSON.stringify({ 
+          error: 'No response from webhook',
+          details: 'The webhook returned an empty response. This may indicate the workflow is not properly configured or the question could not be processed.'
+        }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      );
+    }
+
     // Try to parse as JSON
     let data;
     try {
@@ -114,7 +129,7 @@ serve(async (req) => {
       return new Response(
         JSON.stringify({ 
           error: 'Invalid response format from webhook',
-          details: responseText.substring(0, 200) // First 200 chars for debugging
+          details: `Expected JSON but received: ${responseText.substring(0, 200)}`
         }),
         {
           status: 500,
