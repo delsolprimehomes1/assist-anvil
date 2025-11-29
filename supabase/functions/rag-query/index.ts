@@ -160,10 +160,10 @@ serve(async (req) => {
       }
     }
 
-    // Format the response using Lovable AI
-    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
-    if (!LOVABLE_API_KEY) {
-      console.error('LOVABLE_API_KEY not configured, returning unformatted response');
+    // Format the response using OpenAI
+    const OPENAI_API_KEY = Deno.env.get('OPENAI_API_KEY');
+    if (!OPENAI_API_KEY) {
+      console.error('OPENAI_API_KEY not configured, returning unformatted response');
       const normalizedResponse = {
         output: outputText || 'No response received',
         sources: data.sources || []
@@ -173,7 +173,7 @@ serve(async (req) => {
       });
     }
 
-    console.log('Formatting response with Lovable AI...');
+    console.log('Formatting response with OpenAI...');
     
     const formattingPrompt = `You are a response formatter for an insurance knowledge assistant.
 Take the provided information and restructure it into a clear, professional format:
@@ -193,14 +193,14 @@ Keep the tone professional but approachable.
 Do not add information that wasn't in the original response.`;
 
     try {
-      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+      const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
         method: 'POST',
         headers: {
-          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Authorization': `Bearer ${OPENAI_API_KEY}`,
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          model: 'google/gemini-2.5-flash',
+          model: 'gpt-4o-mini',
           messages: [
             { role: 'system', content: formattingPrompt },
             { role: 'user', content: `Format this response:\n\n${outputText}` }
@@ -209,7 +209,7 @@ Do not add information that wasn't in the original response.`;
       });
 
       if (!aiResponse.ok) {
-        console.error('Lovable AI formatting error:', aiResponse.status);
+        console.error('OpenAI formatting error:', aiResponse.status);
         // Fall back to unformatted response
         const normalizedResponse = {
           output: outputText || 'No response received',
@@ -236,7 +236,7 @@ Do not add information that wasn't in the original response.`;
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       });
     } catch (formatError) {
-      console.error('Error formatting response with Lovable AI:', formatError);
+      console.error('Error formatting response with OpenAI:', formatError);
       // Fall back to unformatted response
       const normalizedResponse = {
         output: outputText || 'No response received',
