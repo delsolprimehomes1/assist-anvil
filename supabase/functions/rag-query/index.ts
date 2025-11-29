@@ -160,16 +160,92 @@ serve(async (req) => {
       }
     }
 
-    const normalizedResponse = {
-      output: outputText || 'No response received',
-      sources: data.sources || []
-    };
+    // Format the response using Lovable AI
+    const LOVABLE_API_KEY = Deno.env.get('LOVABLE_API_KEY');
+    if (!LOVABLE_API_KEY) {
+      console.error('LOVABLE_API_KEY not configured, returning unformatted response');
+      const normalizedResponse = {
+        output: outputText || 'No response received',
+        sources: data.sources || []
+      };
+      return new Response(JSON.stringify(normalizedResponse), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
 
-    console.log('Returning normalized response:', normalizedResponse);
+    console.log('Formatting response with Lovable AI...');
+    
+    const formattingPrompt = `You are a response formatter for an insurance knowledge assistant.
+Take the provided information and restructure it into a clear, professional format:
 
-    return new Response(JSON.stringify(normalizedResponse), {
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-    });
+1. Start with a brief "Summary" section (1-2 sentences)
+2. Add "Key Points" as a bullet list of the most important facts
+3. Include "Details" with organized subheadings if the content is complex
+4. End with a "Recommendation" or "Next Steps" if applicable
+
+Use markdown formatting:
+- ## for main section headers
+- ### for subsections  
+- - for bullet points
+- **bold** for emphasis
+
+Keep the tone professional but approachable.
+Do not add information that wasn't in the original response.`;
+
+    try {
+      const aiResponse = await fetch('https://ai.gateway.lovable.dev/v1/chat/completions', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${LOVABLE_API_KEY}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          model: 'google/gemini-2.5-flash',
+          messages: [
+            { role: 'system', content: formattingPrompt },
+            { role: 'user', content: `Format this response:\n\n${outputText}` }
+          ],
+        }),
+      });
+
+      if (!aiResponse.ok) {
+        console.error('Lovable AI formatting error:', aiResponse.status);
+        // Fall back to unformatted response
+        const normalizedResponse = {
+          output: outputText || 'No response received',
+          sources: data.sources || []
+        };
+        return new Response(JSON.stringify(normalizedResponse), {
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        });
+      }
+
+      const aiData = await aiResponse.json();
+      const formattedOutput = aiData.choices?.[0]?.message?.content || outputText;
+
+      console.log('Response formatted successfully');
+
+      const normalizedResponse = {
+        output: formattedOutput,
+        sources: data.sources || []
+      };
+
+      console.log('Returning formatted response');
+
+      return new Response(JSON.stringify(normalizedResponse), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    } catch (formatError) {
+      console.error('Error formatting response with Lovable AI:', formatError);
+      // Fall back to unformatted response
+      const normalizedResponse = {
+        output: outputText || 'No response received',
+        sources: data.sources || []
+      };
+      return new Response(JSON.stringify(normalizedResponse), {
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      });
+    }
   } catch (error) {
     console.error('Error in rag-query function:', error);
     return new Response(
