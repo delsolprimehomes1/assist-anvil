@@ -5,7 +5,8 @@ import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/hooks/use-toast";
-import { FileText, Trash2, Calendar, User, Plus } from "lucide-react";
+import { FileText, Trash2, Calendar, User, Upload, Loader2 } from "lucide-react";
+import { useDropzone } from "react-dropzone";
 import { format } from "date-fns";
 import {
   Table,
@@ -37,7 +38,8 @@ export const RAGUploadManagement = () => {
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const [profiles, setProfiles] = useState<Record<string, Profile>>({});
-  const [fileName, setFileName] = useState("");
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [documentName, setDocumentName] = useState("");
   const [notes, setNotes] = useState("");
 
   // Fetch all RAG uploads
@@ -70,37 +72,76 @@ export const RAGUploadManagement = () => {
     },
   });
 
-  // Add manual entry mutation
-  const addEntryMutation = useMutation({
-    mutationFn: async ({ fileName, notes }: { fileName: string; notes: string }) => {
+  // Upload to webhook mutation
+  const uploadMutation = useMutation({
+    mutationFn: async ({ file, documentName, notes }: { file: File; documentName: string; notes: string }) => {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) throw new Error("Not authenticated");
 
-      const { error } = await supabase
+      const { data: profile } = await supabase
+        .from("profiles")
+        .select("email, full_name")
+        .eq("id", user.id)
+        .single();
+
+      // 1. Upload to Supabase Storage
+      const fileName = `${Date.now()}-${file.name}`;
+      const { data: uploadData, error: uploadError } = await supabase.storage
+        .from("rag-documents")
+        .upload(fileName, file);
+
+      if (uploadError) throw uploadError;
+
+      const { data: { publicUrl } } = supabase.storage
+        .from("rag-documents")
+        .getPublicUrl(fileName);
+
+      // 2. Send to n8n webhook
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("fileName", documentName);
+      formData.append("originalFileName", file.name);
+      formData.append("uploadedBy", user.id);
+      formData.append("uploadedByEmail", profile?.email || "");
+      formData.append("uploadedByName", profile?.full_name || "");
+      formData.append("timestamp", new Date().toISOString());
+
+      const webhookResponse = await fetch("https://n8n2.a3innercircle.com/webhook/7b9324ac-ee1b-4fa1-953d-72db3ee58059", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!webhookResponse.ok) {
+        throw new Error("Webhook failed");
+      }
+
+      // 3. Create record in database
+      const { error: dbError } = await supabase
         .from("rag_uploads")
         .insert({
-          file_name: fileName,
-          file_url: "",
-          file_size: 0,
-          status: "pending",
+          file_name: documentName,
+          file_url: publicUrl,
+          file_size: file.size,
+          status: "processed",
           uploaded_by: user.id,
           notes: notes || null,
         });
 
-      if (error) throw error;
+      if (dbError) throw dbError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["rag-uploads"] });
-      setFileName("");
+      setSelectedFile(null);
+      setDocumentName("");
       setNotes("");
       toast({
         title: "Success",
-        description: "Document entry added successfully",
+        description: "Document uploaded and processed successfully",
       });
     },
     onError: (error: Error) => {
       toast({
-        title: "Failed to add entry",
+        title: "Upload failed",
         description: error.message,
         variant: "destructive",
       });
@@ -134,52 +175,115 @@ export const RAGUploadManagement = () => {
     },
   });
 
-  const handleAddEntry = (e: React.FormEvent) => {
+  const onDrop = (acceptedFiles: File[]) => {
+    if (acceptedFiles.length > 0) {
+      setSelectedFile(acceptedFiles[0]);
+      if (!documentName) {
+        setDocumentName(acceptedFiles[0].name);
+      }
+    }
+  };
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    maxFiles: 1,
+    accept: {
+      'application/pdf': ['.pdf'],
+      'application/msword': ['.doc'],
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+      'text/plain': ['.txt'],
+    }
+  });
+
+  const handleUpload = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fileName.trim()) return;
-    addEntryMutation.mutate({ fileName: fileName.trim(), notes: notes.trim() });
+    if (!selectedFile || !documentName.trim()) return;
+    uploadMutation.mutate({ 
+      file: selectedFile, 
+      documentName: documentName.trim(), 
+      notes: notes.trim() 
+    });
   };
 
   return (
     <div className="space-y-6">
-      {/* n8n Upload Form */}
+      {/* File Upload Form */}
       <Card className="p-6">
         <h3 className="text-lg font-semibold mb-4">Upload Documents to RAG Store</h3>
         <p className="text-sm text-muted-foreground mb-4">
-          Use the form below to upload documents for RAG processing
+          Upload documents for AI-powered processing and retrieval
         </p>
-        <div className="w-full rounded-lg overflow-hidden border border-border bg-white">
-          <iframe 
-            src="https://n8n2.a3innercircle.com/form-test/53507463-04ff-4627-a563-c1fcee98d7cb"
-            className="w-full h-[600px]"
-            title="RAG Document Upload"
-          />
-        </div>
-      </Card>
 
-      {/* Manual Tracking Form */}
-      <Card className="p-6">
-        <h3 className="text-lg font-semibold mb-4">Track Uploaded Documents</h3>
-        <p className="text-sm text-muted-foreground mb-4">
-          Manually log documents you've uploaded via the form above for your records
-        </p>
-        <form onSubmit={handleAddEntry} className="flex flex-col sm:flex-row gap-3">
-          <Input 
-            placeholder="Document name (e.g., underwriting-guide.pdf)"
-            value={fileName}
-            onChange={(e) => setFileName(e.target.value)}
-            className="flex-1"
-            required
-          />
-          <Input 
-            placeholder="Notes (optional)"
-            value={notes}
-            onChange={(e) => setNotes(e.target.value)}
-            className="flex-1"
-          />
-          <Button type="submit" disabled={addEntryMutation.isPending}>
-            <Plus className="h-4 w-4 mr-2" />
-            Add Entry
+        <form onSubmit={handleUpload} className="space-y-4">
+          {/* Drag & Drop Area */}
+          <div
+            {...getRootProps()}
+            className={`border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors ${
+              isDragActive 
+                ? "border-primary bg-primary/5" 
+                : "border-border hover:border-primary/50 hover:bg-accent/50"
+            }`}
+          >
+            <input {...getInputProps()} />
+            <Upload className="h-12 w-12 mx-auto mb-4 text-muted-foreground" />
+            {selectedFile ? (
+              <div>
+                <p className="font-medium text-foreground">{selectedFile.name}</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  {(selectedFile.size / 1024).toFixed(2)} KB
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="font-medium text-foreground mb-1">
+                  {isDragActive ? "Drop file here" : "Drag & drop file here"}
+                </p>
+                <p className="text-sm text-muted-foreground">
+                  or click to browse (PDF, DOC, DOCX, TXT)
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* Document Name */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Document Name *</label>
+            <Input
+              placeholder="e.g., Assurity Term Underwriting Guide"
+              value={documentName}
+              onChange={(e) => setDocumentName(e.target.value)}
+              required
+            />
+          </div>
+
+          {/* Notes */}
+          <div>
+            <label className="text-sm font-medium mb-2 block">Notes (Optional)</label>
+            <Input
+              placeholder="Add any additional context or notes"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+            />
+          </div>
+
+          {/* Submit Button */}
+          <Button 
+            type="submit" 
+            disabled={!selectedFile || !documentName.trim() || uploadMutation.isPending}
+            className="w-full"
+            size="lg"
+          >
+            {uploadMutation.isPending ? (
+              <>
+                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                Uploading...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4 mr-2" />
+                Upload to RAG Store
+              </>
+            )}
           </Button>
         </form>
       </Card>
