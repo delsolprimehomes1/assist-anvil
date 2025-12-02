@@ -113,18 +113,19 @@ const Auth = () => {
       setLoading(false);
     }
   };
-
   const handleForgotPassword = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`,
+      const {
+        error
+      } = await supabase.auth.resetPasswordForEmail(resetEmail, {
+        redirectTo: `${window.location.origin}/reset-password`
       });
       if (error) throw error;
       toast({
         title: "Check your email",
-        description: "We sent you a password reset link.",
+        description: "We sent you a password reset link."
       });
       setShowForgotPassword(false);
       setResetEmail("");
@@ -132,7 +133,7 @@ const Auth = () => {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive",
+        variant: "destructive"
       });
     } finally {
       setResetLoading(false);
@@ -194,13 +195,7 @@ const Auth = () => {
                       </> : "Sign In"}
                   </Button>
 
-                  <Button 
-                    type="button" 
-                    variant="link" 
-                    className="w-full text-sm" 
-                    disabled={loading}
-                    onClick={() => setShowForgotPassword(true)}
-                  >
+                  <Button type="button" variant="link" className="w-full text-sm" disabled={loading} onClick={() => setShowForgotPassword(true)}>
                     Forgot password?
                   </Button>
                 </form>
@@ -249,7 +244,7 @@ const Auth = () => {
         <Card className="border-2 shadow-lg">
           <CardContent className="pt-6">
             <div className="text-center space-y-3">
-              <p className="text-sm text-muted-foreground">Not onboarded yet as an agency with BattersBox yet?</p>
+              <p className="text-sm text-muted-foreground">Not onboarded yet as an agency?</p>
               <Button variant="outline" className="w-full h-11" onClick={() => setShowOnboarding(true)} style={{
               borderColor: "hsl(var(--brand-teal))",
               color: "hsl(var(--brand-teal))"
@@ -278,39 +273,17 @@ const Auth = () => {
           <form onSubmit={handleForgotPassword} className="space-y-4">
             <div className="space-y-2">
               <Label htmlFor="reset-email">Email Address</Label>
-              <Input
-                id="reset-email"
-                type="email"
-                placeholder="you@example.com"
-                value={resetEmail}
-                onChange={(e) => setResetEmail(e.target.value)}
-                required
-                disabled={resetLoading}
-              />
+              <Input id="reset-email" type="email" placeholder="you@example.com" value={resetEmail} onChange={e => setResetEmail(e.target.value)} required disabled={resetLoading} />
             </div>
             <div className="flex gap-2">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setShowForgotPassword(false)}
-                disabled={resetLoading}
-                className="flex-1"
-              >
+              <Button type="button" variant="outline" onClick={() => setShowForgotPassword(false)} disabled={resetLoading} className="flex-1">
                 Cancel
               </Button>
-              <Button
-                type="submit"
-                disabled={resetLoading}
-                className="flex-1"
-              >
-                {resetLoading ? (
-                  <>
+              <Button type="submit" disabled={resetLoading} className="flex-1">
+                {resetLoading ? <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                     Sending...
-                  </>
-                ) : (
-                  "Send Reset Link"
-                )}
+                  </> : "Send Reset Link"}
               </Button>
             </div>
           </form>
