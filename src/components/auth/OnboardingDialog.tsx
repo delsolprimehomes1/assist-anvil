@@ -62,7 +62,7 @@ const steps = [
   },
   {
     id: 5,
-    question: "Who referred you to BattersBox?",
+    question: "Who referred you?",
     icon: Users,
     fields: ["referredBy"] as const,
   },
