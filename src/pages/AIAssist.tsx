@@ -15,7 +15,13 @@ interface QueryResult {
   answer: string;
   timestamp: Date;
 }
-const SUGGESTED_QUESTIONS = ["What carriers do you work with?", "Tell me about term life insurance", "How does underwriting work?"];
+const SUGGESTED_QUESTIONS = [
+  "What are the death benefit amounts for American Amicable Final Expense?",
+  "What BMI limits apply to Ethos Term products?",
+  "What are the underwriting requirements for the Intelligent Choice IUL?",
+  "Which carriers offer simplified issue underwriting?",
+  "What age ranges are eligible for term life products?"
+];
 const TypingIndicator = () => <div className="flex items-center gap-1.5 px-4 py-3">
     <div className="w-2 h-2 bg-primary rounded-full animate-pulse" style={{
     animationDelay: '0ms'
