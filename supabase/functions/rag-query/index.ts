@@ -274,9 +274,19 @@ Do not invent information. Only format what was provided.`;
       }
 
       const aiData = await aiResponse.json();
-      const formattedOutput = aiData.choices?.[0]?.message?.content || outputText;
+      let formattedOutput = aiData.choices?.[0]?.message?.content || outputText;
 
-      console.log('Response formatted successfully');
+      // Post-process to clean whitespace-only lines that break markdown parsing
+      // Remove any spaces/tabs on "empty" lines (lines with only whitespace)
+      formattedOutput = formattedOutput.replace(/\n[ \t]+\n/g, '\n\n');
+      // Ensure headers have proper blank line before them
+      formattedOutput = formattedOutput.replace(/\n(?=## )/g, '\n\n');
+      // Remove excessive newlines (more than 2 consecutive)
+      formattedOutput = formattedOutput.replace(/\n{3,}/g, '\n\n');
+      // Trim any leading/trailing whitespace
+      formattedOutput = formattedOutput.trim();
+
+      console.log('Response formatted and cleaned successfully');
 
       const normalizedResponse = {
         output: formattedOutput,
