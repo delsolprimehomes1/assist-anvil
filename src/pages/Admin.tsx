@@ -24,7 +24,6 @@ import { TrainingManagementTab } from "@/components/admin/training/TrainingManag
 import { ScheduleManagement } from "@/components/admin/schedule/ScheduleManagement";
 import { NewsManagement } from "@/components/admin/news/NewsManagement";
 import { MarketingManagement } from "@/components/admin/marketing/MarketingManagement";
-import { RAGUploadManagement } from "@/components/admin/rag/RAGUploadManagement";
 
 type ApprovedEmail = {
   id: string;
@@ -211,7 +210,6 @@ const Admin = () => {
           <TabsTrigger value="schedule" className="whitespace-nowrap px-4 py-2">Schedule</TabsTrigger>
           <TabsTrigger value="news" className="whitespace-nowrap px-4 py-2">Carrier News</TabsTrigger>
           <TabsTrigger value="marketing" className="whitespace-nowrap px-4 py-2">Marketing</TabsTrigger>
-          <TabsTrigger value="rag-upload" className="whitespace-nowrap px-4 py-2">RAG Upload</TabsTrigger>
         </TabsList>
 
         <TabsContent value="training" className="space-y-6">
@@ -228,10 +226,6 @@ const Admin = () => {
 
         <TabsContent value="marketing" className="space-y-6">
           <MarketingManagement />
-        </TabsContent>
-
-        <TabsContent value="rag-upload" className="space-y-6">
-          <RAGUploadManagement />
         </TabsContent>
 
         <TabsContent value="upload" className="space-y-6">
