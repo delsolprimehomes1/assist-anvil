@@ -236,9 +236,9 @@ const AIAssist = () => {
                   {/* Answer Content */}
                   <div className="px-6 py-8">
                     <div className="prose prose-slate dark:prose-invert max-w-none
-                      prose-headings:text-foreground prose-headings:font-semibold 
-                      prose-h2:text-xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:pt-8 prose-h2:border-t-2 prose-h2:border-primary/40
-                      prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-4 prose-h3:text-primary
+                      prose-headings:font-semibold 
+                      prose-h2:text-xl prose-h2:text-primary prose-h2:mt-14 prose-h2:mb-6 prose-h2:pt-6 prose-h2:pb-2 prose-h2:border-t-2 prose-h2:border-primary/50
+                      prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-4 prose-h3:text-primary/80
                       prose-h4:text-base prose-h4:mt-6 prose-h4:mb-3
                       prose-p:text-foreground prose-p:leading-relaxed prose-p:mb-6
                       prose-strong:text-foreground prose-strong:font-bold
