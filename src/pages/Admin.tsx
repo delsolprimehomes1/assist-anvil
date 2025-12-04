@@ -1,15 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Upload, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus, Newspaper } from "lucide-react";
+import { Settings, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus, Newspaper } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Badge } from "@/components/ui/badge";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { Textarea } from "@/components/ui/textarea";
@@ -37,15 +35,6 @@ const Admin = () => {
   const navigate = useNavigate();
   const { user, loading: authLoading } = useAuth();
   const { isAdmin, loading: adminLoading } = useAdmin();
-  const [uploadForm, setUploadForm] = useState({
-    title: "",
-    carrier: "",
-    product: "",
-    docType: "",
-    state: "",
-    version: "",
-    file: null as File | null
-  });
   const [approvedEmails, setApprovedEmails] = useState<ApprovedEmail[]>([]);
   const [emailForm, setEmailForm] = useState({ email: "", notes: "" });
   const [loadingEmails, setLoadingEmails] = useState(false);
@@ -163,26 +152,6 @@ const Admin = () => {
     return null;
   }
 
-  const handleUpload = async (e: React.FormEvent) => {
-    e.preventDefault();
-    
-    // In real app, this would upload to Supabase storage and trigger n8n webhook
-    toast({
-      title: "Document uploaded",
-      description: "Document has been uploaded and processing has started.",
-    });
-    
-    // Reset form
-    setUploadForm({
-      title: "",
-      carrier: "",
-      product: "",
-      docType: "",
-      state: "",
-      version: "",
-      file: null
-    });
-  };
 
   return (
     <div className="space-y-6 animate-fade-in">
@@ -196,9 +165,8 @@ const Admin = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="upload" className="w-full">
+      <Tabs defaultValue="approvals" className="w-full">
         <TabsList className="h-auto flex w-full overflow-x-auto gap-1 p-1 justify-start scrollbar-hide">
-          <TabsTrigger value="upload" className="whitespace-nowrap px-4 py-2">Upload</TabsTrigger>
           <TabsTrigger value="approvals" className="whitespace-nowrap px-4 py-2">Admin Approvals</TabsTrigger>
           <TabsTrigger value="carriers" className="whitespace-nowrap px-4 py-2">Carriers</TabsTrigger>
           <TabsTrigger value="users" className="whitespace-nowrap px-4 py-2">Users</TabsTrigger>
@@ -228,141 +196,6 @@ const Admin = () => {
           <MarketingManagement />
         </TabsContent>
 
-        <TabsContent value="upload" className="space-y-6">
-          <Card className="stat-card">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Upload className="h-5 w-5 text-primary" />
-                Upload Knowledge Document
-              </CardTitle>
-              <CardDescription>
-                Upload PDFs, guides, and other documents to the AI knowledge base
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleUpload} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="title">Document Title</Label>
-                    <Input
-                      id="title"
-                      placeholder="e.g., Underwriting Guidelines 2024"
-                      value={uploadForm.title}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, title: e.target.value }))}
-                      required
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="carrier">Carrier</Label>
-                    <Select value={uploadForm.carrier} onValueChange={(value) => setUploadForm(prev => ({ ...prev, carrier: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select carrier" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="american_general">American General</SelectItem>
-                        <SelectItem value="mutual_omaha">Mutual of Omaha</SelectItem>
-                        <SelectItem value="foresters">Foresters Financial</SelectItem>
-                        <SelectItem value="universal">Universal</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="product">Product Type</Label>
-                    <Select value={uploadForm.product} onValueChange={(value) => setUploadForm(prev => ({ ...prev, product: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select product" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="term">Term Life</SelectItem>
-                        <SelectItem value="whole_life">Whole Life</SelectItem>
-                        <SelectItem value="final_expense">Final Expense</SelectItem>
-                        <SelectItem value="annuity">Annuity</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="docType">Document Type</Label>
-                    <Select value={uploadForm.docType} onValueChange={(value) => setUploadForm(prev => ({ ...prev, docType: value }))}>
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select type" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="underwriting_guide">Underwriting Guide</SelectItem>
-                        <SelectItem value="lookback">Lookback Policy</SelectItem>
-                        <SelectItem value="matrix">Decision Matrix</SelectItem>
-                        <SelectItem value="product_guide">Product Guide</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="state">State (if applicable)</Label>
-                    <Input
-                      id="state"
-                      placeholder="e.g., TX, CA, FL"
-                      value={uploadForm.state}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, state: e.target.value }))}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="version">Version</Label>
-                    <Input
-                      id="version"
-                      placeholder="e.g., 2024.1, v3.2"
-                      value={uploadForm.version}
-                      onChange={(e) => setUploadForm(prev => ({ ...prev, version: e.target.value }))}
-                    />
-                  </div>
-                </div>
-                
-                <div className="space-y-2">
-                  <Label htmlFor="file">Document File</Label>
-                  <Input
-                    id="file"
-                    type="file"
-                    accept=".pdf,.doc,.docx,.csv"
-                    onChange={(e) => setUploadForm(prev => ({ ...prev, file: e.target.files?.[0] || null }))}
-                    required
-                  />
-                  <p className="text-xs text-muted-foreground">
-                    Supported formats: PDF, DOC, DOCX, CSV (max 10MB)
-                  </p>
-                </div>
-
-                <Button type="submit" className="w-full">
-                  <Upload className="mr-2 h-4 w-4" />
-                  Upload Document
-                </Button>
-              </form>
-            </CardContent>
-          </Card>
-
-          {/* Recent Uploads */}
-          <Card className="stat-card">
-            <CardHeader>
-              <CardTitle>Recent Uploads</CardTitle>
-              <CardDescription>Recently uploaded documents and their processing status</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {[
-                  { title: "AG Underwriting Guide 2024", status: "processed", date: "2024-01-20" },
-                  { title: "MOO Term Life Matrix", status: "processing", date: "2024-01-19" },
-                  { title: "FE Health Questions", status: "processed", date: "2024-01-18" }
-                ].map((doc, index) => (
-                  <div key={index} className="flex items-center justify-between p-3 bg-accent/50 rounded-lg">
-                    <div>
-                      <p className="font-medium">{doc.title}</p>
-                      <p className="text-sm text-muted-foreground">Uploaded {doc.date}</p>
-                    </div>
-                    <Badge variant={doc.status === "processed" ? "default" : "secondary"}>
-                      {doc.status}
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        </TabsContent>
 
         <TabsContent value="approvals" className="space-y-6">
           <Card className="stat-card">
