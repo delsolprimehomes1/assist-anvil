@@ -237,21 +237,21 @@ const AIAssist = () => {
                   <div className="px-6 py-8">
                     <div className="prose prose-slate dark:prose-invert max-w-none
                       prose-headings:text-foreground prose-headings:font-semibold 
-                      prose-h2:text-xl prose-h2:mt-10 prose-h2:mb-5 prose-h2:pt-6 prose-h2:border-t-2 prose-h2:border-primary/20
-                      prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-h3:text-primary
-                      prose-h4:text-base prose-h4:mt-4 prose-h4:mb-2
-                      prose-p:text-foreground prose-p:leading-relaxed prose-p:mb-5
+                      prose-h2:text-xl prose-h2:mt-12 prose-h2:mb-6 prose-h2:pt-8 prose-h2:border-t-2 prose-h2:border-primary/40
+                      prose-h3:text-lg prose-h3:mt-8 prose-h3:mb-4 prose-h3:text-primary
+                      prose-h4:text-base prose-h4:mt-6 prose-h4:mb-3
+                      prose-p:text-foreground prose-p:leading-relaxed prose-p:mb-6
                       prose-strong:text-foreground prose-strong:font-bold
-                      prose-ul:my-6 prose-ul:space-y-4
-                      prose-ol:my-6 prose-ol:space-y-4
+                      prose-ul:my-6 prose-ul:space-y-4 prose-ul:mb-8
+                      prose-ol:my-6 prose-ol:space-y-4 prose-ol:mb-8
                       prose-li:text-foreground prose-li:leading-relaxed prose-li:marker:text-primary
                       prose-a:text-primary prose-a:no-underline hover:prose-a:underline
                       prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
                       prose-pre:bg-muted prose-pre:border prose-pre:border-border
                       prose-blockquote:bg-accent-gold/10 prose-blockquote:border-l-4 prose-blockquote:border-accent-gold 
-                      prose-blockquote:px-5 prose-blockquote:py-4 prose-blockquote:rounded-r-lg prose-blockquote:my-8
+                      prose-blockquote:px-6 prose-blockquote:py-5 prose-blockquote:rounded-r-lg prose-blockquote:my-10
                       prose-blockquote:not-italic prose-blockquote:text-foreground
-                      prose-hr:my-10 prose-hr:border-t-2 prose-hr:border-primary/20
+                      prose-hr:my-12 prose-hr:border-t-2 prose-hr:border-primary/30
                       prose-table:border-collapse prose-th:bg-muted prose-th:text-foreground prose-th:font-semibold prose-th:border prose-th:border-border prose-td:border prose-td:border-border
                       [&>h2:first-child]:mt-0 [&>h2:first-child]:pt-0 [&>h2:first-child]:border-t-0
                     ">
