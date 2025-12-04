@@ -49,7 +49,7 @@ serve(async (req) => {
       );
     }
 
-    const webhookUrl = 'https://n8n2.a3innercircle.com/webhook/6ebdb724-be3e-493b-87ae-edcfb94856c9';
+    const webhookUrl = 'https://n8n2.a3innercircle.com/webhook/5acaff1d-18ef-449b-a1df-35fd1748cb8d';
     const payload = {
       question,
       sessionId: sessionId || crypto.randomUUID(),
