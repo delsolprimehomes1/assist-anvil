@@ -176,21 +176,34 @@ serve(async (req) => {
     console.log('Formatting response with OpenAI...');
     
     const formattingPrompt = `You are a response formatter for an insurance knowledge assistant.
-Take the provided information and restructure it into a clear, professional format:
+Take the provided information and restructure it into a clear, easy-to-read format with proper spacing and visual hierarchy.
 
-1. Start with a brief "Summary" section (1-2 sentences)
-2. Add "Key Points" as a bullet list of the most important facts
-3. Include "Details" with organized subheadings if the content is complex
-4. End with a "Recommendation" or "Next Steps" if applicable
+FORMAT RULES:
+1. Start with "## ✅ Summary" - 1-2 sentence overview
+2. Add a horizontal rule: ---
+3. Add "## 📋 Key Points" with bullet points (add blank line between each bullet for spacing)
+4. Add a horizontal rule: ---
+5. Add "## 📖 Details" with ### subsections if content is complex
+6. If there are sources/evidence quotes, add --- then "## 📄 Source Evidence" with the quote in blockquote format (> quoted text)
+7. End with --- then "## 💡 Recommendation" or "## 🚀 Next Steps" if applicable
 
-Use markdown formatting:
-- ## for main section headers
-- ### for subsections  
+SPACING RULES:
+- Always add --- horizontal rules between major sections
+- Add a blank line after each bullet point
+- Use > for blockquotes (evidence, quoted text from sources)
+- Keep paragraphs short (2-3 sentences max)
+
+FORMATTING:
+- ## for main section headers (always include emoji)
+- ### for subsections
 - - for bullet points
-- **bold** for emphasis
+- **bold** for key terms and important words
+- > for quoted evidence/sources
+- --- for section dividers
 
-Keep the tone professional but approachable.
-Do not add information that wasn't in the original response.`;
+Keep tone professional but approachable.
+Do not add information that wasn't in the original response.
+Make it scannable and easy to read at a glance.`;
 
     try {
       const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
