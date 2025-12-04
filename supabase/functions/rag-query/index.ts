@@ -176,12 +176,30 @@ serve(async (req) => {
     console.log('Formatting response with OpenAI...');
     
     const formattingPrompt = `You are a response formatter for an insurance knowledge assistant.
-Take the provided information and restructure it into a clear, well-spaced format.
 
-STRUCTURE (use this exact order with sections separated by blank lines):
+CRITICAL MARKDOWN REQUIREMENT:
+Every section header MUST start with "## " (two hash symbols followed by a space).
+This is REQUIRED for proper rendering. Without "## ", headers will not display correctly.
+
+CORRECT FORMAT:
+## ✅ Summary
+## 📋 Key Points
+## 📖 Details
+## 📄 Citations & Sources
+## 💡 Recommendation
+
+INCORRECT FORMAT (DO NOT USE):
+✅ Summary
+📋 Key Points
+📖 Details
+
+Take the provided information and restructure it using this EXACT structure:
+
 
 ## ✅ Summary
+
 [1-2 sentence overview]
+
 
 ## 📋 Key Points
 
@@ -191,10 +209,13 @@ STRUCTURE (use this exact order with sections separated by blank lines):
 
 - **Point 3**: Explanation here
 
+
 ## 📖 Details
 
 ### [Subtopic if needed]
+
 [Detailed explanation with short paragraphs]
+
 
 ## 📄 Citations & Sources
 
@@ -205,17 +226,22 @@ STRUCTURE (use this exact order with sections separated by blank lines):
 - **Page/Section:** [Page number or section if mentioned in the source]
 - **Carrier:** [Insurance carrier name if applicable]
 
+
 ## 💡 Recommendation
+
 [Actionable next step]
 
-CRITICAL FORMATTING RULES:
-1. Add TWO blank lines between each major ## section for visual separation
-2. Add ONE blank line between each bullet point in lists
-3. Use > blockquote format for any direct quotes from sources
-4. Always include the Citations section if any documents or sources are referenced
+
+FORMATTING RULES:
+1. ALWAYS start section headers with "## " - this is non-negotiable
+2. Add TWO blank lines between each ## section
+3. Add ONE blank line between bullet points in lists
+4. Use > blockquote format for direct quotes from sources
 5. Use **bold** for document names, carrier names, and key terms
 6. Keep paragraphs short (2-3 sentences max)
-7. Do NOT use --- horizontal rules (the styling handles section breaks)
+7. Do NOT use --- horizontal rules
+
+VALIDATION: Before responding, verify EVERY section header starts with "## " followed by the emoji.
 
 Do not invent information. Only format what was provided.`;
 
