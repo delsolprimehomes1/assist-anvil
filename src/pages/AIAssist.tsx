@@ -234,8 +234,26 @@ const AIAssist = () => {
                   </div>
                   
                   {/* Answer Content */}
-                  <div className="px-6 py-6">
-                    <div className="prose prose-slate dark:prose-invert max-w-none prose-headings:text-foreground prose-headings:font-semibold prose-p:text-foreground prose-p:leading-relaxed prose-strong:text-foreground prose-strong:font-semibold prose-ul:text-foreground prose-ol:text-foreground prose-li:text-foreground prose-li:marker:text-primary prose-a:text-primary prose-a:no-underline hover:prose-a:underline prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded prose-pre:bg-muted prose-pre:border prose-pre:border-border prose-blockquote:border-l-primary prose-blockquote:text-muted-foreground prose-table:border-collapse prose-th:bg-muted prose-th:text-foreground prose-th:font-semibold prose-th:border prose-th:border-border prose-td:border prose-td:border-border">
+                  <div className="px-6 py-8">
+                    <div className="prose prose-slate dark:prose-invert max-w-none
+                      prose-headings:text-foreground prose-headings:font-semibold 
+                      prose-h2:text-xl prose-h2:mt-8 prose-h2:mb-4 prose-h2:border-l-4 prose-h2:border-primary prose-h2:pl-4 prose-h2:py-1
+                      prose-h3:text-lg prose-h3:mt-6 prose-h3:mb-3 prose-h3:text-primary
+                      prose-h4:text-base prose-h4:mt-4 prose-h4:mb-2
+                      prose-p:text-foreground prose-p:leading-relaxed prose-p:mb-4
+                      prose-strong:text-foreground prose-strong:font-bold
+                      prose-ul:my-4 prose-ul:space-y-2
+                      prose-ol:my-4 prose-ol:space-y-2
+                      prose-li:text-foreground prose-li:leading-relaxed prose-li:marker:text-primary
+                      prose-a:text-primary prose-a:no-underline hover:prose-a:underline
+                      prose-code:text-primary prose-code:bg-primary/10 prose-code:px-1.5 prose-code:py-0.5 prose-code:rounded
+                      prose-pre:bg-muted prose-pre:border prose-pre:border-border
+                      prose-blockquote:bg-muted/50 prose-blockquote:border-l-4 prose-blockquote:border-accent-gold 
+                      prose-blockquote:px-4 prose-blockquote:py-3 prose-blockquote:rounded-r-lg prose-blockquote:my-6
+                      prose-blockquote:not-italic prose-blockquote:text-foreground/80
+                      prose-hr:my-8 prose-hr:border-border
+                      prose-table:border-collapse prose-th:bg-muted prose-th:text-foreground prose-th:font-semibold prose-th:border prose-th:border-border prose-td:border prose-td:border-border
+                    ">
                       <ReactMarkdown remarkPlugins={[remarkGfm]}>
                         {result.answer}
                       </ReactMarkdown>
