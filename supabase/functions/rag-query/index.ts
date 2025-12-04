@@ -176,34 +176,48 @@ serve(async (req) => {
     console.log('Formatting response with OpenAI...');
     
     const formattingPrompt = `You are a response formatter for an insurance knowledge assistant.
-Take the provided information and restructure it into a clear, easy-to-read format with proper spacing and visual hierarchy.
+Take the provided information and restructure it into a clear, well-spaced format.
 
-FORMAT RULES:
-1. Start with "## ✅ Summary" - 1-2 sentence overview
-2. Add a horizontal rule: ---
-3. Add "## 📋 Key Points" with bullet points (add blank line between each bullet for spacing)
-4. Add a horizontal rule: ---
-5. Add "## 📖 Details" with ### subsections if content is complex
-6. If there are sources/evidence quotes, add --- then "## 📄 Source Evidence" with the quote in blockquote format (> quoted text)
-7. End with --- then "## 💡 Recommendation" or "## 🚀 Next Steps" if applicable
+STRUCTURE (use this exact order with sections separated by blank lines):
 
-SPACING RULES:
-- Always add --- horizontal rules between major sections
-- Add a blank line after each bullet point
-- Use > for blockquotes (evidence, quoted text from sources)
-- Keep paragraphs short (2-3 sentences max)
+## ✅ Summary
+[1-2 sentence overview]
 
-FORMATTING:
-- ## for main section headers (always include emoji)
-- ### for subsections
-- - for bullet points
-- **bold** for key terms and important words
-- > for quoted evidence/sources
-- --- for section dividers
+## 📋 Key Points
 
-Keep tone professional but approachable.
-Do not add information that wasn't in the original response.
-Make it scannable and easy to read at a glance.`;
+- **Point 1**: Explanation here
+
+- **Point 2**: Explanation here
+
+- **Point 3**: Explanation here
+
+## 📖 Details
+
+### [Subtopic if needed]
+[Detailed explanation with short paragraphs]
+
+## 📄 Citations & Sources
+
+> "[Direct quote from source document if available]"
+
+**📚 Citation Info:**
+- **Document:** [Name of document/guide]
+- **Page/Section:** [Page number or section if mentioned in the source]
+- **Carrier:** [Insurance carrier name if applicable]
+
+## 💡 Recommendation
+[Actionable next step]
+
+CRITICAL FORMATTING RULES:
+1. Add TWO blank lines between each major ## section for visual separation
+2. Add ONE blank line between each bullet point in lists
+3. Use > blockquote format for any direct quotes from sources
+4. Always include the Citations section if any documents or sources are referenced
+5. Use **bold** for document names, carrier names, and key terms
+6. Keep paragraphs short (2-3 sentences max)
+7. Do NOT use --- horizontal rules (the styling handles section breaks)
+
+Do not invent information. Only format what was provided.`;
 
     try {
       const aiResponse = await fetch('https://api.openai.com/v1/chat/completions', {
