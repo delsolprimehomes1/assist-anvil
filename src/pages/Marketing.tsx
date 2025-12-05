@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Megaphone, Copy, ExternalLink, Download, Palette, Mail, MessageSquare, Plus, Edit, Trash2, Eye } from "lucide-react";
+import { Megaphone, Copy, ExternalLink, Download, Palette, Mail, MessageSquare, Plus, Edit, Trash2, Eye, Rocket } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +12,7 @@ import { useMarketingResources } from "@/hooks/useMarketingResources";
 import { BrandKitEditor } from "@/components/marketing/BrandKitEditor";
 import { BrandKitDisplay } from "@/components/marketing/BrandKitDisplay";
 import { TemplateEditor } from "@/components/marketing/TemplateEditor";
+import { CustomBuildsForm } from "@/components/marketing/CustomBuildsForm";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -176,7 +177,10 @@ const Marketing = () => {
           <TabsTrigger value="scripts">Scripts</TabsTrigger>
           <TabsTrigger value="creatives">Creatives</TabsTrigger>
           <TabsTrigger value="brand">Brand Kit</TabsTrigger>
-          <TabsTrigger value="funnels">Funnels</TabsTrigger>
+          <TabsTrigger value="custom-builds" className="flex items-center gap-1.5">
+            <Rocket className="h-4 w-4" />
+            Custom Builds
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="templates" className="space-y-6">
@@ -561,44 +565,8 @@ const Marketing = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="funnels" className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Card className="stat-card">
-              <CardHeader>
-                <CardTitle>Life Insurance Landing Page</CardTitle>
-                <CardDescription>High-converting landing page for life insurance leads</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm"><strong>Conversion Rate:</strong> 12.5%</p>
-                  <p className="text-sm"><strong>Traffic Source:</strong> Facebook Ads, Google Ads</p>
-                  <p className="text-sm"><strong>Best For:</strong> Ages 25-55, Term Life prospects</p>
-                </div>
-                <Button className="w-full">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  View Funnel
-                </Button>
-              </CardContent>
-            </Card>
-
-            <Card className="stat-card">
-              <CardHeader>
-                <CardTitle>Final Expense Quiz Funnel</CardTitle>
-                <CardDescription>Interactive quiz to qualify FE prospects</CardDescription>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <p className="text-sm"><strong>Conversion Rate:</strong> 8.3%</p>
-                  <p className="text-sm"><strong>Traffic Source:</strong> Social Media, Email</p>
-                  <p className="text-sm"><strong>Best For:</strong> Ages 50+, Final Expense prospects</p>
-                </div>
-                <Button className="w-full">
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                  View Funnel
-                </Button>
-              </CardContent>
-            </Card>
-          </div>
+        <TabsContent value="custom-builds">
+          <CustomBuildsForm />
         </TabsContent>
       </Tabs>
 
