@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { motion } from "framer-motion";
-import { Clock, Briefcase, Shield, DollarSign, Calculator, Info, CreditCard, Heart, TrendingUp, Scale, TrendingDown, Users, Coffee, Wallet, Target } from "lucide-react";
+import { Shield, DollarSign, Calculator, Heart, TrendingUp, Scale, TrendingDown, Users, Coffee, Wallet, Target } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { cn } from "@/lib/utils";
 import { LifeExpectancyCalculator } from "./LifeExpectancyCalculator";
@@ -13,10 +13,6 @@ import { PurchasingPowerCalculator } from "./PurchasingPowerCalculator";
 import { SocialSecurityCalculator } from "./SocialSecurityCalculator";
 import { InflationDamageCalculator } from "./InflationDamageCalculator";
 import { HabitsWealthCalculator } from "./HabitsWealthCalculator";
-import { CreditCardPayoffCalculator } from "./CreditCardPayoffCalculator";
-import { LoanPayoffCalculator } from "./LoanPayoffCalculator";
-import { LoanPaymentCalculator } from "./LoanPaymentCalculator";
-import { BalanceEstimatorCalculator } from "./BalanceEstimatorCalculator";
 
 const containerVariants = {
   hidden: { opacity: 0 },
@@ -32,37 +28,6 @@ const cardVariants = {
   hidden: { opacity: 0, y: 20 },
   visible: { opacity: 1, y: 0 }
 };
-
-const debtCalculators = [
-  {
-    id: "credit-card-payoff",
-    title: "Credit Card Payoff",
-    subtitle: "When will I be debt-free?",
-    icon: CreditCard,
-    gradient: "from-red-500/20 to-orange-500/5"
-  },
-  {
-    id: "loan-payoff",
-    title: "Loan Payoff Timeline",
-    subtitle: "How long until my loan is paid off?",
-    icon: Clock,
-    gradient: "from-blue-500/20 to-cyan-500/5"
-  },
-  {
-    id: "loan-payment",
-    title: "Loan Payment Estimator",
-    subtitle: "What will my loan payment be?",
-    icon: Calculator,
-    gradient: "from-purple-500/20 to-pink-500/5"
-  },
-  {
-    id: "balance-estimator",
-    title: "Balance Estimator",
-    subtitle: "What's my actual loan balance?",
-    icon: DollarSign,
-    gradient: "from-green-500/20 to-emerald-500/5"
-  }
-];
 
 const cashFlowCalculators = [
   {
@@ -144,10 +109,10 @@ const retirementCalculators = [
   ];
 
 export const CalculatorHub = () => {
-  const [category, setCategory] = useState<"debt" | "cashflow" | "retirement" | "life">("debt");
-  const [activeTab, setActiveTab] = useState("credit-card-payoff");
+  const [category, setCategory] = useState<"cashflow" | "retirement" | "life">("cashflow");
+  const [activeTab, setActiveTab] = useState("debt-vs-investing");
 
-  const activeCalculators = category === "debt" ? debtCalculators : category === "cashflow" ? cashFlowCalculators : category === "retirement" ? retirementCalculators : lifeCalculators;
+  const activeCalculators = category === "cashflow" ? cashFlowCalculators : category === "retirement" ? retirementCalculators : lifeCalculators;
 
   return (
     <div className="w-full">
@@ -156,7 +121,6 @@ export const CalculatorHub = () => {
         <div className="overflow-x-auto -mx-4 px-4 scrollbar-hide scroll-fade-right">
           <div className="flex gap-2 min-w-max pb-2">
             {[
-              { id: "debt", label: "Credit & Debt", icon: CreditCard, defaultTab: "credit-card-payoff" },
               { id: "cashflow", label: "Cash Flow", icon: TrendingUp, defaultTab: "debt-vs-investing" },
               { id: "retirement", label: "Retirement", icon: Target, defaultTab: "social-security" },
               { id: "life", label: "Life & Income", icon: Heart, defaultTab: "life-expectancy" },
@@ -196,16 +160,6 @@ export const CalculatorHub = () => {
         animate={{ opacity: 1, y: 0 }}
         className="mb-6"
       >
-        {category === "debt" && (
-          <>
-            <h2 className="text-xl sm:text-2xl font-bold mb-1 text-foreground">
-              Credit & Debt
-            </h2>
-            <p className="text-sm text-muted-foreground">
-              Control your debt journey
-            </p>
-          </>
-        )}
         {category === "cashflow" && (
           <>
             <h2 className="text-xl sm:text-2xl font-bold mb-1 text-foreground">
@@ -286,7 +240,7 @@ export const CalculatorHub = () => {
       {/* Calculator Content */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
         <TabsList className="hidden">
-          {[...debtCalculators, ...cashFlowCalculators, ...retirementCalculators, ...lifeCalculators].map((calc) => (
+          {[...cashFlowCalculators, ...retirementCalculators, ...lifeCalculators].map((calc) => (
             <TabsTrigger key={calc.id} value={calc.id}>
               {calc.title}
             </TabsTrigger>
@@ -331,49 +285,7 @@ export const CalculatorHub = () => {
           </motion.div>
         </TabsContent>
 
-        {/* Debt Calculators */}
-        <TabsContent value="credit-card-payoff" className="mt-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <CreditCardPayoffCalculator />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="loan-payoff" className="mt-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <LoanPayoffCalculator />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="loan-payment" className="mt-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <LoanPaymentCalculator />
-          </motion.div>
-        </TabsContent>
-
-        <TabsContent value="balance-estimator" className="mt-0">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.3 }}
-          >
-            <BalanceEstimatorCalculator />
-          </motion.div>
-        </TabsContent>
-
         {/* Life & Income Calculators */}
-
         <TabsContent value="life-expectancy" className="mt-0">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -418,8 +330,6 @@ export const CalculatorHub = () => {
       {/* Disclaimer */}
       <div className="mt-8 sm:mt-12 p-3 sm:p-4 bg-muted/30 rounded-lg border border-border">
         <p className="text-xs sm:text-sm text-muted-foreground text-center">
-          {category === "debt" &&
-            "All projections are estimates. Results vary by individual circumstances, interest rates, and payment behavior."}
           {category === "cashflow" &&
             "Calculations are estimates based on standard models. Actual results vary by circumstances."}
           {category === "retirement" &&
