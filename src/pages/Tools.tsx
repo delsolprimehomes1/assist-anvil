@@ -117,7 +117,7 @@ const Tools = () => {
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-3 h-10 sm:h-11">
-          <TabsTrigger value="resources" className="text-sm sm:text-base">Resources</TabsTrigger>
+          <TabsTrigger value="resources" className="text-sm sm:text-base">Carrier Quoting</TabsTrigger>
           <TabsTrigger value="calculators" className="text-sm sm:text-base">Calculators</TabsTrigger>
           <TabsTrigger value="guides" className="text-sm sm:text-base">Guides</TabsTrigger>
         </TabsList>
