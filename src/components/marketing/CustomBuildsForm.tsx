@@ -29,6 +29,7 @@ import {
 } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
 
 const services = [
   { id: "website", label: "Custom Website", icon: Globe, description: "Professional, conversion-focused websites" },
@@ -139,14 +140,13 @@ export const CustomBuildsForm = () => {
         submittedAt: new Date().toISOString(),
       };
 
-      await fetch("https://services.leadconnectorhq.com/hooks/wkh0M8RBn28Via1EbcBm/webhook-trigger/dc66af66-474d-4919-9f3f-328d4b22a1fa", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-        mode: "no-cors",
+      const { error } = await supabase.functions.invoke('send-custom-builds-webhook', {
+        body: payload
       });
+
+      if (error) {
+        throw error;
+      }
 
       setIsComplete(true);
       fireConfetti();
