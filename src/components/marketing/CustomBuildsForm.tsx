@@ -1,5 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 import { 
   Rocket, 
   Globe, 
@@ -55,6 +56,24 @@ const budgets = [
   { value: "not-sure", label: "Not Sure Yet" },
 ];
 
+const fireConfetti = () => {
+  // Fire from left side
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { x: 0, y: 0.6 },
+    colors: ['#8BBAC4', '#C98A3A', '#ffffff'],
+  });
+  
+  // Fire from right side
+  confetti({
+    particleCount: 100,
+    spread: 70,
+    origin: { x: 1, y: 0.6 },
+    colors: ['#8BBAC4', '#C98A3A', '#ffffff'],
+  });
+};
+
 export const CustomBuildsForm = () => {
   const [step, setStep] = useState(0);
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -62,7 +81,8 @@ export const CustomBuildsForm = () => {
   const { toast } = useToast();
 
   const [formData, setFormData] = useState({
-    fullName: "",
+    firstName: "",
+    lastName: "",
     email: "",
     phone: "",
     selectedServices: [] as string[],
@@ -90,7 +110,7 @@ export const CustomBuildsForm = () => {
   const canProceed = () => {
     switch (step) {
       case 0: return true;
-      case 1: return formData.fullName.trim() && formData.email.trim();
+      case 1: return formData.firstName.trim() && formData.lastName.trim() && formData.email.trim();
       case 2: return formData.selectedServices.length > 0;
       case 3: return formData.description.trim() && formData.timeline && formData.budget;
       case 4: return true;
@@ -101,16 +121,50 @@ export const CustomBuildsForm = () => {
   const handleSubmit = async () => {
     setIsSubmitting(true);
     
-    // Simulate API call - can be connected to webhook later
-    await new Promise(resolve => setTimeout(resolve, 1500));
-    
-    setIsSubmitting(false);
-    setIsComplete(true);
-    
-    toast({
-      title: "Request Submitted!",
-      description: "Our marketing team will reach out within 24 hours.",
-    });
+    try {
+      const selectedServiceLabels = formData.selectedServices.map(id => 
+        services.find(s => s.id === id)?.label || id
+      );
+
+      const payload = {
+        firstName: formData.firstName,
+        lastName: formData.lastName,
+        email: formData.email,
+        phone: formData.phone || "",
+        selectedServices: selectedServiceLabels,
+        otherService: formData.otherService || "",
+        description: formData.description,
+        timeline: timelines.find(t => t.value === formData.timeline)?.label || formData.timeline,
+        budget: budgets.find(b => b.value === formData.budget)?.label || formData.budget,
+        submittedAt: new Date().toISOString(),
+      };
+
+      await fetch("https://services.leadconnectorhq.com/hooks/wkh0M8RBn28Via1EbcBm/webhook-trigger/dc66af66-474d-4919-9f3f-328d4b22a1fa", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+        mode: "no-cors",
+      });
+
+      setIsComplete(true);
+      fireConfetti();
+      
+      toast({
+        title: "Request Submitted!",
+        description: "Our marketing team will reach out within 24 hours.",
+      });
+    } catch (error) {
+      console.error("Error submitting form:", error);
+      toast({
+        title: "Submission Error",
+        description: "There was a problem submitting your request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const slideVariants = {
@@ -169,16 +223,28 @@ export const CustomBuildsForm = () => {
               </p>
             </div>
             <div className="space-y-4 max-w-md mx-auto">
-              <div className="space-y-2">
-                <Label htmlFor="fullName">Full Name *</Label>
-                <Input
-                  id="fullName"
-                  value={formData.fullName}
-                  onChange={(e) => updateField("fullName", e.target.value)}
-                  placeholder="John Smith"
-                  className="h-12 text-base"
-                  autoFocus
-                />
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="firstName">First Name *</Label>
+                  <Input
+                    id="firstName"
+                    value={formData.firstName}
+                    onChange={(e) => updateField("firstName", e.target.value)}
+                    placeholder="John"
+                    className="h-12 text-base"
+                    autoFocus
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="lastName">Last Name *</Label>
+                  <Input
+                    id="lastName"
+                    value={formData.lastName}
+                    onChange={(e) => updateField("lastName", e.target.value)}
+                    placeholder="Smith"
+                    className="h-12 text-base"
+                  />
+                </div>
               </div>
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address *</Label>
@@ -348,7 +414,7 @@ export const CustomBuildsForm = () => {
               <div className="bg-muted/50 rounded-xl p-4 space-y-3">
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Name</span>
-                  <span className="font-medium">{formData.fullName}</span>
+                  <span className="font-medium">{formData.firstName} {formData.lastName}</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Email</span>
@@ -431,7 +497,8 @@ export const CustomBuildsForm = () => {
               setIsComplete(false);
               setStep(0);
               setFormData({
-                fullName: "",
+                firstName: "",
+                lastName: "",
                 email: "",
                 phone: "",
                 selectedServices: [],
@@ -474,66 +541,73 @@ export const CustomBuildsForm = () => {
         </div>
 
         {/* Form Card */}
-        <div className="bg-background/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 border border-border/50 transform hover:translate-y-[-2px] transition-all duration-300 overflow-hidden">
-          <div className="p-6 md:p-10">
-            <AnimatePresence mode="wait" custom={1}>
-              <motion.div
-                key={step}
-                custom={1}
-                variants={slideVariants}
-                initial="enter"
-                animate="center"
-                exit="exit"
-                transition={{ duration: 0.3, ease: "easeInOut" }}
-              >
-                {renderStep()}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+        <motion.div
+          className="bg-background/95 backdrop-blur-xl rounded-3xl shadow-2xl shadow-black/20 border border-border/50 p-6 md:p-10 mx-4"
+          initial={{ y: 20, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ duration: 0.4 }}
+        >
+          <AnimatePresence mode="wait" custom={1}>
+            <motion.div
+              key={step}
+              custom={1}
+              variants={slideVariants}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={{ duration: 0.3, ease: "easeInOut" }}
+            >
+              {renderStep()}
+            </motion.div>
+          </AnimatePresence>
 
           {/* Navigation */}
-          <div className="px-6 md:px-10 pb-6 md:pb-10 pt-4 border-t border-border/50">
-            <div className="flex items-center justify-between gap-4">
-              <Button
-                variant="ghost"
-                onClick={() => setStep(s => s - 1)}
-                disabled={step === 0}
-                className={cn(step === 0 && "invisible")}
-              >
-                <ArrowLeft className="w-4 h-4 mr-2" />
-                Back
-              </Button>
+          <div className="flex items-center justify-between mt-8 pt-6 border-t border-border/50">
+            <Button
+              variant="ghost"
+              onClick={() => setStep(s => s - 1)}
+              disabled={step === 0}
+              className="gap-2"
+            >
+              <ArrowLeft className="w-4 h-4" />
+              Back
+            </Button>
 
-              {step < totalSteps - 1 ? (
-                <Button
-                  onClick={() => setStep(s => s + 1)}
-                  disabled={!canProceed()}
-                  className="bg-gradient-to-r from-brand-teal to-brand-teal/80 text-black hover:from-brand-teal/90 hover:to-brand-teal/70 shadow-lg shadow-brand-teal/30 px-8"
-                >
-                  {step === 0 ? "Get Started" : "Continue"}
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              ) : (
-                <Button
-                  onClick={handleSubmit}
-                  disabled={isSubmitting}
-                  className="bg-gradient-to-r from-brand-gold to-brand-gold/80 text-black hover:from-brand-gold/90 hover:to-brand-gold/70 shadow-lg shadow-brand-gold/30 px-8"
-                >
-                  {isSubmitting ? (
-                    <>
-                      <span className="animate-pulse">Submitting...</span>
-                    </>
-                  ) : (
-                    <>
-                      Schedule Consultation
-                      <Rocket className="w-4 h-4 ml-2" />
-                    </>
-                  )}
-                </Button>
-              )}
-            </div>
+            {step < totalSteps - 1 ? (
+              <Button
+                onClick={() => setStep(s => s + 1)}
+                disabled={!canProceed()}
+                className="gap-2 bg-brand-teal hover:bg-brand-teal/90 text-black"
+              >
+                {step === 0 ? "Get Started" : "Continue"}
+                <ArrowRight className="w-4 h-4" />
+              </Button>
+            ) : (
+              <Button
+                onClick={handleSubmit}
+                disabled={isSubmitting}
+                className="gap-2 bg-brand-gold hover:bg-brand-gold/90 text-black"
+              >
+                {isSubmitting ? (
+                  <>
+                    <motion.div
+                      animate={{ rotate: 360 }}
+                      transition={{ duration: 1, repeat: Infinity, ease: "linear" }}
+                    >
+                      <Sparkles className="w-4 h-4" />
+                    </motion.div>
+                    Submitting...
+                  </>
+                ) : (
+                  <>
+                    Schedule Consultation
+                    <Sparkles className="w-4 h-4" />
+                  </>
+                )}
+              </Button>
+            )}
           </div>
-        </div>
+        </motion.div>
       </div>
     </div>
   );
