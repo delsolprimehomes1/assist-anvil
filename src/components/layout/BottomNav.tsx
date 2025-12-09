@@ -14,7 +14,7 @@ const navigation = [
   { name: "Order Leads", href: "https://leads.lifecoimo.com/leads", icon: ShoppingBag, external: true },
   { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
   { name: "Carriers", href: "/carriers", icon: Building2 },
-  { name: "Tools", href: "/tools", icon: Calculator },
+  { name: "Quoting Tools", href: "/tools", icon: Calculator },
 ];
 
 export const BottomNav = () => {
