@@ -5,12 +5,13 @@ export interface SearchResult {
   id: string;
   title: string;
   description: string;
-  category: "carrier" | "news" | "training" | "guide";
+  category: "carrier" | "news" | "training" | "guide" | "tool";
   metadata?: {
     carrierName?: string;
     logoUrl?: string;
     url?: string;
     tags?: string[];
+    toolCategory?: string;
   };
 }
 
@@ -19,8 +20,22 @@ export interface SearchResults {
   news: SearchResult[];
   trainings: SearchResult[];
   guides: SearchResult[];
+  tools: SearchResult[];
   isLoading: boolean;
 }
+
+const allTools = [
+  { id: "debt-vs-investing", title: "Debt vs Investing", description: "Should I pay debt or invest?", category: "cashflow" },
+  { id: "inflation-retirement", title: "Inflation Retirement", description: "How does inflation change retirement?", category: "cashflow" },
+  { id: "purchasing-power", title: "Purchasing Power", description: "How inflation eats your money", category: "cashflow" },
+  { id: "social-security", title: "Social Security", description: "Estimate my Social Security income", category: "retirement" },
+  { id: "inflation-damage", title: "Inflation Damage", description: "How inflation changes retirement", category: "retirement" },
+  { id: "habits-wealth", title: "Habits → Wealth", description: "Turn spending into future wealth", category: "retirement" },
+  { id: "life-expectancy", title: "Life Expectancy", description: "Estimate your life expectancy", category: "life" },
+  { id: "lifetime-earnings", title: "Lifetime Earnings", description: "Calculate total career earnings", category: "life" },
+  { id: "insurance-longevity", title: "Insurance Longevity", description: "How long will coverage last?", category: "life" },
+  { id: "commission", title: "Commission Calculator", description: "Calculate agent commissions", category: "life" },
+];
 
 export const useGlobalSearch = (query: string) => {
   const [results, setResults] = useState<SearchResults>({
@@ -28,6 +43,7 @@ export const useGlobalSearch = (query: string) => {
     news: [],
     trainings: [],
     guides: [],
+    tools: [],
     isLoading: false,
   });
 
@@ -38,6 +54,7 @@ export const useGlobalSearch = (query: string) => {
         news: [],
         trainings: [],
         guides: [],
+        tools: [],
         isLoading: false,
       });
       return;
@@ -50,6 +67,26 @@ export const useGlobalSearch = (query: string) => {
     return () => clearTimeout(timeoutId);
   }, [query]);
 
+  const searchTools = (query: string): SearchResult[] => {
+    const lowerQuery = query.toLowerCase();
+    return allTools
+      .filter(
+        (tool) =>
+          tool.title.toLowerCase().includes(lowerQuery) ||
+          tool.description.toLowerCase().includes(lowerQuery)
+      )
+      .map((tool) => ({
+        id: tool.id,
+        title: tool.title,
+        description: tool.description,
+        category: "tool" as const,
+        metadata: {
+          toolCategory: tool.category,
+        },
+      }))
+      .slice(0, 5);
+  };
+
   const searchAll = async (searchQuery: string) => {
     setResults((prev) => ({ ...prev, isLoading: true }));
 
@@ -61,11 +98,14 @@ export const useGlobalSearch = (query: string) => {
         searchGuides(searchQuery),
       ]);
 
+      const toolsData = searchTools(searchQuery);
+
       setResults({
         carriers: carriersData,
         news: newsData,
         trainings: trainingsData,
         guides: guidesData,
+        tools: toolsData,
         isLoading: false,
       });
     } catch (error) {
@@ -75,6 +115,7 @@ export const useGlobalSearch = (query: string) => {
         news: [],
         trainings: [],
         guides: [],
+        tools: [],
         isLoading: false,
       });
     }

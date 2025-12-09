@@ -1,5 +1,5 @@
 import { useNavigate } from "react-router-dom";
-import { Building2, Newspaper, GraduationCap, FileText, Loader2 } from "lucide-react";
+import { Building2, Newspaper, GraduationCap, FileText, Loader2, Calculator } from "lucide-react";
 import { SearchResults as SearchResultsType, SearchResult } from "@/hooks/useGlobalSearch";
 import { Badge } from "@/components/ui/badge";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -35,6 +35,9 @@ export const SearchResults = ({ results, query, onResultClick }: SearchResultsPr
           link.click();
         }
         break;
+      case "tool":
+        navigate(`/tools?calculator=${result.id}`);
+        break;
     }
   };
 
@@ -48,6 +51,8 @@ export const SearchResults = ({ results, query, onResultClick }: SearchResultsPr
         return <GraduationCap className="h-4 w-4" />;
       case "guide":
         return <FileText className="h-4 w-4" />;
+      case "tool":
+        return <Calculator className="h-4 w-4" />;
     }
   };
 
@@ -61,6 +66,8 @@ export const SearchResults = ({ results, query, onResultClick }: SearchResultsPr
         return "Training";
       case "guide":
         return "Quick Guides";
+      case "tool":
+        return "Quoting Tools";
     }
   };
 
@@ -119,7 +126,8 @@ export const SearchResults = ({ results, query, onResultClick }: SearchResultsPr
     results.carriers.length +
     results.news.length +
     results.trainings.length +
-    results.guides.length;
+    results.guides.length +
+    results.tools.length;
 
   if (results.isLoading) {
     return (
@@ -136,7 +144,7 @@ export const SearchResults = ({ results, query, onResultClick }: SearchResultsPr
     return (
       <div className="absolute top-full left-0 right-0 mt-2 bg-background border rounded-lg shadow-lg p-8 z-50">
         <div className="text-center text-muted-foreground">
-          <div className="text-sm">Start typing to search carriers, news, training, and guides...</div>
+          <div className="text-sm">Start typing to search carriers, calculators, training, and more...</div>
         </div>
       </div>
     );
@@ -161,6 +169,7 @@ export const SearchResults = ({ results, query, onResultClick }: SearchResultsPr
           {renderResultGroup("News", <Newspaper className="h-4 w-4" />, results.news)}
           {renderResultGroup("Training", <GraduationCap className="h-4 w-4" />, results.trainings)}
           {renderResultGroup("Quick Guides", <FileText className="h-4 w-4" />, results.guides)}
+          {renderResultGroup("Quoting Tools", <Calculator className="h-4 w-4" />, results.tools)}
         </div>
       </ScrollArea>
       <div className="border-t px-3 py-2 text-xs text-muted-foreground bg-muted/30">
