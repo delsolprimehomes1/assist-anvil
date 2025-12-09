@@ -33,7 +33,7 @@ const navigation = [
   { name: "CRM", href: "https://app.battersbox.ai", icon: Users, external: true },
   { name: "Carriers", href: "/carriers", icon: Building2 },
   { name: "News", href: "/news", icon: Newspaper },
-  { name: "Tools", href: "/tools", icon: Calculator },
+  { name: "Quoting Tools", href: "/tools", icon: Calculator },
   { name: "Training", href: "/training", icon: GraduationCap },
   { name: "Marketing", href: "/marketing", icon: Megaphone },
   { name: "Compliance", href: "/compliance", icon: Shield },
