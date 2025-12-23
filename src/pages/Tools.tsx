@@ -6,10 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalculatorHub } from "@/components/tools/CalculatorHub";
+import { CarrierQuotingHub } from "@/components/tools/CarrierQuotingHub";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
-
-const resources: any[] = [];
 
 interface CarrierGuide {
   id: string;
@@ -123,16 +122,7 @@ const Tools = () => {
         </TabsList>
 
         <TabsContent value="resources" className="space-y-6">
-          {/* Resources Grid */}
-          <Card>
-            <CardContent className="py-12 text-center">
-              <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Resources Available</h3>
-              <p className="text-muted-foreground text-sm">
-                Check back later for tools and reference materials
-              </p>
-            </CardContent>
-          </Card>
+          <CarrierQuotingHub />
         </TabsContent>
 
         <TabsContent value="calculators" className="space-y-6">
