@@ -9,7 +9,9 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock, Award, XCircle } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
@@ -19,6 +21,7 @@ const formSchema = z.object({
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  isLicensed: z.enum(["yes", "no"], { required_error: "Please select an option" }),
   agencyCode: z.string().min(1, "Please select an agency code"),
   referredBy: z.string().min(2, "Please enter who referred you"),
   password: z.string().min(8, "Password must be at least 8 characters"),
@@ -56,18 +59,24 @@ const steps = [
   },
   {
     id: 4,
+    question: "Are you licensed?",
+    icon: Award,
+    fields: ["isLicensed"] as const,
+  },
+  {
+    id: 5,
     question: "Select your agency code",
     icon: Building2,
     fields: ["agencyCode"] as const,
   },
   {
-    id: 5,
+    id: 6,
     question: "Who referred you?",
     icon: Users,
     fields: ["referredBy"] as const,
   },
   {
-    id: 6,
+    id: 7,
     question: "Create a secure password",
     icon: Lock,
     fields: ["password", "confirmPassword"] as const,
@@ -87,6 +96,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
       lastName: "",
       email: "",
       phone: "",
+      isLicensed: undefined,
       agencyCode: "",
       referredBy: "",
       password: "",
@@ -141,6 +151,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
           last_name: values.lastName,
           email: values.email,
           phone: values.phone,
+          is_licensed: values.isLicensed === "yes",
           agency_code: values.agencyCode || null,
           referred_by: values.referredBy || null,
         });
@@ -155,6 +166,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
             lastName: values.lastName,
             email: values.email,
             phone: values.phone,
+            isLicensed: values.isLicensed === "yes",
             agencyCode: values.agencyCode,
             referredBy: values.referredBy,
           },
@@ -387,6 +399,51 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                       {currentStep === 4 && (
                         <FormField
                           control={form.control}
+                          name="isLicensed"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  className="grid grid-cols-2 gap-4"
+                                  disabled={loading}
+                                >
+                                  <label
+                                    className={cn(
+                                      "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                      field.value === "yes"
+                                        ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10"
+                                        : "border-border hover:border-muted-foreground"
+                                    )}
+                                  >
+                                    <RadioGroupItem value="yes" className="sr-only" />
+                                    <Award className="w-12 h-12 mb-3 text-green-500" />
+                                    <span className="text-xl font-semibold">Yes</span>
+                                  </label>
+                                  <label
+                                    className={cn(
+                                      "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                      field.value === "no"
+                                        ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10"
+                                        : "border-border hover:border-muted-foreground"
+                                    )}
+                                  >
+                                    <RadioGroupItem value="no" className="sr-only" />
+                                    <XCircle className="w-12 h-12 mb-3 text-red-400" />
+                                    <span className="text-xl font-semibold">No</span>
+                                  </label>
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {currentStep === 5 && (
+                        <FormField
+                          control={form.control}
                           name="agencyCode"
                           render={({ field }) => (
                             <FormItem>
@@ -410,7 +467,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                         />
                       )}
 
-                      {currentStep === 5 && (
+                      {currentStep === 6 && (
                         <FormField
                           control={form.control}
                           name="referredBy"
@@ -431,7 +488,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                         />
                       )}
 
-                      {currentStep === 6 && (
+                      {currentStep === 7 && (
                         <div className="space-y-4">
                           <FormField
                             control={form.control}

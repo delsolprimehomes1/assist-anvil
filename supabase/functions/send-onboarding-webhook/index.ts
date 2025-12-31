@@ -11,7 +11,7 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { firstName, lastName, email, phone, agencyCode, referredBy } = await req.json();
+    const { firstName, lastName, email, phone, isLicensed, agencyCode, referredBy } = await req.json();
 
     console.log('Sending onboarding webhook for:', email);
 
@@ -28,6 +28,7 @@ Deno.serve(async (req) => {
         last_name: lastName,
         email: email,
         phone: phone,
+        is_licensed: isLicensed,
         agency_code: agencyCode,
         referred_by: referredBy,
         timestamp: new Date().toISOString(),

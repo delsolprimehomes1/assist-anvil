@@ -556,6 +556,7 @@ export type Database = {
           email: string
           first_name: string
           id: string
+          is_licensed: boolean | null
           last_name: string
           phone: string
           referred_by: string | null
@@ -569,6 +570,7 @@ export type Database = {
           email: string
           first_name: string
           id?: string
+          is_licensed?: boolean | null
           last_name: string
           phone: string
           referred_by?: string | null
@@ -582,6 +584,7 @@ export type Database = {
           email?: string
           first_name?: string
           id?: string
+          is_licensed?: boolean | null
           last_name?: string
           phone?: string
           referred_by?: string | null
