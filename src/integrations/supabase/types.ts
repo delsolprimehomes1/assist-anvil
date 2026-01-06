@@ -451,6 +451,51 @@ export type Database = {
           },
         ]
       }
+      lead_captures: {
+        Row: {
+          consent_text: string
+          consent_timestamp: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          ip_address: string | null
+          last_name: string
+          phone: string
+          sms_consent: boolean
+          source: string | null
+          user_agent: string | null
+        }
+        Insert: {
+          consent_text: string
+          consent_timestamp?: string
+          created_at?: string
+          email: string
+          first_name: string
+          id?: string
+          ip_address?: string | null
+          last_name: string
+          phone: string
+          sms_consent?: boolean
+          source?: string | null
+          user_agent?: string | null
+        }
+        Update: {
+          consent_text?: string
+          consent_timestamp?: string
+          created_at?: string
+          email?: string
+          first_name?: string
+          id?: string
+          ip_address?: string | null
+          last_name?: string
+          phone?: string
+          sms_consent?: boolean
+          source?: string | null
+          user_agent?: string | null
+        }
+        Relationships: []
+      }
       marketing_resources: {
         Row: {
           category: string | null

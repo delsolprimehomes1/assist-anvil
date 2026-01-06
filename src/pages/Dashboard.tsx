@@ -320,9 +320,9 @@ const Dashboard = () => {
             </CardHeader>
             <CardContent className="space-y-3">
               {[
-                { icon: Newspaper, text: "Latest News", href: "/news" },
-                { icon: Megaphone, text: "Marketing Tools", href: "/marketing" },
-                { icon: Calculator, text: "Calculators", href: "/tools" }
+                { icon: Newspaper, text: "Latest News", href: "/dashboard/news" },
+                { icon: Megaphone, text: "Marketing Tools", href: "/dashboard/marketing" },
+                { icon: Calculator, text: "Calculators", href: "/dashboard/tools" }
               ].map((item) => (
                 <Link key={item.text} to={item.href}>
                   <Button 
