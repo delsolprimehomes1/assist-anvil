@@ -23,7 +23,7 @@ interface SidebarProps {
 }
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: BarChart3 },
+  { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { 
     name: "Order Leads", 
     href: "https://leads.lifecoimo.com/", 
@@ -31,14 +31,14 @@ const navigation = [
     external: true
   },
   { name: "CRM", href: "https://app.battersbox.ai", icon: Users, external: true },
-  { name: "Carriers", href: "/carriers", icon: Building2 },
-  { name: "News", href: "/news", icon: Newspaper },
-  { name: "Quoting Tools", href: "/tools", icon: Calculator },
-  { name: "Training", href: "/training", icon: GraduationCap },
-  { name: "Marketing", href: "/marketing", icon: Megaphone },
-  { name: "Compliance", href: "/compliance", icon: Shield },
-  { name: "AI Assist", href: "/ai-assist", icon: Bot },
-  { name: "Admin", href: "/admin", icon: Settings },
+  { name: "Carriers", href: "/dashboard/carriers", icon: Building2 },
+  { name: "News", href: "/dashboard/news", icon: Newspaper },
+  { name: "Quoting Tools", href: "/dashboard/tools", icon: Calculator },
+  { name: "Training", href: "/dashboard/training", icon: GraduationCap },
+  { name: "Marketing", href: "/dashboard/marketing", icon: Megaphone },
+  { name: "Compliance", href: "/dashboard/compliance", icon: Shield },
+  { name: "AI Assist", href: "/dashboard/ai-assist", icon: Bot },
+  { name: "Admin", href: "/dashboard/admin", icon: Settings },
 ];
 
 export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {

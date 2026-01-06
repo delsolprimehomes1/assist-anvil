@@ -31,7 +31,7 @@ const Auth = () => {
       }
     }) => {
       if (session) {
-        navigate("/");
+        navigate("/dashboard");
       }
     });
     const {
@@ -40,7 +40,7 @@ const Auth = () => {
       }
     } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
-        navigate("/");
+        navigate("/dashboard");
       }
     });
     return () => subscription.unsubscribe();
@@ -55,7 +55,7 @@ const Auth = () => {
         email,
         password,
         options: {
-          emailRedirectTo: `${window.location.origin}/`,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
             full_name: fullName
           }

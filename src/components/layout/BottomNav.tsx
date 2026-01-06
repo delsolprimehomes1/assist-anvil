@@ -10,11 +10,11 @@ import {
 import { cn } from "@/lib/utils";
 
 const navigation = [
-  { name: "Dashboard", href: "/", icon: BarChart3 },
+  { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "Order Leads", href: "https://leads.lifecoimo.com/leads", icon: ShoppingBag, external: true },
   { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
-  { name: "Carriers", href: "/carriers", icon: Building2 },
-  { name: "Quoting Tools", href: "/tools", icon: Calculator },
+  { name: "Carriers", href: "/dashboard/carriers", icon: Building2 },
+  { name: "Quoting Tools", href: "/dashboard/tools", icon: Calculator },
 ];
 
 export const BottomNav = () => {
@@ -39,6 +39,7 @@ export const BottomNav = () => {
             );
           }
           
+          return (
             <NavLink
               key={item.name}
               to={item.href}
@@ -66,6 +67,7 @@ export const BottomNav = () => {
                 </>
               )}
             </NavLink>
+          );
         })}
       </nav>
     </div>
