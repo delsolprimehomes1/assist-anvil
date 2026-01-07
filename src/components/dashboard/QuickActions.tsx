@@ -5,32 +5,32 @@ const actions = [
   {
     title: "Carriers",
     icon: Building2,
-    href: "/carriers",
+    href: "/dashboard/carriers",
   },
   {
-    title: "Tools",
+    title: "Quoting Tools",
     icon: Calculator,
-    href: "/tools",
+    href: "/dashboard/tools",
   },
   {
     title: "Training",
     icon: GraduationCap,
-    href: "/training",
+    href: "/dashboard/training",
   },
   {
     title: "Marketing",
     icon: Megaphone,
-    href: "/marketing",
+    href: "/dashboard/marketing",
   },
   {
     title: "Compliance",
     icon: Shield,
-    href: "/compliance",
+    href: "/dashboard/compliance",
   },
   {
     title: "AI Assist",
     icon: Bot,
-    href: "/ai-assist",
+    href: "/dashboard/ai-assist",
   }
 ];
 
