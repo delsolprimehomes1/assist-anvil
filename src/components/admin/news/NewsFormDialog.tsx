@@ -174,14 +174,14 @@ export const NewsFormDialog = ({ open, onOpenChange, news }: NewsFormDialogProps
             <div className="space-y-2">
               <Label htmlFor="carrier">Carrier (Optional)</Label>
               <Select
-                value={watch("carrier_id")}
-                onValueChange={(value) => setValue("carrier_id", value)}
+                value={watch("carrier_id") || "none"}
+                onValueChange={(value) => setValue("carrier_id", value === "none" ? "" : value)}
               >
                 <SelectTrigger>
                   <SelectValue placeholder="Select carrier" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">None</SelectItem>
+                  <SelectItem value="none">None</SelectItem>
                   {carriers?.map((carrier) => (
                     <SelectItem key={carrier.id} value={carrier.id}>
                       {carrier.name}
