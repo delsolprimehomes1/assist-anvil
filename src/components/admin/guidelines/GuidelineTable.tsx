@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -6,9 +6,11 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Loader2, Trash2, Eye, FileText, RefreshCw, AlertCircle, ExternalLink } from "lucide-react";
-import { format } from "date-fns";
+import { format, differenceInMinutes } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
+
+const PROCESSING_TIMEOUT_MINUTES = 5;
 
 export const GuidelineTable = () => {
     const { toast } = useToast();
@@ -35,6 +37,45 @@ export const GuidelineTable = () => {
             return false;
         }
     });
+
+    // Timeout monitor: auto-set stuck 'processing' guidelines to 'error' after 5 minutes
+    useEffect(() => {
+        if (!guidelines) return;
+
+        const stuckGuidelines = guidelines.filter((g: any) => {
+            if (g.status !== 'processing') return false;
+            const createdAt = new Date(g.updated_at || g.created_at);
+            const minutesElapsed = differenceInMinutes(new Date(), createdAt);
+            return minutesElapsed >= PROCESSING_TIMEOUT_MINUTES;
+        });
+
+        if (stuckGuidelines.length === 0) return;
+
+        // Update stuck guidelines to error status
+        const updateStuckGuidelines = async () => {
+            for (const g of stuckGuidelines) {
+                await supabase
+                    .from("carrier_guidelines")
+                    .update({
+                        status: 'error',
+                        processing_error: `Processing timed out after ${PROCESSING_TIMEOUT_MINUTES} minutes. Click Retry to try again.`
+                    })
+                    .eq('id', g.id)
+                    .eq('status', 'processing'); // Only update if still processing
+
+                console.log(`[Timeout Monitor] Marked guideline ${g.id} as error (stuck for ${PROCESSING_TIMEOUT_MINUTES}+ minutes)`);
+            }
+
+            queryClient.invalidateQueries({ queryKey: ["carrier-guidelines"] });
+            toast({
+                title: "Processing Timeout",
+                description: `${stuckGuidelines.length} guideline(s) timed out and marked as error.`,
+                variant: "destructive"
+            });
+        };
+
+        updateStuckGuidelines();
+    }, [guidelines, queryClient, toast]);
 
     const deleteMutation = useMutation({
         mutationFn: async (id: string) => {
