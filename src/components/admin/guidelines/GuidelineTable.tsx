@@ -1,10 +1,11 @@
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Trash2, FileText, ExternalLink, RefreshCw } from "lucide-react";
+import { Loader2, Trash2, FileText, ExternalLink, RefreshCw, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -12,6 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export const GuidelineTable = () => {
     const { toast } = useToast();
     const queryClient = useQueryClient();
+    const [previewingId, setPreviewingId] = useState<string | null>(null);
 
     const { data: guidelines, isLoading } = useQuery({
         queryKey: ["carrier-guidelines"],
@@ -75,6 +77,71 @@ export const GuidelineTable = () => {
             toast({ title: "Failed to retry", description: err.message, variant: "destructive" });
         }
     });
+
+    // Handle preview with signed URL for private bucket
+    const handlePreview = async (doc: any) => {
+        setPreviewingId(doc.id);
+        try {
+            // Use file_path if available, otherwise extract from file_url
+            const filePath = doc.file_path || extractFilePathFromUrl(doc.file_url);
+            
+            if (!filePath) {
+                throw new Error('Could not determine file path');
+            }
+
+            // Generate signed URL (valid for 1 hour)
+            const { data, error } = await supabase.storage
+                .from('carrier-guidelines')
+                .createSignedUrl(filePath, 3600);
+
+            if (error) throw error;
+
+            if (data?.signedUrl) {
+                window.open(data.signedUrl, '_blank');
+            }
+        } catch (error: any) {
+            console.error('Preview error:', error);
+            toast({ 
+                title: "Failed to preview document", 
+                description: error.message,
+                variant: "destructive" 
+            });
+        } finally {
+            setPreviewingId(null);
+        }
+    };
+
+    // Extract file path from storage URL
+    const extractFilePathFromUrl = (fileUrl: string): string | null => {
+        try {
+            const patterns = [
+                '/storage/v1/object/public/carrier-guidelines/',
+                '/storage/v1/object/sign/carrier-guidelines/',
+                '/storage/v1/object/authenticated/carrier-guidelines/',
+                '/carrier-guidelines/',
+            ];
+            
+            for (const pattern of patterns) {
+                const idx = fileUrl.indexOf(pattern);
+                if (idx !== -1) {
+                    let path = fileUrl.substring(idx + pattern.length);
+                    // Remove query params
+                    path = path.split('?')[0];
+                    return decodeURIComponent(path);
+                }
+            }
+            
+            // Fallback: split by bucket name
+            const parts = fileUrl.split('/carrier-guidelines/');
+            if (parts.length > 1) {
+                return decodeURIComponent(parts[1].split('?')[0]);
+            }
+            
+            return null;
+        } catch {
+            return null;
+        }
+    };
 
     const getStatusBadge = (status: string, doc: any) => {
         const chunksInfo = doc.chunks_processed_count > 0 
@@ -180,11 +247,28 @@ export const GuidelineTable = () => {
                                                 </Tooltip>
                                             </TooltipProvider>
                                         )}
-                                        <Button size="icon" variant="ghost" asChild>
-                                            <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
-                                                <ExternalLink className="h-4 w-4" />
-                                            </a>
-                                        </Button>
+                                        {/* Preview button with signed URL */}
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button 
+                                                        size="icon" 
+                                                        variant="ghost"
+                                                        disabled={previewingId === doc.id}
+                                                        onClick={() => handlePreview(doc)}
+                                                    >
+                                                        {previewingId === doc.id ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <ExternalLink className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Preview Document</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                         <Button
                                             size="icon"
                                             variant="ghost"
