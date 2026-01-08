@@ -67,7 +67,7 @@ export function ImageGenerator() {
   const [showVideoDialog, setShowVideoDialog] = useState(false);
   const [videoSourceImage, setVideoSourceImage] = useState<string | null>(null);
   const [videoPrompt, setVideoPrompt] = useState("");
-  const [videoDuration, setVideoDuration] = useState<"4" | "6" | "8">("4");
+  const [videoDuration, setVideoDuration] = useState<"4s" | "6s" | "8s">("8s");
   const [generateAudio, setGenerateAudio] = useState(true);
   const [isGeneratingVideo, setIsGeneratingVideo] = useState(false);
   const [generatedVideo, setGeneratedVideo] = useState<string | null>(null);
@@ -628,14 +628,14 @@ export function ImageGenerator() {
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Duration</Label>
-                <Select value={videoDuration} onValueChange={(v) => setVideoDuration(v as "4" | "6" | "8")}>
+                <Select value={videoDuration} onValueChange={(v) => setVideoDuration(v as "4s" | "6s" | "8s")}>
                   <SelectTrigger>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="4">4 seconds</SelectItem>
-                    <SelectItem value="6">6 seconds</SelectItem>
-                    <SelectItem value="8">8 seconds</SelectItem>
+                    <SelectItem value="4s">4 seconds</SelectItem>
+                    <SelectItem value="6s">6 seconds</SelectItem>
+                    <SelectItem value="8s">8 seconds</SelectItem>
                   </SelectContent>
                 </Select>
               </div>

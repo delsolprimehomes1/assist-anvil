@@ -8,7 +8,7 @@ const corsHeaders = {
 interface VideoRequest {
   image_url: string;
   prompt: string;
-  duration?: "4" | "6" | "8";
+  duration?: "4s" | "6s" | "8s";
   resolution?: "720p" | "1080p";
   aspect_ratio?: "16:9" | "9:16";
   generate_audio?: boolean;
@@ -30,7 +30,7 @@ serve(async (req) => {
     }
 
     const body: VideoRequest = await req.json();
-    const { image_url, prompt, duration = "4", resolution = "720p", aspect_ratio = "16:9", generate_audio = true } = body;
+    const { image_url, prompt, duration = "8s", resolution = "720p", aspect_ratio = "16:9", generate_audio = true } = body;
 
     if (!image_url || !prompt) {
       return new Response(
@@ -77,7 +77,7 @@ serve(async (req) => {
     for (let attempt = 0; attempt < maxAttempts; attempt++) {
       await new Promise((resolve) => setTimeout(resolve, pollInterval));
 
-      const statusResponse = await fetch(`https://queue.fal.run/fal-ai/veo3/image-to-video/requests/${requestId}/status`, {
+      const statusResponse = await fetch(`https://queue.fal.run/fal-ai/veo3/requests/${requestId}/status`, {
         headers: { Authorization: `Key ${FAL_KEY}` },
       });
 
@@ -91,7 +91,7 @@ serve(async (req) => {
 
       if (statusData.status === "COMPLETED") {
         // Get the result
-        const resultResponse = await fetch(`https://queue.fal.run/fal-ai/veo3/image-to-video/requests/${requestId}`, {
+        const resultResponse = await fetch(`https://queue.fal.run/fal-ai/veo3/requests/${requestId}`, {
           headers: { Authorization: `Key ${FAL_KEY}` },
         });
 
