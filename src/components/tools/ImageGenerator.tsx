@@ -334,22 +334,41 @@ export function ImageGenerator() {
 
               {/* Uploaded Images Preview */}
               {uploadedImages.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {uploadedImages.map((img, idx) => (
-                    <div key={idx} className="relative group">
-                      <img
-                        src={img}
-                        alt={`Upload ${idx + 1}`}
-                        className="w-20 h-20 object-cover rounded-lg border"
-                      />
-                      <button
-                        onClick={() => removeUploadedImage(idx)}
-                        className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
-                      >
-                        <X className="h-3 w-3" />
-                      </button>
-                    </div>
-                  ))}
+                <div className="space-y-3">
+                  <div className="flex flex-wrap gap-2">
+                    {uploadedImages.map((img, idx) => (
+                      <div key={idx} className="relative group">
+                        <img
+                          src={img}
+                          alt={`Upload ${idx + 1}`}
+                          className="w-20 h-20 object-cover rounded-lg border"
+                        />
+                        <button
+                          onClick={() => removeUploadedImage(idx)}
+                          className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X className="h-3 w-3" />
+                        </button>
+                        <button
+                          onClick={() => handleOpenVideoDialog(img)}
+                          className="absolute -top-2 -left-2 p-1 bg-primary text-primary-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          title="Animate with Veo 3"
+                        >
+                          <Video className="h-3 w-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  {uploadedImages.length === 1 && (
+                    <Button
+                      variant="secondary"
+                      size="sm"
+                      onClick={() => handleOpenVideoDialog(uploadedImages[0])}
+                    >
+                      <Video className="mr-2 h-4 w-4" />
+                      Animate with Veo 3
+                    </Button>
+                  )}
                 </div>
               )}
             </TabsContent>
