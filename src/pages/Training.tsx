@@ -1,5 +1,4 @@
 import { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { GraduationCap, Play, BookOpen, Clock, Star, Filter, Loader2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -8,15 +7,16 @@ import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useTrainingCenter } from "@/hooks/useTrainingCenter";
+import { useTrainingCenter, Training as TrainingType } from "@/hooks/useTrainingCenter";
+import TrainingVideoModal from "@/components/training/TrainingVideoModal";
 
 const Training = () => {
-  const navigate = useNavigate();
   const { trainings, isLoading, stats } = useTrainingCenter();
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDifficulty, setSelectedDifficulty] = useState("all");
   const [selectedType, setSelectedType] = useState("all");
   const [selectedTab, setSelectedTab] = useState("all");
+  const [selectedTraining, setSelectedTraining] = useState<TrainingType | null>(null);
 
   const filteredTraining = trainings.filter(item => {
     const matchesSearch = item.title.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -206,7 +206,7 @@ const Training = () => {
                 <Button 
                   className="w-full" 
                   size="sm"
-                  onClick={() => navigate(`/training/${item.id}`)}
+                  onClick={() => setSelectedTraining(item)}
                 >
                   {getButtonText(item.progress, item.userProgress?.status)}
                 </Button>
@@ -231,6 +231,12 @@ const Training = () => {
           </Card>
         )}
       </Tabs>
+
+      <TrainingVideoModal
+        training={selectedTraining}
+        open={!!selectedTraining}
+        onOpenChange={(open) => !open && setSelectedTraining(null)}
+      />
     </div>
   );
 };
