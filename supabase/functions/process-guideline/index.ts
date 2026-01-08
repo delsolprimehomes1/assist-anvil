@@ -125,14 +125,26 @@ serve(async (req) => {
             throw new Error(`Guideline not found: ${fetchError?.message}`);
         }
 
-        // 2. Download File
-        console.log(`Downloading file: ${guideline.file_name} from URL: ${guideline.file_url}`);
-
-        const fileResponse = await fetch(guideline.file_url);
-        if (!fileResponse.ok) {
-            throw new Error(`Failed to download file: ${fileResponse.statusText}`);
+        // 2. Download File from private bucket using storage API
+        // Extract the file path from the stored URL
+        const urlParts = guideline.file_url.split('/carrier-guidelines/');
+        const filePath = urlParts[1] ? decodeURIComponent(urlParts[1]) : null;
+        
+        if (!filePath) {
+            throw new Error(`Could not extract file path from URL: ${guideline.file_url}`);
         }
-        const fileBuffer = await fileResponse.arrayBuffer();
+        
+        console.log(`Downloading file: ${guideline.file_name} from path: ${filePath}`);
+
+        const { data: fileData, error: downloadError } = await supabase.storage
+            .from('carrier-guidelines')
+            .download(filePath);
+        
+        if (downloadError || !fileData) {
+            throw new Error(`Failed to download file: ${downloadError?.message || 'No data returned'}`);
+        }
+        
+        const fileBuffer = await fileData.arrayBuffer();
 
         // 3. Extract Text
         let rawText = "";
