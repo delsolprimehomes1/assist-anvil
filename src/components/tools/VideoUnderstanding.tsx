@@ -30,6 +30,17 @@ type AnalysisType = "key_moments" | "summary" | "transcript" | "custom";
 
 const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 
+const isStreamingUrl = (url: string): boolean => {
+  const streamingPatterns = [
+    /youtube\.com/i,
+    /youtu\.be/i,
+    /vimeo\.com/i,
+    /dailymotion\.com/i,
+    /tiktok\.com/i,
+  ];
+  return streamingPatterns.some(pattern => pattern.test(url));
+};
+
 export function VideoUnderstanding() {
   const [videoUrl, setVideoUrl] = useState("");
   const [videoFile, setVideoFile] = useState<File | null>(null);
@@ -38,6 +49,7 @@ export function VideoUnderstanding() {
   const [customPrompt, setCustomPrompt] = useState("");
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [result, setResult] = useState<AnalysisResult | null>(null);
+  const [videoLoadError, setVideoLoadError] = useState(false);
   const videoRef = useRef<HTMLVideoElement>(null);
 
   const onDrop = useCallback((acceptedFiles: File[]) => {
@@ -68,7 +80,8 @@ export function VideoUnderstanding() {
   const handleUrlChange = (url: string) => {
     setVideoUrl(url);
     setVideoFile(null);
-    if (videoPreviewUrl) {
+    setVideoLoadError(false);
+    if (videoPreviewUrl && videoPreviewUrl.startsWith('blob:')) {
       URL.revokeObjectURL(videoPreviewUrl);
     }
     setVideoPreviewUrl(url || null);
@@ -241,17 +254,58 @@ export function VideoUnderstanding() {
             </div>
           ) : (
             <div className="space-y-4">
-              <div className="relative rounded-lg overflow-hidden bg-black">
-                <video
-                  ref={videoRef}
-                  src={videoPreviewUrl}
-                  controls
-                  className="w-full max-h-[300px]"
-                />
+              <div className="relative rounded-lg overflow-hidden bg-black min-h-[200px]">
+                {/* For uploaded files - show video player */}
+                {videoFile ? (
+                  <video
+                    ref={videoRef}
+                    src={videoPreviewUrl}
+                    controls
+                    className="w-full max-h-[300px]"
+                  />
+                ) : isStreamingUrl(videoUrl) ? (
+                  /* For streaming URLs - show placeholder */
+                  <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
+                    <Video className="h-12 w-12 text-muted-foreground mb-3" />
+                    <p className="text-sm text-muted-foreground">
+                      Preview not available for streaming URLs
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      YouTube, Vimeo, and similar platforms require direct video file uploads
+                    </p>
+                  </div>
+                ) : videoLoadError ? (
+                  /* For direct URLs that failed to load */
+                  <div className="flex flex-col items-center justify-center h-[200px] text-center p-4">
+                    <Video className="h-12 w-12 text-muted-foreground mb-3" />
+                    <p className="text-sm text-muted-foreground">
+                      Unable to preview this video
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      Click "Analyze Video" to process this URL
+                    </p>
+                  </div>
+                ) : (
+                  /* For direct URLs - try video player with error handling */
+                  <video
+                    ref={videoRef}
+                    src={videoPreviewUrl}
+                    controls
+                    className="w-full max-h-[300px]"
+                    onError={() => setVideoLoadError(true)}
+                  />
+                )}
               </div>
-              <Button variant="outline" size="sm" onClick={clearVideo}>
-                Choose Different Video
-              </Button>
+              <div className="flex items-center gap-2">
+                <Button variant="outline" size="sm" onClick={clearVideo}>
+                  Choose Different Video
+                </Button>
+                {videoUrl && (
+                  <span className="text-xs text-muted-foreground truncate max-w-[300px]">
+                    {videoUrl}
+                  </span>
+                )}
+              </div>
             </div>
           )}
 
