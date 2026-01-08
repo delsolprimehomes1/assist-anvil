@@ -1,6 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.76.1'
 import OpenAI from 'https://esm.sh/openai@4.20.1';
+import pdf from 'npm:pdf-parse/lib/pdf-parse.js';
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -60,8 +61,8 @@ function splitTextRecursive(text: string, chunkSize: number = 800, overlap: numb
     return chunks;
 }
 
-// Memory-optimized PDF text extraction
-async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
+// Basic regex-based PDF extraction (fallback)
+function extractTextBasic(buffer: ArrayBuffer): string {
     // Only process first 500KB to save memory
     const maxBytes = 500 * 1024;
     const bytes = new Uint8Array(buffer.slice(0, Math.min(buffer.byteLength, maxBytes)));
@@ -106,6 +107,33 @@ async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
     }
     
     return text.join(' ').replace(/\s+/g, ' ').trim();
+}
+
+// PDF text extraction using pdf-parse with fallback
+async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
+    const startTime = Date.now();
+    const maxBytes = 2 * 1024 * 1024; // 2MB limit for safety
+    
+    // Limit buffer size for very large files
+    const limitedBuffer = buffer.byteLength > maxBytes 
+        ? buffer.slice(0, maxBytes) 
+        : buffer;
+    
+    console.log(`[BG] Starting PDF extraction (${limitedBuffer.byteLength} bytes)`);
+    
+    try {
+        const data = await pdf(Buffer.from(limitedBuffer));
+        const elapsed = Date.now() - startTime;
+        console.log(`[BG] pdf-parse success: ${data.text.length} chars in ${elapsed}ms`);
+        return data.text || '';
+    } catch (err) {
+        const elapsed = Date.now() - startTime;
+        console.error(`[BG] pdf-parse failed after ${elapsed}ms:`, err);
+        
+        // Fallback to basic extraction
+        console.log('[BG] Trying basic extraction as fallback...');
+        return extractTextBasic(limitedBuffer);
+    }
 }
 
 // Extract file path from storage URL
