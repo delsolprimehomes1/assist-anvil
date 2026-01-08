@@ -1,5 +1,5 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.76.1'
 import OpenAI from 'https://esm.sh/openai@4.20.1';
 
 const corsHeaders = {
@@ -94,6 +94,59 @@ async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
     return text.join(' ').replace(/\s+/g, ' ').trim();
 }
 
+// Extract file path from storage URL with robust handling
+function extractFilePathFromUrl(fileUrl: string): { encoded: string; decoded: string } | null {
+    try {
+        const url = new URL(fileUrl);
+        const pathname = url.pathname;
+        
+        // Debug logging
+        console.log('Extracting path from URL:', { fileUrl, pathname });
+        
+        // Try various storage URL patterns
+        const patterns = [
+            '/storage/v1/object/public/carrier-guidelines/',
+            '/storage/v1/object/sign/carrier-guidelines/',
+            '/storage/v1/object/authenticated/carrier-guidelines/',
+            '/carrier-guidelines/',
+        ];
+        
+        let filePath: string | null = null;
+        
+        for (const pattern of patterns) {
+            const idx = pathname.indexOf(pattern);
+            if (idx !== -1) {
+                filePath = pathname.substring(idx + pattern.length);
+                break;
+            }
+        }
+        
+        // Fallback: try simple split
+        if (!filePath) {
+            const parts = fileUrl.split('/carrier-guidelines/');
+            if (parts.length > 1) {
+                filePath = parts[1].split('?')[0]; // Remove query params
+            }
+        }
+        
+        if (!filePath) {
+            console.error('Could not extract file path from URL:', fileUrl);
+            return null;
+        }
+        
+        // Return both encoded and decoded versions
+        const encoded = filePath;
+        const decoded = decodeURIComponent(filePath);
+        
+        console.log('Extracted paths:', { encoded, decoded });
+        
+        return { encoded, decoded };
+    } catch (error) {
+        console.error('Error parsing URL:', error);
+        return null;
+    }
+}
+
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
         return new Response(null, { headers: corsHeaders })
@@ -126,25 +179,75 @@ serve(async (req) => {
         }
 
         // 2. Download File from private bucket using storage API
-        // Extract the file path from the stored URL
-        const urlParts = guideline.file_url.split('/carrier-guidelines/');
-        const filePath = urlParts[1] ? decodeURIComponent(urlParts[1]) : null;
+        console.log('Guideline data:', { 
+            file_name: guideline.file_name, 
+            file_url: guideline.file_url,
+            file_path: guideline.file_path 
+        });
         
-        if (!filePath) {
-            throw new Error(`Could not extract file path from URL: ${guideline.file_url}`);
+        let fileData: Blob | null = null;
+        let downloadError: Error | null = null;
+        
+        // First, try using the stored file_path if available (most reliable)
+        if (guideline.file_path) {
+            console.log(`Attempting download using stored file_path: ${guideline.file_path}`);
+            const result = await supabase.storage
+                .from('carrier-guidelines')
+                .download(guideline.file_path);
+            
+            if (result.data && !result.error) {
+                fileData = result.data;
+                console.log('Download successful using file_path');
+            } else {
+                console.log('Download with file_path failed:', result.error?.message);
+            }
         }
         
-        console.log(`Downloading file: ${guideline.file_name} from path: ${filePath}`);
-
-        const { data: fileData, error: downloadError } = await supabase.storage
-            .from('carrier-guidelines')
-            .download(filePath);
+        // Fall back to extracting path from URL
+        if (!fileData) {
+            const paths = extractFilePathFromUrl(guideline.file_url);
+            
+            if (!paths) {
+                throw new Error(`Could not extract file path from URL: ${guideline.file_url}`);
+            }
+            
+            // Try decoded path first (e.g., "Assurity/Term Life/file.pdf")
+            console.log(`Attempting download with decoded path: ${paths.decoded}`);
+            const decodedResult = await supabase.storage
+                .from('carrier-guidelines')
+                .download(paths.decoded);
+            
+            if (decodedResult.data && !decodedResult.error) {
+                fileData = decodedResult.data;
+                console.log('Download successful using decoded path');
+            } else {
+                console.log('Download with decoded path failed:', decodedResult.error?.message);
+                
+                // Try encoded path as fallback (e.g., "Assurity/Term%20Life/file.pdf")
+                console.log(`Attempting download with encoded path: ${paths.encoded}`);
+                const encodedResult = await supabase.storage
+                    .from('carrier-guidelines')
+                    .download(paths.encoded);
+                
+                if (encodedResult.data && !encodedResult.error) {
+                    fileData = encodedResult.data;
+                    console.log('Download successful using encoded path');
+                } else {
+                    console.log('Download with encoded path failed:', encodedResult.error?.message);
+                    downloadError = new Error(
+                        `Failed to download file. Tried paths: decoded="${paths.decoded}", encoded="${paths.encoded}". ` +
+                        `Errors: decoded=${decodedResult.error?.message}, encoded=${encodedResult.error?.message}`
+                    );
+                }
+            }
+        }
         
-        if (downloadError || !fileData) {
-            throw new Error(`Failed to download file: ${downloadError?.message || 'No data returned'}`);
+        if (!fileData) {
+            throw downloadError || new Error('Failed to download file: No data returned');
         }
         
         const fileBuffer = await fileData.arrayBuffer();
+        console.log(`File downloaded successfully, size: ${fileBuffer.byteLength} bytes`);
 
         // 3. Extract Text
         let rawText = "";
