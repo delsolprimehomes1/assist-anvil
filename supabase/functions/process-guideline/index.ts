@@ -350,6 +350,11 @@ async function processGuidelineInBackground(guidelineId: string) {
 
             console.log(`[BG] Batch ${Math.floor(batchStart / EMBEDDING_BATCH_SIZE) + 1}: chunks ${batchStart + 1}-${batchEnd}`);
 
+            // Lazy-load OpenAI client on first use (memory optimization)
+            if (!openai) {
+                openai = new OpenAI({ apiKey: openaiApiKey });
+            }
+
             // Generate embeddings for batch
             const embeddingResponse = await openai.embeddings.create({
                 model: "text-embedding-3-small",
