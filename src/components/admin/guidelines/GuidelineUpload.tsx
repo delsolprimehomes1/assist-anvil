@@ -101,9 +101,19 @@ export const GuidelineUpload = () => {
 
             if (fnError) {
                 console.error("Processing trigger failed:", fnError);
+                
+                // Update status to error immediately so user can retry
+                await supabase
+                    .from('carrier_guidelines')
+                    .update({
+                        status: 'error',
+                        processing_error: `Failed to start processing: ${fnError.message}`
+                    })
+                    .eq('id', insertedData.id);
+                
                 toast({
-                    title: "Processing Warning",
-                    description: "Upload successful but auto-processing failed to start.",
+                    title: "Processing Failed to Start",
+                    description: "Upload succeeded but processing failed. Click Retry to try again.",
                     variant: "destructive"
                 });
             }

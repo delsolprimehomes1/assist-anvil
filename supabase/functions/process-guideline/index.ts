@@ -1,7 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'npm:@supabase/supabase-js@2.76.1'
 import OpenAI from 'npm:openai'
-import { getDocument } from 'https://esm.sh/pdfjs-serverless@0.5.0'
+import { getDocument } from 'https://esm.sh/pdfjs-serverless'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
