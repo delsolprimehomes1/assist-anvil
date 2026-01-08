@@ -16,7 +16,7 @@ Deno.serve(async (req) => {
     console.log('Sending onboarding webhook for:', email);
 
     // Send data to webhook
-    const webhookUrl = 'https://services.leadconnectorhq.com/hooks/wkh0M8RBn28Via1EbcBm/webhook-trigger/aae23320-3bc5-4dda-b7d7-0d15172cbeee';
+    const webhookUrl = 'https://services.leadconnectorhq.com/hooks/wkh0M8RBn28Via1EbcBm/webhook-trigger/69c5f7fd-98ba-460e-9d14-7c7e7828e189';
     
     const webhookResponse = await fetch(webhookUrl, {
       method: 'POST',
