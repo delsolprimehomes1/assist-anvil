@@ -66,13 +66,24 @@ export const GuidelineTable = () => {
                 body: { guideline_id: id }
             });
 
-            if (error) throw error;
+            if (error) {
+                // Revert to error status if invoke fails
+                await supabase
+                    .from("carrier_guidelines")
+                    .update({
+                        status: 'error',
+                        processing_error: `Retry failed: ${error.message}`
+                    })
+                    .eq('id', id);
+                throw error;
+            }
         },
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: ["carrier-guidelines"] });
             toast({ title: "Processing restarted" });
         },
         onError: (err: Error) => {
+            queryClient.invalidateQueries({ queryKey: ["carrier-guidelines"] });
             toast({ title: "Failed to retry", description: err.message, variant: "destructive" });
         }
     });
