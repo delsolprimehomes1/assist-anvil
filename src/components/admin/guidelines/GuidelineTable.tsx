@@ -4,7 +4,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, Trash2, Eye, FileText, ExternalLink, RefreshCw, AlertCircle } from "lucide-react";
+import { Loader2, Trash2, FileText, ExternalLink, RefreshCw } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -23,13 +23,19 @@ export const GuidelineTable = () => {
 
             if (error) throw error;
             return data;
+        },
+        // Poll every 5 seconds if any guidelines are processing
+        refetchInterval: (query) => {
+            const data = query.state.data;
+            if (data?.some(g => g.status === 'processing')) {
+                return 5000;
+            }
+            return false;
         }
     });
 
     const deleteMutation = useMutation({
         mutationFn: async (id: string) => {
-            // Soft delete or hard delete? 
-            // For now hard delete to keep it simple in dev
             const { error } = await supabase
                 .from("carrier_guidelines")
                 .delete()
@@ -46,13 +52,48 @@ export const GuidelineTable = () => {
         }
     });
 
-    const getStatusBadge = (status: string) => {
+    const retryMutation = useMutation({
+        mutationFn: async (id: string) => {
+            // First update status to processing
+            await supabase
+                .from("carrier_guidelines")
+                .update({ status: 'processing', processing_error: null })
+                .eq('id', id);
+
+            // Then invoke the edge function
+            const { error } = await supabase.functions.invoke('process-guideline', {
+                body: { guideline_id: id }
+            });
+
+            if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["carrier-guidelines"] });
+            toast({ title: "Processing restarted" });
+        },
+        onError: (err: Error) => {
+            toast({ title: "Failed to retry", description: err.message, variant: "destructive" });
+        }
+    });
+
+    const getStatusBadge = (status: string, doc: any) => {
+        const chunksInfo = doc.chunks_processed_count > 0 
+            ? ` (${doc.chunks_processed_count} chunks)` 
+            : '';
+        
         switch (status) {
-            case 'active': return <Badge className="bg-green-500 hover:bg-green-600">Active</Badge>;
-            case 'processing': return <Badge className="bg-blue-500 hover:bg-blue-600">Processing</Badge>;
-            case 'error': return <Badge variant="destructive">Error</Badge>;
-            case 'archived': return <Badge variant="secondary">Archived</Badge>;
-            default: return <Badge variant="outline">{status}</Badge>;
+            case 'active': 
+                return <Badge className="bg-green-500 hover:bg-green-600">Active{chunksInfo}</Badge>;
+            case 'processing': 
+                return <Badge className="bg-blue-500 hover:bg-blue-600">Processing</Badge>;
+            case 'partial': 
+                return <Badge className="bg-amber-500 hover:bg-amber-600">Partial{chunksInfo}</Badge>;
+            case 'error': 
+                return <Badge variant="destructive">Error</Badge>;
+            case 'archived': 
+                return <Badge variant="secondary">Archived</Badge>;
+            default: 
+                return <Badge variant="outline">{status}</Badge>;
         }
     };
 
@@ -90,23 +131,55 @@ export const GuidelineTable = () => {
                                         <div className="text-xs text-muted-foreground truncate max-w-[200px]" title={doc.file_name}>{doc.file_name}</div>
                                     </TableCell>
                                     <TableCell>
-                                        {format(new Date(doc.effective_date), 'MMM d, yyyy')}
+                                        {doc.effective_date && format(new Date(doc.effective_date), 'MMM d, yyyy')}
                                     </TableCell>
                                     <TableCell>
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger>
-                                                    {getStatusBadge(doc.status)}
+                                                    {getStatusBadge(doc.status, doc)}
                                                 </TooltipTrigger>
-                                                {doc.processing_error && (
-                                                    <TooltipContent>
-                                                        <p className="text-red-500 text-xs">{doc.processing_error}</p>
+                                                {(doc.processing_error || doc.processing_time_ms) && (
+                                                    <TooltipContent className="max-w-xs">
+                                                        {doc.processing_error && (
+                                                            <p className="text-red-500 text-xs mb-1">{doc.processing_error}</p>
+                                                        )}
+                                                        {doc.processing_time_ms && (
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Processed in {(doc.processing_time_ms / 1000).toFixed(1)}s
+                                                            </p>
+                                                        )}
                                                     </TooltipContent>
                                                 )}
                                             </Tooltip>
                                         </TooltipProvider>
                                     </TableCell>
-                                    <TableCell className="text-right space-x-2">
+                                    <TableCell className="text-right space-x-1">
+                                        {/* Retry button - shows for error or partial status */}
+                                        {(doc.status === 'error' || doc.status === 'partial') && (
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="text-amber-600 hover:text-amber-700"
+                                                            onClick={() => retryMutation.mutate(doc.id)}
+                                                            disabled={retryMutation.isPending}
+                                                        >
+                                                            {retryMutation.isPending ? (
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                            ) : (
+                                                                <RefreshCw className="h-4 w-4" />
+                                                            )}
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Retry Processing</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
+                                        )}
                                         <Button size="icon" variant="ghost" asChild>
                                             <a href={doc.file_url} target="_blank" rel="noopener noreferrer">
                                                 <ExternalLink className="h-4 w-4" />

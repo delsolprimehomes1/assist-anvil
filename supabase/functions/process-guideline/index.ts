@@ -7,13 +7,23 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
+// OPTIMIZATION 1: Reduced text limit
+const MAX_TEXT = 30000;
+// OPTIMIZATION 3: Reduced max chunks
+const MAX_CHUNKS = 20;
+// OPTIMIZATION 5: Time budget (8 seconds)
+const BUDGET_MS = 8000;
+// OPTIMIZATION 4: Batch size for embeddings
+const EMBEDDING_BATCH_SIZE = 5;
+
 // Track progress for shutdown handler
-let processingProgress = { current: 0, total: 0, guidelineId: '' };
+let processingProgress = { current: 0, total: 0, guidelineId: '', startTime: 0 };
 
 // Shutdown handler to log progress on unexpected termination
 addEventListener('beforeunload', (ev: Event) => {
     const detail = (ev as CustomEvent).detail;
-    console.log(`Shutdown: processed ${processingProgress.current}/${processingProgress.total} chunks for ${processingProgress.guidelineId}. Reason: ${detail?.reason || 'unknown'}`);
+    const elapsed = Date.now() - processingProgress.startTime;
+    console.log(`Shutdown: processed ${processingProgress.current}/${processingProgress.total} chunks for ${processingProgress.guidelineId} in ${elapsed}ms. Reason: ${detail?.reason || 'unknown'}`);
 });
 
 // Helper to sanitize text
@@ -21,7 +31,10 @@ function sanitizeText(text: string): string {
     return text.replace(/\s+/g, ' ').trim();
 }
 
-// Simple text splitter
+// Helper for delay
+const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
+
+// Simple text splitter - OPTIMIZATION 2: 800 chunk size, 100 overlap
 function splitTextRecursive(text: string, chunkSize: number = 800, overlap: number = 100): string[] {
     if (text.length <= chunkSize) return [text];
 
@@ -133,10 +146,12 @@ function extractFilePathFromUrl(fileUrl: string): { encoded: string; decoded: st
     }
 }
 
-// Background processing function
+// Background processing function with all optimizations
 async function processGuidelineInBackground(guidelineId: string) {
+    const startTime = Date.now();
+    processingProgress = { current: 0, total: 0, guidelineId, startTime };
+    
     console.log(`[BG] Starting background processing for: ${guidelineId}`);
-    processingProgress.guidelineId = guidelineId;
     
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
@@ -144,6 +159,28 @@ async function processGuidelineInBackground(guidelineId: string) {
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
     const openai = new OpenAI({ apiKey: openaiApiKey });
+
+    let processedCount = 0;
+    let isPartial = false;
+    let partialReason = '';
+
+    // Helper to check time budget
+    const checkBudget = () => Date.now() - startTime < BUDGET_MS;
+    const getElapsed = () => Date.now() - startTime;
+
+    // Helper to update status with metrics
+    const updateStatus = async (status: string, error: string | null = null) => {
+        await supabase
+            .from('carrier_guidelines')
+            .update({
+                status,
+                processing_error: error,
+                chunks_processed_count: processedCount,
+                processing_time_ms: getElapsed(),
+                last_processing_at: new Date().toISOString()
+            })
+            .eq('id', guidelineId);
+    };
 
     try {
         // 1. Get Guideline Metadata
@@ -158,6 +195,16 @@ async function processGuidelineInBackground(guidelineId: string) {
         }
 
         console.log(`[BG] Processing: ${guideline.file_name}`);
+        
+        // OPTIMIZATION 7: Delete existing chunks before processing (for retries)
+        const { error: deleteError } = await supabase
+            .from('guideline_chunks')
+            .delete()
+            .eq('guideline_id', guidelineId);
+        
+        if (deleteError) {
+            console.log(`[BG] Warning: Could not delete existing chunks: ${deleteError.message}`);
+        }
         
         // 2. Download File
         let fileData: Blob | null = null;
@@ -194,21 +241,16 @@ async function processGuidelineInBackground(guidelineId: string) {
         const fileBuffer = await fileData.arrayBuffer();
         console.log(`[BG] Downloaded: ${fileBuffer.byteLength} bytes`);
 
-        // 3. Extract Text with strict limits
+        // 3. Extract Text - OPTIMIZATION 1: No fallback, just basic extraction
         let rawText = "";
         const fileExt = guideline.file_name.split('.').pop()?.toLowerCase();
 
         if (fileExt === 'pdf') {
             rawText = await extractTextFromPDF(fileBuffer);
             
-            // Simple fallback if extraction failed
+            // OPTIMIZATION 1: No CPU-intensive fallback - if extraction fails, mark as error
             if (!rawText || rawText.length < 100) {
-                console.log('[BG] Basic extraction failed, using fallback...');
-                const decoder = new TextDecoder('utf-8', { fatal: false });
-                // Only decode first 100KB for fallback
-                const limitedBuffer = fileBuffer.slice(0, 100 * 1024);
-                const fullText = decoder.decode(new Uint8Array(limitedBuffer));
-                rawText = fullText.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim();
+                throw new Error('PDF text extraction failed (<100 chars). Try re-uploading or use a different PDF format.');
             }
         } else if (fileExt === 'txt' || fileExt === 'md') {
             rawText = new TextDecoder().decode(fileBuffer);
@@ -216,8 +258,7 @@ async function processGuidelineInBackground(guidelineId: string) {
             throw new Error(`Unsupported file type: ${fileExt}`);
         }
 
-        // Limit text to 50K characters max
-        const MAX_TEXT = 50000;
+        // OPTIMIZATION 1: Limit text to 30K characters max
         if (rawText.length > MAX_TEXT) {
             console.log(`[BG] Truncating text from ${rawText.length} to ${MAX_TEXT} chars`);
             rawText = rawText.substring(0, MAX_TEXT);
@@ -229,59 +270,95 @@ async function processGuidelineInBackground(guidelineId: string) {
 
         console.log(`[BG] Extracted ${rawText.length} characters`);
 
-        // 4. Create Chunks - limit to 30
+        // 4. Create Chunks - OPTIMIZATION 3: limit to 20
         const allChunks = splitTextRecursive(sanitizeText(rawText), 800, 100);
-        const maxChunks = 30;
-        const chunks = allChunks.slice(0, maxChunks);
+        const truncatedChunks = allChunks.length > MAX_CHUNKS;
+        const chunks = allChunks.slice(0, MAX_CHUNKS);
         
-        console.log(`[BG] Processing ${chunks.length} chunks (${allChunks.length > maxChunks ? 'truncated from ' + allChunks.length : 'total'})`);
+        if (truncatedChunks) {
+            isPartial = true;
+            partialReason = `Truncated from ${allChunks.length} to ${MAX_CHUNKS} chunks`;
+            console.log(`[BG] ${partialReason}`);
+        }
         
+        console.log(`[BG] Processing ${chunks.length} chunks`);
         processingProgress.total = chunks.length;
 
-        // 5. Generate Embeddings & Store - ONE AT A TIME to minimize memory
-        for (let i = 0; i < chunks.length; i++) {
-            const chunk = chunks[i];
-            processingProgress.current = i + 1;
-            
-            console.log(`[BG] Chunk ${i + 1}/${chunks.length}`);
+        // 5. Generate Embeddings & Store - OPTIMIZATION 4: Batch of 5 with 100ms delay
+        for (let batchStart = 0; batchStart < chunks.length; batchStart += EMBEDDING_BATCH_SIZE) {
+            // OPTIMIZATION 5: Check time budget before each batch
+            if (!checkBudget()) {
+                isPartial = true;
+                partialReason = `Time budget exceeded (${BUDGET_MS}ms) after ${processedCount} chunks`;
+                console.log(`[BG] ${partialReason}`);
+                break;
+            }
 
+            const batchEnd = Math.min(batchStart + EMBEDDING_BATCH_SIZE, chunks.length);
+            const batchChunks = chunks.slice(batchStart, batchEnd);
+            
+            console.log(`[BG] Batch ${Math.floor(batchStart / EMBEDDING_BATCH_SIZE) + 1}: chunks ${batchStart + 1}-${batchEnd}`);
+
+            // Generate embeddings for batch
             const embeddingResponse = await openai.embeddings.create({
                 model: "text-embedding-3-small",
-                input: [chunk.replace(/\n/g, ' ')],
+                input: batchChunks.map(c => c.replace(/\n/g, ' ')),
             });
+
+            // Prepare batch insert
+            const insertRows = batchChunks.map((chunk, idx) => ({
+                guideline_id: guidelineId,
+                content: chunk,
+                chunk_index: batchStart + idx,
+                embedding: embeddingResponse.data[idx].embedding,
+                metadata: {
+                    source: guideline.file_name,
+                    carrier: guideline.carrier_name,
+                    product: guideline.product_type,
+                    // OPTIMIZATION 3: Add partial processing metadata
+                    ...(truncatedChunks ? {
+                        partial_processing: true,
+                        truncated_to_max_chunks: true,
+                        max_chunks: MAX_CHUNKS,
+                        estimated_total_chunks: allChunks.length
+                    } : {})
+                }
+            }));
 
             const { error: insertError } = await supabase
                 .from('guideline_chunks')
-                .insert({
-                    guideline_id: guideline.id,
-                    content: chunk,
-                    chunk_index: i,
-                    embedding: embeddingResponse.data[0].embedding,
-                    metadata: {
-                        source: guideline.file_name,
-                        carrier: guideline.carrier_name,
-                        product: guideline.product_type
-                    }
-                });
+                .insert(insertRows);
 
             if (insertError) throw insertError;
+
+            processedCount += batchChunks.length;
+            processingProgress.current = processedCount;
+
+            // OPTIMIZATION 4: Add delay between batches (except for last batch)
+            if (batchEnd < chunks.length) {
+                await sleep(100);
+            }
         }
 
-        // 6. Update Status to active
-        await supabase
-            .from('carrier_guidelines')
-            .update({ status: 'active', processing_error: null })
-            .eq('id', guidelineId);
+        // 6. Update Status - OPTIMIZATION 6: Better error handling with metrics
+        const finalStatus = isPartial ? 'partial' : 'active';
+        await updateStatus(finalStatus, isPartial ? partialReason : null);
 
-        console.log(`[BG] Complete! Processed ${chunks.length} chunks`);
+        console.log(`[BG] Complete! Status: ${finalStatus}, Processed: ${processedCount} chunks in ${getElapsed()}ms`);
 
     } catch (error) {
         console.error("[BG] Error:", error);
         
-        // Update status to error
+        // OPTIMIZATION 6: Update status with detailed error info
         await supabase
             .from('carrier_guidelines')
-            .update({ status: 'error', processing_error: error.message })
+            .update({
+                status: 'error',
+                processing_error: error.message,
+                chunks_processed_count: processedCount,
+                processing_time_ms: getElapsed(),
+                last_processing_at: new Date().toISOString()
+            })
             .eq('id', guidelineId);
     }
 }
