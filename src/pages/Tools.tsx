@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Calculator, FileText, Search, BookOpen, ExternalLink, Download, Building2, ImageIcon } from "lucide-react";
+import { Calculator, FileText, Search, BookOpen, ExternalLink, Download, Building2, ImageIcon, Video } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -8,6 +8,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { CalculatorHub } from "@/components/tools/CalculatorHub";
 import { CarrierQuotingHub } from "@/components/tools/CarrierQuotingHub";
 import { ImageGenerator } from "@/components/tools/ImageGenerator";
+import { VideoUnderstanding } from "@/components/tools/VideoUnderstanding";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 
@@ -116,11 +117,12 @@ const Tools = () => {
       </div>
 
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-4 h-10 sm:h-11">
-          <TabsTrigger value="resources" className="text-sm sm:text-base">Carrier Quoting</TabsTrigger>
-          <TabsTrigger value="calculators" className="text-sm sm:text-base">Calculators</TabsTrigger>
-          <TabsTrigger value="guides" className="text-sm sm:text-base">Guides</TabsTrigger>
-          <TabsTrigger value="images" className="text-sm sm:text-base">Images</TabsTrigger>
+        <TabsList className="grid w-full grid-cols-5 h-10 sm:h-11">
+          <TabsTrigger value="resources" className="text-xs sm:text-sm">Quoting</TabsTrigger>
+          <TabsTrigger value="calculators" className="text-xs sm:text-sm">Calculators</TabsTrigger>
+          <TabsTrigger value="guides" className="text-xs sm:text-sm">Guides</TabsTrigger>
+          <TabsTrigger value="images" className="text-xs sm:text-sm">Images</TabsTrigger>
+          <TabsTrigger value="video" className="text-xs sm:text-sm">Video</TabsTrigger>
         </TabsList>
 
         <TabsContent value="resources" className="space-y-6">
@@ -233,6 +235,10 @@ const Tools = () => {
 
         <TabsContent value="images" className="space-y-6">
           <ImageGenerator />
+        </TabsContent>
+
+        <TabsContent value="video" className="space-y-6">
+          <VideoUnderstanding />
         </TabsContent>
       </Tabs>
     </div>
