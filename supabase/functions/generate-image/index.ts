@@ -11,11 +11,19 @@ serve(async (req) => {
   }
 
   try {
-    const { prompt } = await req.json();
+    const { prompt, images } = await req.json();
     
     if (!prompt || typeof prompt !== "string") {
       return new Response(
         JSON.stringify({ error: "Prompt is required" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Validate images if provided
+    if (images && (!Array.isArray(images) || images.length > 4)) {
+      return new Response(
+        JSON.stringify({ error: "Maximum 4 images allowed" }),
         { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
@@ -29,7 +37,18 @@ serve(async (req) => {
       );
     }
 
-    console.log("Generating image with prompt:", prompt.substring(0, 100));
+    console.log("Generating image with prompt:", prompt.substring(0, 100), images?.length ? `with ${images.length} images` : "");
+
+    // Build message content based on whether images are provided
+    const messageContent = images?.length > 0
+      ? [
+          { type: "text", text: prompt },
+          ...images.map((img: string) => ({ 
+            type: "image_url", 
+            image_url: { url: img } 
+          }))
+        ]
+      : prompt;
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -42,7 +61,7 @@ serve(async (req) => {
         messages: [
           {
             role: "user",
-            content: prompt,
+            content: messageContent,
           },
         ],
         modalities: ["image", "text"],

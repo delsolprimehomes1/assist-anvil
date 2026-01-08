@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
-import { ImageIcon, Sparkles, Download, Trash2, Loader2 } from "lucide-react";
+import { useState, useEffect, useCallback } from "react";
+import { ImageIcon, Sparkles, Download, Trash2, Loader2, Upload, X } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { useDropzone } from "react-dropzone";
 
 interface GeneratedImage {
   id: string;
@@ -15,19 +17,30 @@ interface GeneratedImage {
 
 const STORAGE_KEY = "batterbox-generated-images";
 const MAX_HISTORY = 8;
+const MAX_IMAGES = 4;
+const MAX_FILE_SIZE = 5 * 1024 * 1024; // 5MB
 
-const examplePrompts = [
+const generatePrompts = [
   "A professional insurance agent shaking hands with a happy family",
   "A golden shield protecting a house and family, symbolizing life insurance",
   "A serene retirement scene with a couple on a beach at sunset",
   "An infographic showing a piggy bank growing into a tree",
 ];
 
+const editPrompts = [
+  "Make this a professional headshot with a clean office background",
+  "Remove the background and make it a solid color",
+  "Add warm, professional lighting to this photo",
+  "Make this look like a professional marketing photo",
+];
+
 export function ImageGenerator() {
+  const [mode, setMode] = useState<"generate" | "edit">("generate");
   const [prompt, setPrompt] = useState("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [generatedImage, setGeneratedImage] = useState<string | null>(null);
   const [history, setHistory] = useState<GeneratedImage[]>([]);
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
 
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
@@ -58,9 +71,51 @@ export function ImageGenerator() {
     toast({ title: "History cleared" });
   };
 
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+    });
+  };
+
+  const onDrop = useCallback(async (acceptedFiles: File[]) => {
+    if (uploadedImages.length + acceptedFiles.length > MAX_IMAGES) {
+      toast({ title: `Maximum ${MAX_IMAGES} images allowed`, variant: "destructive" });
+      return;
+    }
+
+    const validFiles = acceptedFiles.filter((file) => {
+      if (file.size > MAX_FILE_SIZE) {
+        toast({ title: `${file.name} is too large (max 5MB)`, variant: "destructive" });
+        return false;
+      }
+      return true;
+    });
+
+    const base64Images = await Promise.all(validFiles.map(fileToBase64));
+    setUploadedImages((prev) => [...prev, ...base64Images].slice(0, MAX_IMAGES));
+  }, [uploadedImages.length]);
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: { "image/png": [], "image/jpeg": [], "image/webp": [] },
+    maxFiles: MAX_IMAGES,
+  });
+
+  const removeUploadedImage = (index: number) => {
+    setUploadedImages((prev) => prev.filter((_, i) => i !== index));
+  };
+
   const handleGenerate = async () => {
     if (!prompt.trim()) {
       toast({ title: "Please enter a prompt", variant: "destructive" });
+      return;
+    }
+
+    if (mode === "edit" && uploadedImages.length === 0) {
+      toast({ title: "Please upload at least one image to edit", variant: "destructive" });
       return;
     }
 
@@ -69,7 +124,10 @@ export function ImageGenerator() {
 
     try {
       const { data, error } = await supabase.functions.invoke("generate-image", {
-        body: { prompt: prompt.trim() },
+        body: { 
+          prompt: prompt.trim(),
+          images: mode === "edit" ? uploadedImages : undefined,
+        },
       });
 
       if (error) throw error;
@@ -82,7 +140,7 @@ export function ImageGenerator() {
           imageUrl: data.imageUrl,
           createdAt: Date.now(),
         });
-        toast({ title: "Image generated!" });
+        toast({ title: mode === "edit" ? "Image edited!" : "Image generated!" });
       } else if (data?.error) {
         throw new Error(data.error);
       }
@@ -116,6 +174,8 @@ export function ImageGenerator() {
     }
   };
 
+  const currentPrompts = mode === "generate" ? generatePrompts : editPrompts;
+
   return (
     <div className="space-y-6">
       {/* Generator Card */}
@@ -126,12 +186,77 @@ export function ImageGenerator() {
             AI Image Generator
           </CardTitle>
           <CardDescription>
-            Create custom images for marketing materials, presentations, and client communications
+            Create or edit images for marketing materials, presentations, and client communications
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
+          <Tabs value={mode} onValueChange={(v) => setMode(v as "generate" | "edit")}>
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="generate">
+                <Sparkles className="h-4 w-4 mr-2" />
+                Generate New
+              </TabsTrigger>
+              <TabsTrigger value="edit">
+                <Upload className="h-4 w-4 mr-2" />
+                Edit Image
+              </TabsTrigger>
+            </TabsList>
+
+            <TabsContent value="edit" className="mt-4 space-y-4">
+              {/* Dropzone */}
+              <div
+                {...getRootProps()}
+                className={`border-2 border-dashed rounded-lg p-6 text-center cursor-pointer transition-colors ${
+                  isDragActive
+                    ? "border-primary bg-primary/5"
+                    : "border-muted-foreground/25 hover:border-primary/50"
+                }`}
+              >
+                <input {...getInputProps()} />
+                <Upload className="h-8 w-8 mx-auto mb-2 text-muted-foreground" />
+                {isDragActive ? (
+                  <p className="text-sm text-primary">Drop images here...</p>
+                ) : (
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      Drag & drop images here, or click to select
+                    </p>
+                    <p className="text-xs text-muted-foreground mt-1">
+                      PNG, JPG, WEBP • Max 5MB each • Up to {MAX_IMAGES} images
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {/* Uploaded Images Preview */}
+              {uploadedImages.length > 0 && (
+                <div className="flex flex-wrap gap-2">
+                  {uploadedImages.map((img, idx) => (
+                    <div key={idx} className="relative group">
+                      <img
+                        src={img}
+                        alt={`Upload ${idx + 1}`}
+                        className="w-20 h-20 object-cover rounded-lg border"
+                      />
+                      <button
+                        onClick={() => removeUploadedImage(idx)}
+                        className="absolute -top-2 -right-2 p-1 bg-destructive text-destructive-foreground rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X className="h-3 w-3" />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </TabsContent>
+          </Tabs>
+
           <Textarea
-            placeholder="Describe the image you want to create..."
+            placeholder={
+              mode === "generate"
+                ? "Describe the image you want to create..."
+                : "Describe how you want to edit your image(s)..."
+            }
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={3}
@@ -139,7 +264,7 @@ export function ImageGenerator() {
           />
 
           <div className="flex flex-wrap gap-2">
-            {examplePrompts.map((example, idx) => (
+            {currentPrompts.map((example, idx) => (
               <Button
                 key={idx}
                 variant="outline"
@@ -154,18 +279,18 @@ export function ImageGenerator() {
 
           <Button
             onClick={handleGenerate}
-            disabled={isGenerating || !prompt.trim()}
+            disabled={isGenerating || !prompt.trim() || (mode === "edit" && uploadedImages.length === 0)}
             className="w-full"
           >
             {isGenerating ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                Generating...
+                {mode === "edit" ? "Editing..." : "Generating..."}
               </>
             ) : (
               <>
                 <Sparkles className="mr-2 h-4 w-4" />
-                Generate Image
+                {mode === "edit" ? "Apply Edit" : "Generate Image"}
               </>
             )}
           </Button>
