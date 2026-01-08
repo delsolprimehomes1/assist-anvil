@@ -18,5 +18,14 @@ verify_jwt = false
 [functions.send-auth-email]
 verify_jwt = false
 
+[functions.process-guideline]
+verify_jwt = true
+
+[functions.rag-search]
+verify_jwt = true
+
+[functions.rag-chat]
+verify_jwt = true
+
 [functions.send-custom-builds-webhook]
 verify_jwt = false

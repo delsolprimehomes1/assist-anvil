@@ -22,6 +22,7 @@ import { TrainingManagementTab } from "@/components/admin/training/TrainingManag
 import { ScheduleManagement } from "@/components/admin/schedule/ScheduleManagement";
 import { NewsManagement } from "@/components/admin/news/NewsManagement";
 import { MarketingManagement } from "@/components/admin/marketing/MarketingManagement";
+import { GuidelineManagement } from "@/components/admin/guidelines/GuidelineManagement";
 
 type ApprovedEmail = {
   id: string;
@@ -79,7 +80,7 @@ const Admin = () => {
 
   const handleAddEmail = async (e: React.FormEvent) => {
     e.preventDefault();
-    
+
     const emailRegex = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/;
     if (!emailRegex.test(emailForm.email)) {
       toast({
@@ -101,8 +102,8 @@ const Admin = () => {
     if (error) {
       toast({
         title: "Error",
-        description: error.message.includes("duplicate") 
-          ? "This email is already approved." 
+        description: error.message.includes("duplicate")
+          ? "This email is already approved."
           : "Failed to add email.",
         variant: "destructive",
       });
@@ -178,12 +179,13 @@ const Admin = () => {
           <TabsTrigger value="schedule" className="whitespace-nowrap px-4 py-2">Schedule</TabsTrigger>
           <TabsTrigger value="news" className="whitespace-nowrap px-4 py-2">Carrier News</TabsTrigger>
           <TabsTrigger value="marketing" className="whitespace-nowrap px-4 py-2">Marketing</TabsTrigger>
+          <TabsTrigger value="guidelines" className="whitespace-nowrap px-4 py-2">Carrier Guidelines</TabsTrigger>
         </TabsList>
 
         <TabsContent value="training" className="space-y-6">
           <TrainingManagementTab />
         </TabsContent>
-        
+
         <TabsContent value="schedule" className="space-y-6">
           <ScheduleManagement />
         </TabsContent>
@@ -194,6 +196,10 @@ const Admin = () => {
 
         <TabsContent value="marketing" className="space-y-6">
           <MarketingManagement />
+        </TabsContent>
+
+        <TabsContent value="guidelines" className="space-y-6">
+          <GuidelineManagement />
         </TabsContent>
 
 
@@ -325,15 +331,15 @@ const Admin = () => {
                   <TabsTrigger value="approved">Approved</TabsTrigger>
                   <TabsTrigger value="rejected">Rejected</TabsTrigger>
                 </TabsList>
-                
+
                 <TabsContent value="pending" className="mt-6">
                   <PendingUsersList />
                 </TabsContent>
-                
+
                 <TabsContent value="approved" className="mt-6">
                   <ApprovedUsersList />
                 </TabsContent>
-                
+
                 <TabsContent value="rejected" className="mt-6">
                   <RejectedUsersList />
                 </TabsContent>
@@ -403,8 +409,8 @@ const Admin = () => {
           </Card>
         </TabsContent>
       </Tabs>
-      <InviteAgentDialog 
-        open={inviteDialogOpen} 
+      <InviteAgentDialog
+        open={inviteDialogOpen}
         onOpenChange={setInviteDialogOpen}
         onInvitationSent={() => {
           // Refresh will happen automatically when InvitationsList remounts
