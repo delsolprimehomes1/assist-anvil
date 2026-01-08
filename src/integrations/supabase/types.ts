@@ -713,6 +713,7 @@ export type Database = {
       onboarding_requests: {
         Row: {
           agency_code: string | null
+          assigned_manager: string | null
           created_at: string
           email: string
           first_name: string
@@ -727,6 +728,7 @@ export type Database = {
         }
         Insert: {
           agency_code?: string | null
+          assigned_manager?: string | null
           created_at?: string
           email: string
           first_name: string
@@ -741,6 +743,7 @@ export type Database = {
         }
         Update: {
           agency_code?: string | null
+          assigned_manager?: string | null
           created_at?: string
           email?: string
           first_name?: string
