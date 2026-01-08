@@ -20,6 +20,16 @@ interface VideoAnalysisResponse {
   action_items: string[];
 }
 
+// Convert array buffer to base64
+function arrayBufferToBase64(buffer: ArrayBuffer): string {
+  const bytes = new Uint8Array(buffer);
+  let binary = "";
+  for (let i = 0; i < bytes.byteLength; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return btoa(binary);
+}
+
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -41,6 +51,49 @@ serve(async (req) => {
     }
 
     console.log("Starting video analysis:", { analysis_type, has_url: !!video_url, has_data: !!video_data });
+
+    // Build the video data URL
+    let videoDataUrl: string;
+    let detectedMimeType = mime_type || "video/mp4";
+
+    if (video_data) {
+      // Already have base64 data
+      videoDataUrl = video_data;
+      console.log("Using provided base64 video data");
+    } else if (video_url) {
+      // Need to fetch the video and convert to base64
+      console.log("Fetching video from URL:", video_url);
+      
+      try {
+        const videoResponse = await fetch(video_url);
+        if (!videoResponse.ok) {
+          throw new Error(`Failed to fetch video: ${videoResponse.status}`);
+        }
+        
+        // Get content type from response
+        const contentType = videoResponse.headers.get("content-type");
+        if (contentType && contentType.startsWith("video/")) {
+          detectedMimeType = contentType.split(";")[0];
+        }
+        
+        const arrayBuffer = await videoResponse.arrayBuffer();
+        const base64 = arrayBufferToBase64(arrayBuffer);
+        videoDataUrl = `data:${detectedMimeType};base64,${base64}`;
+        
+        console.log("Video fetched and converted, size:", Math.round(arrayBuffer.byteLength / 1024), "KB");
+      } catch (fetchError) {
+        console.error("Error fetching video:", fetchError);
+        return new Response(
+          JSON.stringify({ error: "Could not fetch video from URL. Please try uploading the file directly." }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+    } else {
+      return new Response(
+        JSON.stringify({ error: "No video provided" }),
+        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
 
     // Build the system prompt based on analysis type
     let systemPrompt = `You are an expert video analyst. Analyze the provided video carefully and extract insights.`;
@@ -80,21 +133,21 @@ Include all dialogue, narration, and significant audio.`;
 3. Action items or takeaways`;
     }
 
-    // Build the video content for Gemini
-    const videoContent: any = video_url 
-      ? {
-          type: "file",
-          file: {
-            url: video_url,
-            mime_type: mime_type || "video/mp4"
-          }
+    // Build the message content with video as image_url (Gemini accepts video this way through the gateway)
+    const messageContent = [
+      {
+        type: "image_url",
+        image_url: {
+          url: videoDataUrl
         }
-      : {
-          type: "image_url",
-          image_url: {
-            url: video_data
-          }
-        };
+      },
+      { 
+        type: "text", 
+        text: userPrompt 
+      }
+    ];
+
+    console.log("Sending request to Lovable AI Gateway...");
 
     const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
       method: "POST",
@@ -108,10 +161,7 @@ Include all dialogue, narration, and significant audio.`;
           { role: "system", content: systemPrompt },
           { 
             role: "user", 
-            content: [
-              videoContent,
-              { type: "text", text: userPrompt }
-            ]
+            content: messageContent
           }
         ],
         tools: [
@@ -198,7 +248,14 @@ Include all dialogue, narration, and significant audio.`;
         );
       }
       
-      throw new Error(`AI request failed: ${response.status}`);
+      // Parse error for more specific message
+      try {
+        const errorJson = JSON.parse(errorText);
+        const errorMessage = errorJson?.error?.message || `AI request failed: ${response.status}`;
+        throw new Error(errorMessage);
+      } catch {
+        throw new Error(`AI request failed: ${response.status}`);
+      }
     }
 
     const data = await response.json();
