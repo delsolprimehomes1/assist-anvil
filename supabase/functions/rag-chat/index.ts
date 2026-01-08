@@ -1,4 +1,3 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
 import OpenAI from 'https://esm.sh/openai@4.20.1';
@@ -33,7 +32,6 @@ serve(async (req) => {
         console.log(`Chat Query: "${query}"`);
 
         // 1. Query Parsing Configuration
-        // We define the extraction schema
         const extractionTools = [
             {
                 type: "function",
@@ -75,7 +73,7 @@ serve(async (req) => {
         // 2. Perform Extraction (Query Parsing)
         console.log("Parsing query for entities...");
         const parseCompletion = await openai.chat.completions.create({
-            model: "gpt-4-0125-preview", // Fast, accurate model for tool calling
+            model: "gpt-4-0125-preview",
             messages: [{ role: "user", content: query }],
             tools: extractionTools,
             tool_choice: "auto",
@@ -102,9 +100,9 @@ serve(async (req) => {
             console.log("No filters extracted.");
         }
 
-        // 3. Generate Embedding for vector search
+        // 3. Generate Embedding for vector search (using text-embedding-3-small for 1536 dimensions)
         const embeddingResponse = await openai.embeddings.create({
-            model: "text-embedding-3-large",
+            model: "text-embedding-3-small",
             input: query.replace(/\n/g, ' '),
         });
         const queryEmbedding = embeddingResponse.data[0].embedding;
@@ -115,7 +113,7 @@ serve(async (req) => {
             query_embedding: queryEmbedding,
             match_threshold: 0.3,
             match_count: matchCount,
-            filter_carrier_id: null, // Could parse carrier names too, but keeping simple for now
+            filter_carrier_id: null,
             filter_age: filters.age,
             filter_coverage: filters.coverage_amount
         });
@@ -127,20 +125,16 @@ serve(async (req) => {
         // 5. Confidence Scoring
         let confidenceScore = 0;
         if (chunks && chunks.length > 0) {
-            // Simple scoring: average similarity of top 3
             const topChunks = chunks.slice(0, 3);
             const avgSim = topChunks.reduce((sum: number, c: any) => sum + c.similarity, 0) / topChunks.length;
-
-            // Multiplier based on chunk count (penalize if very few results)
             const countFactor = Math.min(chunks.length, 5) / 5;
-
             confidenceScore = avgSim * countFactor;
             console.log(`Confidence Score: ${confidenceScore.toFixed(2)} (Avg Sim: ${avgSim.toFixed(2)}, Count: ${chunks.length})`);
         }
 
         // 6. Construct System Prompt with Context
         const contextText = chunks?.map((c: any) =>
-            `---\nSource: ${c.carrier_name} - ${c.product_type} (${c.document_type}, p. ${c.page_number})\nContent: ${c.chunk_text}`
+            `---\nSource: ${c.carrier_name} - ${c.product_type} (${c.document_type})\nContent: ${c.content}`
         ).join('\n\n');
 
         const systemPrompt = `You are "The Underwriting Coach", an expert assistant for insurance agents.
@@ -152,7 +146,7 @@ serve(async (req) => {
     Instructions:
     1.  **Direct Answer**: Start with a direct answer to the user's specific question.
     2.  **Ranked Support**: If suggesting multiple carriers, rank them by how well they match the request based on the context provided.
-    3.  **Strict Citations**: You must cite your sources significantly. Use the format: [Carrier Name, Doc Type, p. X].
+    3.  **Strict Citations**: You must cite your sources significantly. Use the format: [Carrier Name, Doc Type].
     4.  **Unknowns**: If the answer is NOT in the provided guidelines, explicitly state "I cannot find specific guidance on this in the available documents." Do not Hallucinate coverage.
     5.  **Tone**: Professional, encouraging, and precise.
     
@@ -161,7 +155,6 @@ serve(async (req) => {
     `;
 
         // 7. Call LLM for Response
-        // We stream the response back.
         const completion = await openai.chat.completions.create({
             model: "gpt-4-turbo-preview",
             messages: [
