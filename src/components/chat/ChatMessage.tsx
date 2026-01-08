@@ -8,7 +8,6 @@ export interface Message {
     role: 'user' | 'assistant' | 'system';
     content: string;
     id?: string;
-    citations?: string[];
 }
 
 interface ChatMessageProps {
@@ -19,7 +18,15 @@ interface ChatMessageProps {
 export function ChatMessage({ message, onCitationClick }: ChatMessageProps) {
     const isUser = message.role === 'user';
 
-    // Parse inline citations if any (legacy check)
+    // Function to process content and make citations interactive
+    // Citations format: [Source: Carrier Name, Doc Type, p. X]
+    // We will essentially rely on ReactMarkdown to parse standard text, 
+    // but we might want a custom logic/plugin if we want buttons for citations.
+    // For now, simpler approach: let's highlight them via CSS regex replacer if usage was raw HTML, 
+    // but with ReactMarkdown it's better to treat them as custom regex/components or just bold them.
+    // A simple hack: We can preprocess the string to make citation look like a link or code.
+    // " [Source: ...]" -> "[📘 Source: ...](#citation)"
+
     const processedContent = message.content.replace(
         /\[Source: (.*?)\]/g,
         (match, content) => `**[📘 ${content}](#citation)**`
@@ -37,7 +44,7 @@ export function ChatMessage({ message, onCitationClick }: ChatMessageProps) {
                 {isUser ? <User className="h-4 w-4" /> : <Bot className="h-4 w-4 text-primary" />}
             </div>
 
-            <div className="flex-1 space-y-4 overflow-hidden">
+            <div className="flex-1 space-y-2 overflow-hidden">
                 <div className="prose prose-sm dark:prose-invert max-w-none break-words">
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
@@ -64,24 +71,6 @@ export function ChatMessage({ message, onCitationClick }: ChatMessageProps) {
                         {processedContent}
                     </ReactMarkdown>
                 </div>
-
-                {/* Explicit Citations Block */}
-                {message.citations && message.citations.length > 0 && (
-                    <div className="mt-4 pt-4 border-t border-border/50">
-                        <p className="text-xs font-semibold text-muted-foreground mb-2 uppercase tracking-wider">Sources:</p>
-                        <div className="flex flex-wrap gap-2">
-                            {message.citations.map((source, idx) => (
-                                <span
-                                    key={idx}
-                                    className="inline-flex items-center rounded-full bg-primary/10 px-2.5 py-0.5 text-xs font-medium text-primary cursor-pointer hover:bg-primary/20 transition-colors"
-                                    onClick={() => onCitationClick?.(source)}
-                                >
-                                    📄 {source}
-                                </span>
-                            ))}
-                        </div>
-                    </div>
-                )}
             </div>
         </div>
     );
