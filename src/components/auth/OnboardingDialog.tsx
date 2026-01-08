@@ -9,12 +9,22 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock, Award, XCircle } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock, Award, XCircle, UserCheck } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
+
+// Private mapping - never displayed to user
+const AGENCY_MANAGER_MAP: Record<string, string[]> = {
+  "100": ["K. Jenson", "E. Young Smith"],
+  "200": ["C. Gutierrez"],
+  "300": ["L. Gause"],
+  "400": ["J. Meletia"],
+  "500": ["A. Coleman"],
+  "600": ["T. Hunt"]
+};
 
 const formSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -23,6 +33,7 @@ const formSchema = z.object({
   phone: z.string().min(10, "Phone number must be at least 10 digits"),
   isLicensed: z.enum(["yes", "no"], { required_error: "Please select an option" }),
   agencyCode: z.string().min(1, "Please select an agency code"),
+  assignedManager: z.string().min(1, "Please select your manager"),
   referredBy: z.string().min(2, "Please enter who referred you"),
   password: z.string().min(8, "Password must be at least 8 characters"),
   confirmPassword: z.string(),
@@ -71,12 +82,18 @@ const steps = [
   },
   {
     id: 6,
+    question: "Select your manager",
+    icon: UserCheck,
+    fields: ["assignedManager"] as const,
+  },
+  {
+    id: 7,
     question: "Who referred you?",
     icon: Users,
     fields: ["referredBy"] as const,
   },
   {
-    id: 7,
+    id: 8,
     question: "Create a secure password",
     icon: Lock,
     fields: ["password", "confirmPassword"] as const,
@@ -98,11 +115,20 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
       phone: "",
       isLicensed: undefined,
       agencyCode: "",
+      assignedManager: "",
       referredBy: "",
       password: "",
       confirmPassword: "",
     },
   });
+
+  // Watch agency code to reset manager when it changes
+  const selectedAgencyCode = form.watch("agencyCode");
+  
+  useEffect(() => {
+    // Reset manager selection when agency code changes
+    form.setValue("assignedManager", "");
+  }, [selectedAgencyCode, form]);
 
   const currentStepConfig = steps[currentStep - 1];
   const progress = (currentStep / steps.length) * 100;
@@ -153,6 +179,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
           phone: values.phone,
           is_licensed: values.isLicensed === "yes",
           agency_code: values.agencyCode || null,
+          assigned_manager: values.assignedManager || null,
           referred_by: values.referredBy || null,
         });
 
@@ -168,6 +195,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
             phone: values.phone,
             isLicensed: values.isLicensed === "yes",
             agencyCode: values.agencyCode,
+            assignedManager: values.assignedManager,
             referredBy: values.referredBy,
           },
         }
@@ -242,6 +270,9 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   };
 
   const Icon = currentStepConfig.icon;
+
+  // Get available managers for the selected agency code
+  const availableManagers = AGENCY_MANAGER_MAP[selectedAgencyCode] || [];
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -454,7 +485,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent className="bg-background z-50">
-                                  {["100", "200", "300", "400", "500", "600", "700", "800", "900"].map((code) => (
+                                  {["100", "200", "300", "400", "500", "600"].map((code) => (
                                     <SelectItem key={code} value={code} className="text-lg">
                                       {code}
                                     </SelectItem>
@@ -468,6 +499,44 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                       )}
 
                       {currentStep === 6 && (
+                        <FormField
+                          control={form.control}
+                          name="assignedManager"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  className={cn(
+                                    "grid gap-4",
+                                    availableManagers.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
+                                  )}
+                                  disabled={loading}
+                                >
+                                  {availableManagers.map((manager) => (
+                                    <label
+                                      key={manager}
+                                      className={cn(
+                                        "flex items-center justify-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                        field.value === manager
+                                          ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10"
+                                          : "border-border hover:border-muted-foreground"
+                                      )}
+                                    >
+                                      <RadioGroupItem value={manager} className="sr-only" />
+                                      <span className="text-xl font-semibold">{manager}</span>
+                                    </label>
+                                  ))}
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {currentStep === 7 && (
                         <FormField
                           control={form.control}
                           name="referredBy"
@@ -488,7 +557,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                         />
                       )}
 
-                      {currentStep === 7 && (
+                      {currentStep === 8 && (
                         <div className="space-y-4">
                           <FormField
                             control={form.control}
