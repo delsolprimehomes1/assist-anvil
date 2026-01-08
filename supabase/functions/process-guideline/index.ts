@@ -1,8 +1,7 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'npm:@supabase/supabase-js@2.76.1'
 import OpenAI from 'npm:openai'
-import pdf from 'npm:pdf-parse/lib/pdf-parse.js'
-import { Buffer } from 'node:buffer'
+import { getDocument } from 'https://esm.sh/pdfjs-serverless@0.5.0'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
@@ -106,7 +105,7 @@ function extractTextBasic(buffer: ArrayBuffer): string {
     return text.join(' ').replace(/\s+/g, ' ').trim();
 }
 
-// PDF text extraction using pdf-parse with fallback
+// PDF text extraction using pdfjs-serverless with fallback
 async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
     const startTime = Date.now();
     const maxBytes = 2 * 1024 * 1024; // 2MB limit for safety
@@ -119,13 +118,31 @@ async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
     console.log(`[BG] Starting PDF extraction (${limitedBuffer.byteLength} bytes)`);
 
     try {
-        const data = await pdf(Buffer.from(limitedBuffer));
+        // Convert ArrayBuffer to Uint8Array for pdfjs-serverless
+        const data = new Uint8Array(limitedBuffer);
+        const doc = await getDocument({ data, useSystemFonts: true }).promise;
+
+        let fullText = '';
+        const numPages = doc.numPages;
+        console.log(`[BG] PDF has ${numPages} pages`);
+
+        // Extract text from each page (limit to first 50 pages for performance)
+        const maxPages = Math.min(numPages, 50);
+        for (let i = 1; i <= maxPages; i++) {
+            const page = await doc.getPage(i);
+            const textContent = await page.getTextContent();
+            const pageText = textContent.items
+                .map((item: any) => item.str)
+                .join(' ');
+            fullText += pageText + '\n';
+        }
+
         const elapsed = Date.now() - startTime;
-        console.log(`[BG] pdf-parse success: ${data.text.length} chars in ${elapsed}ms`);
-        return data.text || '';
+        console.log(`[BG] pdfjs-serverless success: ${fullText.length} chars in ${elapsed}ms`);
+        return fullText;
     } catch (err) {
         const elapsed = Date.now() - startTime;
-        console.error(`[BG] pdf-parse failed after ${elapsed}ms:`, err);
+        console.error(`[BG] pdfjs-serverless failed after ${elapsed}ms:`, err);
 
         // Fallback to basic extraction
         console.log('[BG] Trying basic extraction as fallback...');
