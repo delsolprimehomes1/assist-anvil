@@ -126,41 +126,36 @@ export default function AIAssist() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-chat`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/gemini-query`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
-          messages: [...messages, userMsg],
-          session_id: currentSessionId
+          question: content,
+          session_id: currentSessionId,
+          // Optional: passing currently loaded carriers if we had a filter context
+          // carrier_filters: [] 
         })
       });
 
       if (!response.ok) throw new Error('Failed to fetch response');
 
-      // Streaming logic
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let aiContent = "";
+      const data = await response.json();
+      const { answer, sources } = data;
 
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
-
-      while (true) {
-        const { done, value } = await reader!.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        aiContent += chunk;
-
-        setMessages(prev => {
-          const newMsgs = [...prev];
-          const lastMsg = newMsgs[newMsgs.length - 1];
-          lastMsg.content = aiContent;
-          return newMsgs;
+      // Update message with full content
+      setMessages(prev => {
+        const newMsgs = [...prev];
+        // Add assistant message
+        newMsgs.push({
+          role: 'assistant',
+          content: answer,
+          citations: sources?.map((s: any) => s.carrier_name) // Simple mapping for now
         });
-      }
+        return newMsgs;
+      });
 
       // TODO: Save messages to DB here if full persistence desired
 

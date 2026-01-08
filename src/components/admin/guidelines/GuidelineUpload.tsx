@@ -94,14 +94,14 @@ export const GuidelineUpload = () => {
 
             if (dbError) throw dbError;
 
-            // 3. Trigger Processing
-            const { error: fnError } = await supabase.functions.invoke('process-guideline', {
+            // 3. Trigger Gemini Upload
+            const { error: fnError } = await supabase.functions.invoke('gemini-upload', {
                 body: { guideline_id: insertedData.id }
             });
 
             if (fnError) {
                 console.error("Processing trigger failed:", fnError);
-                
+
                 // Update status to error immediately so user can retry
                 await supabase
                     .from('carrier_guidelines')
@@ -110,10 +110,10 @@ export const GuidelineUpload = () => {
                         processing_error: `Failed to start processing: ${fnError.message}`
                     })
                     .eq('id', insertedData.id);
-                
+
                 toast({
-                    title: "Processing Failed to Start",
-                    description: "Upload succeeded but processing failed. Click Retry to try again.",
+                    title: "Upload Warning",
+                    description: "File saved but Gemini upload failed to start.",
                     variant: "destructive"
                 });
             }
@@ -125,8 +125,8 @@ export const GuidelineUpload = () => {
             // Optional: reset other fields if bulk upload flow desires it, 
             // but often users upload multiple docs for same carrier/product, so keeping some state is UX friendly.
             toast({
-                title: "Processing Started",
-                description: "The guideline has been uploaded and queued for ingestion.",
+                title: "Upload Started",
+                description: "The guideline is being uploaded to Gemini for indexing.",
             });
         },
         onError: (error: Error) => {
@@ -196,7 +196,7 @@ export const GuidelineUpload = () => {
                                     {isDragActive ? "Drop file here" : "Click to upload or drag and drop"}
                                 </p>
                                 <p className="text-sm text-muted-foreground">
-                                    Supports PDF and DOCX (Max 50MB)
+                                    Supports PDF (High Accuracy)
                                 </p>
                             </div>
                         )}
@@ -398,7 +398,7 @@ export const GuidelineUpload = () => {
                     ) : (
                         <>
                             <Upload className="mr-2 h-4 w-4" />
-                            Upload & Process
+                            Upload & Index
                         </>
                     )}
                 </Button>

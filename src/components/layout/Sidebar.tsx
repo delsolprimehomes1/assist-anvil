@@ -1,18 +1,19 @@
 import { NavLink } from "react-router-dom";
-import { 
-  BarChart3, 
-  Building2, 
-  Calculator, 
-  GraduationCap, 
-  Megaphone, 
-  Shield, 
+import {
+  BarChart3,
+  Building2,
+  Calculator,
+  GraduationCap,
+  Megaphone,
+  Shield,
   Bot,
   Settings,
   X,
   ShoppingBag,
   Users,
   Newspaper,
-  ExternalLink
+  ExternalLink,
+  Wrench
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -24,16 +25,17 @@ interface SidebarProps {
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
-  { 
-    name: "Order Leads", 
-    href: "https://leads.lifecoimo.com/", 
+  {
+    name: "Order Leads",
+    href: "https://leads.lifecoimo.com/",
     icon: ShoppingBag,
     external: true
   },
   { name: "CRM", href: "https://app.battersbox.ai", icon: Users, external: true },
   { name: "Carriers", href: "/dashboard/carriers", icon: Building2 },
   { name: "News", href: "/dashboard/news", icon: Newspaper },
-  { name: "Quoting Tools", href: "/dashboard/tools", icon: Calculator },
+  { name: "Quoting Tools", href: "/dashboard/quoting", icon: Calculator },
+  { name: "Tools & Resources", href: "/dashboard/tools", icon: Wrench },
   { name: "Training", href: "/dashboard/training", icon: GraduationCap },
   { name: "Marketing", href: "/dashboard/marketing", icon: Megaphone },
   { name: "Compliance", href: "/dashboard/compliance", icon: Shield },
@@ -51,7 +53,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           onClick={onClose}
         />
       )}
-      
+
       {/* Sidebar */}
       <div
         className={cn(
@@ -61,15 +63,15 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       >
         <div className="flex items-center justify-between p-4 border-b md:hidden">
           <span className="text-lg font-semibold">Menu</span>
-          <Button 
-            variant="ghost" 
-            size="sm" 
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={onClose}
           >
             <X className="h-5 w-5" />
           </Button>
         </div>
-        
+
         <nav className="space-y-1 p-3">
           {navigation.map((item) => {
             if (item.external) {
@@ -91,7 +93,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 </a>
               );
             }
-            
+
             return (
               <NavLink
                 key={item.name}
@@ -100,8 +102,8 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 className={({ isActive }) =>
                   cn(
                     "flex items-center gap-3 px-3 py-2 text-sm font-medium rounded-md transition-all group",
-                    isActive 
-                      ? "bg-primary/10 text-primary border-l-4 border-l-primary" 
+                    isActive
+                      ? "bg-primary/10 text-primary border-l-4 border-l-primary"
                       : "text-muted-foreground hover:text-primary hover:bg-primary/5"
                   )
                 }

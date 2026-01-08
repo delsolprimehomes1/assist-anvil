@@ -9,6 +9,7 @@ import LandingPage from "./pages/LandingPage";
 import Dashboard from "./pages/Dashboard";
 import Carriers from "./pages/Carriers";
 import Tools from "./pages/Tools";
+import QuotingTools from "./pages/QuotingTools";
 import Training from "./pages/Training";
 import TrainingPlayer from "./pages/TrainingPlayer";
 import Marketing from "./pages/Marketing";
@@ -42,7 +43,7 @@ const App = () => (
           <Route path="/pending-approval" element={<PendingApproval />} />
           <Route path="/privacy-policy" element={<PrivacyPolicy />} />
           <Route path="/terms-of-service" element={<TermsOfService />} />
-          
+
           {/* Protected Dashboard Routes */}
           <Route path="/dashboard" element={
             <ProtectedRoute>
@@ -53,6 +54,7 @@ const App = () => (
             <Route path="carriers" element={<Carriers />} />
             <Route path="news" element={<News />} />
             <Route path="ai-assist" element={<AIAssist />} />
+            <Route path="quoting" element={<QuotingTools />} />
             <Route path="tools" element={<Tools />} />
             <Route path="training" element={<Training />} />
             <Route path="training/:trainingId" element={<TrainingPlayer />} />

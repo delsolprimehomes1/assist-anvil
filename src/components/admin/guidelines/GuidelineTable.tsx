@@ -28,11 +28,11 @@ export const GuidelineTable = () => {
             if (error) throw error;
             return data;
         },
-        // Poll every 5 seconds if any guidelines are processing
+        // Poll every 3 seconds if any guidelines are uploading
         refetchInterval: (query) => {
             const data = query.state.data;
-            if (data?.some((g: any) => g.status === 'processing')) {
-                return 5000;
+            if (data?.some((g: any) => g.status === 'uploading' || g.status === 'processing')) {
+                return 3000;
             }
             return false;
         }
@@ -103,7 +103,7 @@ export const GuidelineTable = () => {
                 .eq('id', id);
 
             // Then invoke the edge function
-            const { error } = await supabase.functions.invoke('process-guideline', {
+            const { error } = await supabase.functions.invoke('gemini-upload', {
                 body: { guideline_id: id }
             });
 
@@ -198,14 +198,13 @@ export const GuidelineTable = () => {
         switch (status) {
             case 'active':
                 return <Badge className="bg-green-500 hover:bg-green-600 border-green-600/20 text-green-50">Active</Badge>;
-            case 'processing':
+            case 'uploading':
+            case 'processing': // Backward compat
                 return (
                     <Badge className="bg-blue-500/10 text-blue-600 hover:bg-blue-500/20 border-blue-500/20 flex gap-1 items-center">
-                        <Loader2 className="h-3 w-3 animate-spin" /> Processing
+                        <Loader2 className="h-3 w-3 animate-spin" /> Uploading
                     </Badge>
                 );
-            case 'partial':
-                return <Badge className="bg-amber-500 hover:bg-amber-600 text-white border-amber-600/20">Partial</Badge>;
             case 'error':
                 return <Badge variant="destructive" className="flex gap-1 items-center"><AlertCircle className="h-3 w-3" /> Error</Badge>;
             case 'archived':
@@ -273,16 +272,10 @@ export const GuidelineTable = () => {
                                         </div>
                                     </TableCell>
                                     <TableCell>
-                                        {doc.chunks_processed_count > 0 && (
-                                            <div className="text-xs text-muted-foreground">
-                                                {doc.chunks_processed_count} chunks
-                                            </div>
-                                        )}
-                                        {doc.processing_time_ms > 0 && (
-                                            <div className="text-[10px] text-muted-foreground/70">
-                                                {(doc.processing_time_ms / 1000).toFixed(1)}s
-                                            </div>
-                                        )}
+                                        {/* Stats - Simplified for Gemini */}
+                                        <div className="text-[10px] text-muted-foreground/70">
+                                            {doc.gemini_file_uri ? "Gemini Indexed" : (doc.file_size ? `${(doc.file_size / 1024).toFixed(0)} KB` : '')}
+                                        </div>
                                     </TableCell>
                                     <TableCell>
                                         <TooltipProvider>
@@ -297,7 +290,7 @@ export const GuidelineTable = () => {
                                                         )}
                                                         {doc.processing_time_ms && (
                                                             <p className="text-xs text-muted-foreground">
-                                                                Processed in {(doc.processing_time_ms / 1000).toFixed(1)}s
+                                                                Uploaded in {(doc.processing_time_ms / 1000).toFixed(1)}s
                                                             </p>
                                                         )}
                                                     </TooltipContent>

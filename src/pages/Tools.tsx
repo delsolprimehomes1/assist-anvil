@@ -1,236 +1,119 @@
-import { useState, useEffect } from "react";
-import { Calculator, FileText, Search, BookOpen, ExternalLink, Download, Building2 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CalculatorHub } from "@/components/tools/CalculatorHub";
-import { CarrierQuotingHub } from "@/components/tools/CarrierQuotingHub";
-import { supabase } from "@/integrations/supabase/client";
-import { toast } from "@/hooks/use-toast";
+import { ExternalLink, Wrench } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 
-interface CarrierGuide {
-  id: string;
-  carrier_name: string;
-  carrier_logo?: string;
-  guide_title: string;
-  guide_url: string;
+interface Tool {
+    id: string;
+    name: string;
+    emoji?: string;
+    image?: string;
+    description: string;
+    features: string[];
+    url: string;
+    ctaText: string;
+    verified?: boolean;
+    badge?: string;
 }
 
-const Tools = () => {
-  const [activeTab, setActiveTab] = useState("resources");
-  const [guideSearchTerm, setGuideSearchTerm] = useState("");
-  const [carrierGuides, setCarrierGuides] = useState<CarrierGuide[]>([]);
-  const [guidesLoading, setGuidesLoading] = useState(true);
+const tools: Tool[] = [
+    {
+        id: 'nano-banana',
+        name: 'Nano Banana Pro',
+        emoji: '🍌',
+        description: 'AI-powered insurance quoting and lead management platform designed for independent agents.',
+        features: [
+            'Instant multi-carrier quotes',
+            'Automated lead follow-up',
+            'Integrated CRM system',
+            'Real-time commission tracking',
+            'Advanced agent dashboard',
+        ],
+        url: 'https://nanobanana.com',
+        ctaText: 'Explore Nano Banana Pro',
+        verified: true,
+        badge: 'Featured',
+    },
+];
 
-  useEffect(() => {
-    fetchCarrierGuides();
-  }, []);
-
-  const fetchCarrierGuides = async () => {
-    try {
-      setGuidesLoading(true);
-      const { data: carriers, error } = await supabase
-        .from('carriers')
-        .select('id, name, logo_url, pdf_documents')
-        .not('pdf_documents', 'is', null);
-
-      if (error) throw error;
-
-      const guides: CarrierGuide[] = [];
-      carriers?.forEach(carrier => {
-        const docs = carrier.pdf_documents as any[];
-        if (Array.isArray(docs)) {
-          docs.forEach(doc => {
-            guides.push({
-              id: `${carrier.id}-${doc.url}`,
-              carrier_name: carrier.name,
-              carrier_logo: carrier.logo_url,
-              guide_title: doc.title,
-              guide_url: doc.url
-            });
-          });
-        }
-      });
-
-      setCarrierGuides(guides);
-    } catch (error) {
-      console.error('Error fetching carrier guides:', error);
-      toast({
-        title: "Error",
-        description: "Failed to load carrier guides",
-        variant: "destructive"
-      });
-    } finally {
-      setGuidesLoading(false);
-    }
-  };
-
-  const handleDownload = (url: string, title: string) => {
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = title;
-    link.target = '_blank';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    
-    toast({
-      title: "Download Started",
-      description: `Downloading ${title}...`
-    });
-  };
-
-  const filteredGuides = carrierGuides.filter(guide =>
-    guide.carrier_name.toLowerCase().includes(guideSearchTerm.toLowerCase()) ||
-    guide.guide_title.toLowerCase().includes(guideSearchTerm.toLowerCase())
-  );
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case "calculator": return Calculator;
-      case "guide": return BookOpen;
-      case "cheat_sheet": return FileText;
-      case "tool": return ExternalLink;
-      default: return FileText;
-    }
-  };
-
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case "calculator": return "bg-blue-100 text-blue-800";
-      case "guide": return "bg-green-100 text-green-800";
-      case "cheat_sheet": return "bg-purple-100 text-purple-800";
-      case "tool": return "bg-orange-100 text-orange-800";
-      default: return "bg-gray-100 text-gray-800";
-    }
-  };
-
-  return (
-    <div className="space-y-4 sm:space-y-6 animate-fade-in">
-      <div className="flex flex-col gap-2">
-        <h1 className="text-2xl sm:text-3xl font-bold">Tools & Resources</h1>
-        <p className="text-sm sm:text-base text-muted-foreground">Essential calculators, guides, and resources</p>
-      </div>
-
-      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-        <TabsList className="grid w-full grid-cols-3 h-10 sm:h-11">
-          <TabsTrigger value="resources" className="text-sm sm:text-base">Carrier Quoting</TabsTrigger>
-          <TabsTrigger value="calculators" className="text-sm sm:text-base">Calculators</TabsTrigger>
-          <TabsTrigger value="guides" className="text-sm sm:text-base">Guides</TabsTrigger>
-        </TabsList>
-
-        <TabsContent value="resources" className="space-y-6">
-          <CarrierQuotingHub />
-        </TabsContent>
-
-        <TabsContent value="calculators" className="space-y-6">
-          <CalculatorHub />
-        </TabsContent>
-
-        <TabsContent value="guides" className="space-y-6">
-          {/* Search Bar */}
-          <Card>
-            <CardContent className="pt-6">
-              <div className="relative">
-                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-                <Input
-                  placeholder="Search carrier guides..."
-                  value={guideSearchTerm}
-                  onChange={(e) => setGuideSearchTerm(e.target.value)}
-                  className="pl-10"
-                />
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Featured Resource */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <BookOpen className="h-5 w-5 text-primary" />
-                FE Health Questions
-              </CardTitle>
-              <CardDescription>Common final expense health questions</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="space-y-2 text-sm">
-                <p>• Hospitalized in past 2 years?</p>
-                <p>• Currently taking insulin?</p>
-                <p>• Diagnosed with cancer?</p>
-                <p>• Heart attack or stroke?</p>
-              </div>
-              <Button variant="outline" className="w-full" size="sm">
-                View Full Matrix
-              </Button>
-            </CardContent>
-          </Card>
-
-          {/* Carrier Guides Grid */}
-          {guidesLoading ? (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4 animate-pulse" />
-                <p className="text-muted-foreground">Loading carrier guides...</p>
-              </CardContent>
-            </Card>
-          ) : filteredGuides.length > 0 ? (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-              {filteredGuides.map((guide) => (
-                <Card key={guide.id} className="hover:shadow-md transition-shadow">
-                  <CardHeader className="pb-3">
-                    <div className="flex items-start gap-3">
-                      {guide.carrier_logo ? (
-                        <img 
-                          src={guide.carrier_logo} 
-                          alt={guide.carrier_name}
-                          className="w-10 h-10 object-contain"
-                        />
-                      ) : (
-                        <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center">
-                          <Building2 className="h-5 w-5 text-primary" />
-                        </div>
-                      )}
-                      <div className="flex-1 min-w-0">
-                        <CardTitle className="text-sm font-medium text-muted-foreground">
-                          {guide.carrier_name}
-                        </CardTitle>
-                        <CardDescription className="text-base font-semibold text-foreground mt-1">
-                          {guide.guide_title}
-                        </CardDescription>
-                      </div>
-                    </div>
-                  </CardHeader>
-                  <CardContent>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="w-full"
-                      onClick={() => handleDownload(guide.guide_url, guide.guide_title)}
-                    >
-                      <Download className="mr-2 h-4 w-4" />
-                      Download PDF
-                    </Button>
-                  </CardContent>
-                </Card>
-              ))}
-            </div>
-          ) : (
-            <Card>
-              <CardContent className="py-12 text-center">
-                <FileText className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-semibold mb-2">No Guides Found</h3>
-                <p className="text-muted-foreground text-sm">
-                  {guideSearchTerm ? 'Try adjusting your search terms' : 'No carrier guides available'}
+export default function Tools() {
+    return (
+        <div className="container mx-auto px-4 py-8 animate-fade-in">
+            {/* Page Header */}
+            <div className="mb-8 space-y-2">
+                <h1 className="text-3xl font-bold flex items-center gap-2">
+                    <Wrench className="h-8 w-8 text-primary" />
+                    Tools & Resources
+                </h1>
+                <p className="text-muted-foreground text-lg">
+                    Powerful tools to streamline your workflow and grow your insurance business
                 </p>
-              </CardContent>
-            </Card>
-          )}
-        </TabsContent>
-      </Tabs>
-    </div>
-  );
-};
+            </div>
 
-export default Tools;
+            {/* Tools Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {tools.map((tool) => (
+                    <ToolCard key={tool.id} tool={tool} />
+                ))}
+            </div>
+        </div>
+    );
+}
+
+function ToolCard({ tool }: { tool: Tool }) {
+    return (
+        <Card className="flex flex-col h-full hover:shadow-lg transition-all duration-200 hover:-translate-y-1">
+            {/* Tool Image/Logo */}
+            <div className="relative h-48 bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center rounded-t-xl overflow-hidden">
+                {tool.image ? (
+                    <img src={tool.image} alt={tool.name} className="max-h-32 object-contain" />
+                ) : (
+                    <span className="text-6xl animate-in zoom-in duration-500">{tool.emoji}</span>
+                )}
+                {tool.badge && (
+                    <Badge className="absolute top-4 right-4 bg-primary text-primary-foreground shadow-sm">{tool.badge}</Badge>
+                )}
+            </div>
+
+            {/* Card Content */}
+            <CardHeader>
+                <CardTitle className="flex items-center gap-2 text-xl">
+                    {tool.name}
+                    {tool.verified && (
+                        <Badge variant="secondary" className="text-xs font-normal">
+                            Verified
+                        </Badge>
+                    )}
+                </CardTitle>
+                <CardDescription className="line-clamp-2 min-h-[40px]">
+                    {tool.description}
+                </CardDescription>
+            </CardHeader>
+
+            <CardContent className="flex-grow">
+                <div className="space-y-3">
+                    <p className="text-sm font-semibold text-foreground/80">Key Features:</p>
+                    <ul className="space-y-2">
+                        {tool.features.map((feature, idx) => (
+                            <li key={idx} className="flex items-start gap-2 text-sm text-muted-foreground">
+                                <span className="text-primary mt-0.5 font-bold">✓</span>
+                                <span>{feature}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+            </CardContent>
+
+            {/* Card Footer */}
+            <CardFooter className="pt-4 mt-auto">
+                <Button
+                    className="w-full shadow-sm hover:shadow-md transition-all"
+                    onClick={() => window.open(tool.url, '_blank')}
+                >
+                    {tool.ctaText}
+                    <ExternalLink className="ml-2 h-4 w-4" />
+                </Button>
+            </CardFooter>
+        </Card>
+    );
+}

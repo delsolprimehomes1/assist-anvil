@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { 
-  BarChart3, 
-  Building2, 
-  Calculator, 
+import {
+  BarChart3,
+  Building2,
+  Calculator,
   Bot,
   ShoppingBag,
-  Users
+  Users,
+  Wrench
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -14,7 +15,8 @@ const navigation = [
   { name: "Order Leads", href: "https://leads.lifecoimo.com/leads", icon: ShoppingBag, external: true },
   { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
   { name: "Carriers", href: "/dashboard/carriers", icon: Building2 },
-  { name: "Quoting Tools", href: "/dashboard/tools", icon: Calculator },
+  { name: "Quoting", href: "/dashboard/quoting", icon: Calculator },
+  { name: "Tools", href: "/dashboard/tools", icon: Wrench },
 ];
 
 export const BottomNav = () => {
@@ -38,7 +40,7 @@ export const BottomNav = () => {
               </a>
             );
           }
-          
+
           return (
             <NavLink
               key={item.name}
