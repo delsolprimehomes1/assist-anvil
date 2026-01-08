@@ -1,4 +1,3 @@
-import "https://deno.land/x/xhr@0.1.0/mod.ts";
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 
 const corsHeaders = {
@@ -16,18 +15,8 @@ interface KeyMoment {
 interface VideoAnalysisResponse {
   summary: string;
   key_moments: KeyMoment[];
-  transcript?: Array<{ timestamp: string; text: string }>;
+  transcript?: string;
   action_items: string[];
-}
-
-// Convert array buffer to base64
-function arrayBufferToBase64(buffer: ArrayBuffer): string {
-  const bytes = new Uint8Array(buffer);
-  let binary = "";
-  for (let i = 0; i < bytes.byteLength; i++) {
-    binary += String.fromCharCode(bytes[i]);
-  }
-  return btoa(binary);
 }
 
 serve(async (req) => {
@@ -36,11 +25,6 @@ serve(async (req) => {
   }
 
   try {
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      throw new Error("LOVABLE_API_KEY is not configured");
-    }
-
     const { video_url, video_data, mime_type, analysis_type, custom_prompt } = await req.json();
 
     if (!video_url && !video_data) {
@@ -50,18 +34,42 @@ serve(async (req) => {
       );
     }
 
+    const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY");
+    if (!GEMINI_API_KEY) {
+      console.error("GEMINI_API_KEY is not configured");
+      return new Response(
+        JSON.stringify({ error: "Video analysis service is not configured" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
     console.log("Starting video analysis:", { analysis_type, has_url: !!video_url, has_data: !!video_data });
 
-    // Build the video data URL
-    let videoDataUrl: string;
+    // Get the video data as bytes
+    let videoBuffer: ArrayBuffer;
     let detectedMimeType = mime_type || "video/mp4";
 
     if (video_data) {
-      // Already have base64 data
-      videoDataUrl = video_data;
-      console.log("Using provided base64 video data");
+      // Convert base64 to ArrayBuffer
+      // Handle data URL format: "data:video/mp4;base64,..."
+      let base64Data = video_data;
+      if (video_data.includes(",")) {
+        const parts = video_data.split(",");
+        const mimeMatch = parts[0].match(/data:([^;]+)/);
+        if (mimeMatch) {
+          detectedMimeType = mimeMatch[1];
+        }
+        base64Data = parts[1];
+      }
+      
+      const binaryString = atob(base64Data);
+      const bytes = new Uint8Array(binaryString.length);
+      for (let i = 0; i < binaryString.length; i++) {
+        bytes[i] = binaryString.charCodeAt(i);
+      }
+      videoBuffer = bytes.buffer;
+      console.log("Using provided base64 video data, size:", Math.round(videoBuffer.byteLength / 1024), "KB");
     } else if (video_url) {
-      // Need to fetch the video and convert to base64
       console.log("Fetching video from URL:", video_url);
       
       try {
@@ -70,17 +78,13 @@ serve(async (req) => {
           throw new Error(`Failed to fetch video: ${videoResponse.status}`);
         }
         
-        // Get content type from response
         const contentType = videoResponse.headers.get("content-type");
         if (contentType && contentType.startsWith("video/")) {
           detectedMimeType = contentType.split(";")[0];
         }
         
-        const arrayBuffer = await videoResponse.arrayBuffer();
-        const base64 = arrayBufferToBase64(arrayBuffer);
-        videoDataUrl = `data:${detectedMimeType};base64,${base64}`;
-        
-        console.log("Video fetched and converted, size:", Math.round(arrayBuffer.byteLength / 1024), "KB");
+        videoBuffer = await videoResponse.arrayBuffer();
+        console.log("Video fetched, size:", Math.round(videoBuffer.byteLength / 1024), "KB");
       } catch (fetchError) {
         console.error("Error fetching video:", fetchError);
         return new Response(
@@ -95,205 +99,230 @@ serve(async (req) => {
       );
     }
 
-    // Build the system prompt based on analysis type
-    let systemPrompt = `You are an expert video analyst. Analyze the provided video carefully and extract insights.`;
+    // Step 1: Upload video to Gemini File API
+    console.log("Uploading video to Gemini File API...");
     
-    let userPrompt = "";
-    switch (analysis_type) {
-      case "key_moments":
-        userPrompt = `Analyze this video and identify all key moments with precise timestamps (mm:ss format). 
-For each moment, provide:
-- The exact timestamp when it occurs
-- A short, descriptive title (5-10 words)
-- A brief description of what happens
-- Importance level (high, medium, or low)
+    const uploadResponse = await fetch(
+      `https://generativelanguage.googleapis.com/upload/v1beta/files?key=${GEMINI_API_KEY}`,
+      {
+        method: "POST",
+        headers: {
+          "X-Goog-Upload-Protocol": "raw",
+          "Content-Type": detectedMimeType,
+        },
+        body: videoBuffer,
+      }
+    );
 
-Focus on transitions, important statements, visual changes, and significant content.`;
-        break;
-      case "summary":
-        userPrompt = `Provide a comprehensive summary of this video including:
-- Main topic and purpose
-- Key points discussed
-- Important conclusions
-- Target audience
-Keep the summary concise but informative (2-3 paragraphs).`;
-        break;
-      case "transcript":
-        userPrompt = `Transcribe the spoken content of this video with timestamps. 
-Format each entry as timestamp (mm:ss) followed by the spoken text.
-Include all dialogue, narration, and significant audio.`;
-        break;
-      case "custom":
-        userPrompt = custom_prompt || "Analyze this video and provide detailed insights.";
-        break;
-      default:
-        userPrompt = `Analyze this video and provide:
-1. A brief summary (2-3 sentences)
-2. Key moments with timestamps
-3. Action items or takeaways`;
+    if (!uploadResponse.ok) {
+      const errorText = await uploadResponse.text();
+      console.error("File upload failed:", uploadResponse.status, errorText);
+      return new Response(
+        JSON.stringify({ error: "Failed to upload video for analysis" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
 
-    // Build the message content with video as image_url (Gemini accepts video this way through the gateway)
-    const messageContent = [
+    const uploadResult = await uploadResponse.json();
+    const fileUri = uploadResult.file?.uri;
+    const fileMimeType = uploadResult.file?.mimeType || detectedMimeType;
+
+    if (!fileUri) {
+      console.error("No file URI in upload response:", uploadResult);
+      return new Response(
+        JSON.stringify({ error: "Failed to get file reference after upload" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Video uploaded successfully:", { fileUri, fileMimeType });
+
+    // Wait a moment for file to be processed
+    await new Promise(resolve => setTimeout(resolve, 2000));
+
+    // Build the prompt based on analysis type
+    let userPrompt = custom_prompt || "";
+    
+    if (analysis_type === "key_moments") {
+      userPrompt = `Analyze this video and identify the key moments. For each key moment, provide:
+- A timestamp in MM:SS format
+- A brief title
+- A description of what happens
+- The importance level (high, medium, or low)
+
+Return the response as a JSON object with this exact structure:
+{
+  "summary": "A brief overall summary of the video",
+  "key_moments": [
+    {
+      "timestamp": "0:00",
+      "title": "Moment title",
+      "description": "What happens at this moment",
+      "importance": "high"
+    }
+  ],
+  "action_items": ["Any action items or takeaways from the video"]
+}`;
+    } else if (analysis_type === "transcript") {
+      userPrompt = `Please transcribe the audio from this video as accurately as possible. Include speaker identification if there are multiple speakers.
+
+Return the response as a JSON object with this exact structure:
+{
+  "summary": "A brief summary of what was discussed",
+  "key_moments": [],
+  "transcript": "The full transcript of the video",
+  "action_items": []
+}`;
+    } else if (analysis_type === "summary") {
+      userPrompt = `Provide a comprehensive summary of this video. Include:
+- Main topics covered
+- Key points and insights
+- Any conclusions or recommendations
+
+Return the response as a JSON object with this exact structure:
+{
+  "summary": "A comprehensive summary of the video content",
+  "key_moments": [
+    {
+      "timestamp": "0:00",
+      "title": "Key point",
+      "description": "Description of the key point",
+      "importance": "high"
+    }
+  ],
+  "action_items": ["Action items or key takeaways"]
+}`;
+    } else {
+      // Custom analysis
+      userPrompt = custom_prompt + `
+
+Return the response as a JSON object with this structure:
+{
+  "summary": "Your analysis summary",
+  "key_moments": [
+    {
+      "timestamp": "0:00",
+      "title": "Notable moment",
+      "description": "Description",
+      "importance": "medium"
+    }
+  ],
+  "action_items": ["Any action items or takeaways"]
+}`;
+    }
+
+    // Step 2: Generate content with the uploaded file
+    console.log("Sending analysis request to Gemini...");
+    
+    const generateResponse = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${GEMINI_API_KEY}`,
       {
-        type: "image_url",
-        image_url: {
-          url: videoDataUrl
-        }
-      },
-      { 
-        type: "text", 
-        text: userPrompt 
-      }
-    ];
-
-    console.log("Sending request to Lovable AI Gateway...");
-
-    const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        model: "google/gemini-2.5-flash",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { 
-            role: "user", 
-            content: messageContent
-          }
-        ],
-        tools: [
-          {
-            type: "function",
-            function: {
-              name: "video_analysis_result",
-              description: "Return structured video analysis results",
-              parameters: {
-                type: "object",
-                properties: {
-                  summary: { 
-                    type: "string",
-                    description: "Brief summary of the video content"
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          contents: [
+            {
+              parts: [
+                {
+                  file_data: {
+                    file_uri: fileUri,
+                    mime_type: fileMimeType,
                   },
-                  key_moments: {
-                    type: "array",
-                    description: "List of key moments with timestamps",
-                    items: {
-                      type: "object",
-                      properties: {
-                        timestamp: { 
-                          type: "string",
-                          description: "Timestamp in mm:ss format"
-                        },
-                        title: { 
-                          type: "string",
-                          description: "Short title for this moment"
-                        },
-                        description: { 
-                          type: "string",
-                          description: "Brief description of what happens"
-                        },
-                        importance: { 
-                          type: "string",
-                          enum: ["high", "medium", "low"],
-                          description: "Importance level of this moment"
-                        }
-                      },
-                      required: ["timestamp", "title", "description", "importance"]
-                    }
-                  },
-                  transcript: {
-                    type: "array",
-                    description: "Transcribed content with timestamps",
-                    items: {
-                      type: "object",
-                      properties: {
-                        timestamp: { type: "string" },
-                        text: { type: "string" }
-                      },
-                      required: ["timestamp", "text"]
-                    }
-                  },
-                  action_items: {
-                    type: "array",
-                    description: "Action items or takeaways from the video",
-                    items: { type: "string" }
-                  }
                 },
-                required: ["summary", "key_moments", "action_items"]
-              }
-            }
-          }
-        ],
-        tool_choice: { type: "function", function: { name: "video_analysis_result" } }
-      }),
-    });
+                {
+                  text: userPrompt,
+                },
+              ],
+            },
+          ],
+          generationConfig: {
+            temperature: 0.4,
+            topK: 32,
+            topP: 1,
+            maxOutputTokens: 8192,
+            responseMimeType: "application/json",
+          },
+        }),
+      }
+    );
 
-    if (!response.ok) {
-      const errorText = await response.text();
-      console.error("Lovable AI error:", response.status, errorText);
+    if (!generateResponse.ok) {
+      const errorText = await generateResponse.text();
+      console.error("Gemini API error:", generateResponse.status, errorText);
       
-      if (response.status === 429) {
+      if (generateResponse.status === 429) {
         return new Response(
-          JSON.stringify({ error: "Rate limit exceeded. Please try again in a moment." }),
+          JSON.stringify({ error: "Rate limit exceeded. Please try again later." }),
           { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
         );
       }
-      if (response.status === 402) {
-        return new Response(
-          JSON.stringify({ error: "Usage limit reached. Please add credits to continue." }),
-          { status: 402, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-        );
-      }
       
-      // Parse error for more specific message
-      try {
-        const errorJson = JSON.parse(errorText);
-        const errorMessage = errorJson?.error?.message || `AI request failed: ${response.status}`;
-        throw new Error(errorMessage);
-      } catch {
-        throw new Error(`AI request failed: ${response.status}`);
+      return new Response(
+        JSON.stringify({ error: "Video analysis failed. Please try again." }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    const generateResult = await generateResponse.json();
+    console.log("Gemini response received");
+
+    // Extract the text content from Gemini's response
+    const textContent = generateResult.candidates?.[0]?.content?.parts?.[0]?.text;
+    
+    if (!textContent) {
+      console.error("No text content in Gemini response:", JSON.stringify(generateResult));
+      return new Response(
+        JSON.stringify({ error: "No analysis results returned" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    // Parse the JSON response
+    let analysisResult: VideoAnalysisResponse;
+    try {
+      analysisResult = JSON.parse(textContent);
+    } catch (parseError) {
+      console.error("Failed to parse Gemini response as JSON:", textContent);
+      // Try to extract JSON from the response
+      const jsonMatch = textContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        try {
+          analysisResult = JSON.parse(jsonMatch[0]);
+        } catch {
+          // Return raw text as summary
+          analysisResult = {
+            summary: textContent,
+            key_moments: [],
+            action_items: [],
+          };
+        }
+      } else {
+        analysisResult = {
+          summary: textContent,
+          key_moments: [],
+          action_items: [],
+        };
       }
     }
 
-    const data = await response.json();
-    console.log("AI response received:", JSON.stringify(data).slice(0, 500));
+    console.log("Analysis complete:", {
+      has_summary: !!analysisResult.summary,
+      key_moments_count: analysisResult.key_moments?.length || 0,
+      has_transcript: !!analysisResult.transcript,
+      action_items_count: analysisResult.action_items?.length || 0,
+    });
 
-    // Extract the tool call result
-    const toolCall = data.choices?.[0]?.message?.tool_calls?.[0];
-    if (toolCall?.function?.arguments) {
-      const result = JSON.parse(toolCall.function.arguments) as VideoAnalysisResponse;
-      console.log("Parsed analysis result:", { 
-        summary_length: result.summary?.length,
-        key_moments_count: result.key_moments?.length,
-        action_items_count: result.action_items?.length
-      });
-      
-      return new Response(JSON.stringify(result), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Fallback: parse from content if no tool call
-    const content = data.choices?.[0]?.message?.content;
-    if (content) {
-      return new Response(JSON.stringify({ 
-        summary: content,
-        key_moments: [],
-        action_items: []
-      }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    throw new Error("No analysis result returned");
+    return new Response(
+      JSON.stringify(analysisResult),
+      { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+    );
 
   } catch (error) {
     console.error("Video analysis error:", error);
     return new Response(
-      JSON.stringify({ error: error instanceof Error ? error.message : "Analysis failed" }),
+      JSON.stringify({ error: error instanceof Error ? error.message : "An unexpected error occurred" }),
       { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
     );
   }
