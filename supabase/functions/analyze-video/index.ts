@@ -70,6 +70,28 @@ serve(async (req) => {
       videoBuffer = bytes.buffer;
       console.log("Using provided base64 video data, size:", Math.round(videoBuffer.byteLength / 1024), "KB");
     } else if (video_url) {
+      // Check for unsupported URL patterns (YouTube, Vimeo, etc.)
+      const unsupportedPatterns = [
+        /youtube\.com/i,
+        /youtu\.be/i,
+        /vimeo\.com/i,
+        /dailymotion\.com/i,
+        /tiktok\.com/i,
+        /facebook\.com.*video/i,
+        /instagram\.com/i,
+      ];
+      
+      const isUnsupportedUrl = unsupportedPatterns.some(pattern => pattern.test(video_url));
+      if (isUnsupportedUrl) {
+        console.log("Unsupported video URL detected:", video_url);
+        return new Response(
+          JSON.stringify({ 
+            error: "YouTube, Vimeo, and social media video URLs are not supported. Please download the video and upload it directly, or use a direct video file URL (ending in .mp4, .webm, etc.)." 
+          }),
+          { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+        );
+      }
+
       console.log("Fetching video from URL:", video_url);
       
       try {
@@ -79,12 +101,22 @@ serve(async (req) => {
         }
         
         const contentType = videoResponse.headers.get("content-type");
-        if (contentType && contentType.startsWith("video/")) {
-          detectedMimeType = contentType.split(";")[0];
+        console.log("Response content-type:", contentType);
+        
+        // Validate that the response is actually a video
+        if (!contentType || !contentType.startsWith("video/")) {
+          console.error("URL did not return a video. Content-Type:", contentType);
+          return new Response(
+            JSON.stringify({ 
+              error: "The URL does not point to a video file. Please use a direct video URL (ending in .mp4, .webm, etc.) or upload the video file directly." 
+            }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
         }
         
+        detectedMimeType = contentType.split(";")[0];
         videoBuffer = await videoResponse.arrayBuffer();
-        console.log("Video fetched, size:", Math.round(videoBuffer.byteLength / 1024), "KB");
+        console.log("Video fetched, size:", Math.round(videoBuffer.byteLength / 1024), "KB, type:", detectedMimeType);
       } catch (fetchError) {
         console.error("Error fetching video:", fetchError);
         return new Response(
@@ -166,7 +198,7 @@ serve(async (req) => {
         
         if (fileState === "FAILED") {
           return new Response(
-            JSON.stringify({ error: "Video processing failed. Please try a different video." }),
+            JSON.stringify({ error: "Video processing failed. The file may be corrupted or in an unsupported format. Please try a different video." }),
             { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
           );
         }
