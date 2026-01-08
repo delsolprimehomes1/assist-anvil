@@ -53,8 +53,10 @@ export const GuidelineUpload = () => {
             if (!user) throw new Error("Not authenticated");
 
             // 1. Upload file to Storage
-            const fileExt = file.name.split('.').pop();
-            const filePath = `${carrierName}/${productType}/${Date.now()}_${file.name}`;
+            // Normalize file path: replace spaces with hyphens for URL-safe paths
+            const safeCarrierName = carrierName.replace(/\s+/g, '-');
+            const safeProductType = productType.replace(/\s+/g, '-');
+            const filePath = `${safeCarrierName}/${safeProductType}/${Date.now()}_${file.name.replace(/\s+/g, '-')}`;
 
             const { error: uploadError } = await supabase.storage
                 .from('carrier-guidelines')
@@ -66,7 +68,7 @@ export const GuidelineUpload = () => {
                 .from('carrier-guidelines')
                 .getPublicUrl(filePath);
 
-            // 2. Insert Metadata into Database
+            // 2. Insert Metadata into Database (include file_path for reliable downloads)
             const { data: insertedData, error: dbError } = await supabase
                 .from("carrier_guidelines")
                 .insert({
@@ -75,6 +77,7 @@ export const GuidelineUpload = () => {
                     document_type: documentType,
                     file_name: file.name,
                     file_url: publicUrl,
+                    file_path: filePath, // Store the actual storage path
                     file_size: file.size,
                     min_coverage: coverageMin ? parseFloat(coverageMin) : null,
                     max_coverage: coverageMax ? parseFloat(coverageMax) : null,

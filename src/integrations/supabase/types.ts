@@ -210,6 +210,7 @@ export type Database = {
           effective_date: string | null
           expiration_date: string | null
           file_name: string
+          file_path: string | null
           file_size: number | null
           file_url: string
           id: string
@@ -231,6 +232,7 @@ export type Database = {
           effective_date?: string | null
           expiration_date?: string | null
           file_name: string
+          file_path?: string | null
           file_size?: number | null
           file_url: string
           id?: string
@@ -252,6 +254,7 @@ export type Database = {
           effective_date?: string | null
           expiration_date?: string | null
           file_name?: string
+          file_path?: string | null
           file_size?: number | null
           file_url?: string
           id?: string
