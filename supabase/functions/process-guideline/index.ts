@@ -2,6 +2,7 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'npm:@supabase/supabase-js@2.76.1'
 import OpenAI from 'npm:openai'
 import pdf from 'npm:pdf-parse/lib/pdf-parse.js'
+import { Buffer } from 'node:buffer'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
