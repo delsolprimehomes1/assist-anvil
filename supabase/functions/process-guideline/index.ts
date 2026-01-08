@@ -44,22 +44,26 @@ function splitTextRecursive(
     return chunks;
 }
 
-// Simple PDF text extraction without external dependencies
+// Simple PDF text extraction - memory optimized
 async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
     const bytes = new Uint8Array(buffer);
     const text: string[] = [];
     
-    // Convert to string to search for text streams
-    let pdfContent = '';
-    for (let i = 0; i < bytes.length; i++) {
-        pdfContent += String.fromCharCode(bytes[i]);
-    }
+    // Use TextDecoder instead of char-by-char string building (more memory efficient)
+    const decoder = new TextDecoder('latin1');
+    const pdfContent = decoder.decode(bytes);
+    
+    // Limit processing for very large files to avoid OOM
+    const maxProcessLength = 5 * 1024 * 1024; // 5MB max
+    const contentToProcess = pdfContent.length > maxProcessLength 
+        ? pdfContent.substring(0, maxProcessLength) 
+        : pdfContent;
     
     // Find text between BT and ET markers (PDF text objects)
     const textRegex = /BT[\s\S]*?ET/g;
-    const matches = pdfContent.match(textRegex) || [];
+    const matches = contentToProcess.match(textRegex) || [];
     
-    for (const match of matches) {
+    for (const match of matches.slice(0, 500)) { // Limit matches to prevent OOM
         // Extract text from Tj and TJ operators
         const tjRegex = /\(([^)]*)\)\s*Tj/g;
         let tjMatch;
@@ -80,15 +84,17 @@ async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
         }
     }
     
-    // Also try to find plain text streams
-    const streamRegex = /stream\s*([\s\S]*?)\s*endstream/g;
+    // Also try to find plain text streams (limit to prevent OOM)
+    const streamRegex = /stream\s*([\s\S]{50,2000}?)\s*endstream/g;
     let streamMatch;
-    while ((streamMatch = streamRegex.exec(pdfContent)) !== null) {
+    let streamCount = 0;
+    while ((streamMatch = streamRegex.exec(contentToProcess)) !== null && streamCount < 100) {
         const streamContent = streamMatch[1];
         // Only include if it looks like readable text
-        if (/^[\x20-\x7E\s]+$/.test(streamContent) && streamContent.length > 50) {
+        if (/^[\x20-\x7E\s]+$/.test(streamContent)) {
             text.push(streamContent);
         }
+        streamCount++;
     }
     
     return text.join(' ').replace(/\s+/g, ' ').trim();
@@ -276,25 +282,33 @@ serve(async (req) => {
 
         console.log(`Extracted ${rawText.length} characters.`);
 
-        // 4. Create Chunks
-        const chunks = splitTextRecursive(sanitizeText(rawText), 1000, 200);
-        console.log(`Created ${chunks.length} chunks.`);
+        // 4. Create Chunks - limit total chunks to prevent memory issues
+        const allChunks = splitTextRecursive(sanitizeText(rawText), 1000, 200);
+        const maxChunks = 100; // Limit to prevent OOM on large docs
+        const chunks = allChunks.slice(0, maxChunks);
+        
+        if (allChunks.length > maxChunks) {
+            console.log(`Warning: Truncated from ${allChunks.length} to ${maxChunks} chunks`);
+        }
+        console.log(`Processing ${chunks.length} chunks.`);
 
         // 5. Generate Embeddings & Store
-        // Using text-embedding-3-small for 1536 dimensions (within Supabase vector limits)
-        const batchSize = 10;
+        // Process in smaller batches to reduce memory pressure
+        const batchSize = 5;
 
         for (let i = 0; i < chunks.length; i += batchSize) {
             const batchChunks = chunks.slice(i, i + batchSize);
+            const batchNum = Math.floor(i / batchSize) + 1;
+            const totalBatches = Math.ceil(chunks.length / batchSize);
 
-            console.log(`Generating embeddings for batch ${i / batchSize + 1}...`);
+            console.log(`Embedding batch ${batchNum}/${totalBatches}...`);
 
             const embeddingResponse = await openai.embeddings.create({
                 model: "text-embedding-3-small",
                 input: batchChunks.map(c => c.replace(/\n/g, ' ')),
             });
 
-            // Prepare insert data
+            // Insert immediately to free memory
             const insertData = batchChunks.map((chunk, idx) => ({
                 guideline_id: guideline.id,
                 content: chunk,
