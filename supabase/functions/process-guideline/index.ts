@@ -8,14 +8,14 @@ const corsHeaders = {
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// OPTIMIZATION 1: Reduced text limit
-const MAX_TEXT = 30000;
-// OPTIMIZATION 3: Reduced max chunks
-const MAX_CHUNKS = 20;
+// OPTIMIZATION 1: Reduced text limit (memory-safe)
+const MAX_TEXT = 15000;
+// OPTIMIZATION 3: Reduced max chunks (memory-safe)
+const MAX_CHUNKS = 10;
 // OPTIMIZATION 5: Time budget (8 seconds)
 const BUDGET_MS = 8000;
-// OPTIMIZATION 4: Batch size for embeddings
-const EMBEDDING_BATCH_SIZE = 5;
+// OPTIMIZATION 4: Batch size for embeddings (1 = lowest memory)
+const EMBEDDING_BATCH_SIZE = 1;
 
 // Track progress for shutdown handler
 let processingProgress = { current: 0, total: 0, guidelineId: '', startTime: 0 };
@@ -105,17 +105,17 @@ function extractTextBasic(buffer: ArrayBuffer): string {
     return text.join(' ').replace(/\s+/g, ' ').trim();
 }
 
-// PDF text extraction using pdfjs-serverless with fallback
+// PDF text extraction using pdfjs-serverless with fallback (memory-optimized)
 async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
     const startTime = Date.now();
-    const maxBytes = 2 * 1024 * 1024; // 2MB limit for safety
+    const maxBytes = 500 * 1024; // 500KB limit for memory safety
 
     // Limit buffer size for very large files
     const limitedBuffer = buffer.byteLength > maxBytes
         ? buffer.slice(0, maxBytes)
         : buffer;
 
-    console.log(`[BG] Starting PDF extraction (${limitedBuffer.byteLength} bytes)`);
+    console.log(`[BG] Starting PDF extraction (${limitedBuffer.byteLength} bytes, max ${maxBytes})`);
 
     try {
         // Convert ArrayBuffer to Uint8Array for pdfjs-serverless
@@ -126,8 +126,8 @@ async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
         const numPages = doc.numPages;
         console.log(`[BG] PDF has ${numPages} pages`);
 
-        // Extract text from each page (limit to first 50 pages for performance)
-        const maxPages = Math.min(numPages, 50);
+        // Extract text from first 10 pages only (memory-safe)
+        const maxPages = Math.min(numPages, 10);
         for (let i = 1; i <= maxPages; i++) {
             const page = await doc.getPage(i);
             const textContent = await page.getTextContent();
@@ -135,7 +135,15 @@ async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
                 .map((item: any) => item.str)
                 .join(' ');
             fullText += pageText + '\n';
+            
+            // Release page reference for GC
+            // @ts-ignore
+            page.cleanup?.();
         }
+
+        // Release doc reference for GC
+        // @ts-ignore
+        doc.cleanup?.();
 
         const elapsed = Date.now() - startTime;
         console.log(`[BG] pdfjs-serverless success: ${fullText.length} chars in ${elapsed}ms`);
@@ -200,7 +208,8 @@ async function processGuidelineInBackground(guidelineId: string) {
     const openaiApiKey = Deno.env.get('OPENAI_API_KEY')!;
 
     const supabase = createClient(supabaseUrl, supabaseServiceKey);
-    const openai = new OpenAI({ apiKey: openaiApiKey });
+    // Lazy-load OpenAI client only when needed (after PDF extraction)
+    let openai: OpenAI | null = null;
 
     let processedCount = 0;
     let isPartial = false;
