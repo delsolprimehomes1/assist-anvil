@@ -1,11 +1,11 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
-import { Loader2, Trash2, Eye, FileText, RefreshCw, AlertCircle, Archive } from "lucide-react";
+import { Loader2, Trash2, Eye, FileText, RefreshCw, AlertCircle, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
@@ -13,8 +13,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 export const GuidelineTable = () => {
     const { toast } = useToast();
     const queryClient = useQueryClient();
-    const [previewLoading, setPreviewLoading] = useState<string | null>(null);
-    const [retryLoading, setRetryLoading] = useState<string | null>(null);
+    const [previewingId, setPreviewingId] = useState<string | null>(null);
 
     const { data: guidelines, isLoading } = useQuery({
         queryKey: ["carrier-guidelines"],
@@ -27,10 +26,13 @@ export const GuidelineTable = () => {
             if (error) throw error;
             return data;
         },
-        // Poll every 5 seconds if any item is processing
+        // Poll every 5 seconds if any guidelines are processing
         refetchInterval: (query) => {
-            const hasProcessing = query.state.data?.some((g: any) => g.status === 'processing');
-            return hasProcessing ? 5000 : false;
+            const data = query.state.data;
+            if (data?.some((g: any) => g.status === 'processing')) {
+                return 5000;
+            }
+            return false;
         }
     });
 
@@ -51,65 +53,96 @@ export const GuidelineTable = () => {
         }
     });
 
-    const handlePreview = async (guideline: any) => {
-        setPreviewLoading(guideline.id);
-        try {
-            // Priority: file_path -> attempt to derive from file_url -> error
-            let path = guideline.file_path;
+    const retryMutation = useMutation({
+        mutationFn: async (id: string) => {
+            // First update status to processing
+            await supabase
+                .from("carrier_guidelines")
+                .update({ status: 'processing', processing_error: null })
+                .eq('id', id);
 
-            if (!path && guideline.file_url) {
-                // Fallback attempt for legacy data
-                try {
-                    const urlObj = new URL(guideline.file_url);
-                    const parts = urlObj.pathname.split('/carrier-guidelines/');
-                    if (parts.length > 1) path = decodeURIComponent(parts[1]);
-                } catch (e) { console.error("URL parse error", e); }
-            }
-
-            if (!path) throw new Error("File path not available for private access.");
-
-            const { data, error } = await supabase.storage
-                .from('carrier-guidelines')
-                .createSignedUrl(path, 3600);
+            // Then invoke the edge function
+            const { error } = await supabase.functions.invoke('process-guideline', {
+                body: { guideline_id: id }
+            });
 
             if (error) throw error;
+        },
+        onSuccess: () => {
+            queryClient.invalidateQueries({ queryKey: ["carrier-guidelines"] });
+            toast({ title: "Processing restarted" });
+        },
+        onError: (err: Error) => {
+            toast({ title: "Failed to retry", description: err.message, variant: "destructive" });
+        }
+    });
+
+    // Extract file path from storage URL
+    const extractFilePathFromUrl = (fileUrl: string): string | null => {
+        try {
+            const patterns = [
+                '/storage/v1/object/public/carrier-guidelines/',
+                '/storage/v1/object/sign/carrier-guidelines/',
+                '/storage/v1/object/authenticated/carrier-guidelines/',
+                '/carrier-guidelines/',
+            ];
+
+            for (const pattern of patterns) {
+                const idx = fileUrl.indexOf(pattern);
+                if (idx !== -1) {
+                    let path = fileUrl.substring(idx + pattern.length);
+                    // Remove query params
+                    path = path.split('?')[0];
+                    return decodeURIComponent(path);
+                }
+            }
+
+            // Fallback: split by bucket name
+            const parts = fileUrl.split('/carrier-guidelines/');
+            if (parts.length > 1) {
+                return decodeURIComponent(parts[1].split('?')[0]);
+            }
+
+            return null;
+        } catch {
+            return null;
+        }
+    };
+
+    // Handle preview with signed URL for private bucket
+    const handlePreview = async (doc: any) => {
+        setPreviewingId(doc.id);
+        try {
+            // Use file_path if available, otherwise extract from file_url
+            const filePath = doc.file_path || extractFilePathFromUrl(doc.file_url);
+
+            if (!filePath) {
+                throw new Error('Could not determine file path');
+            }
+
+            // Generate signed URL (valid for 1 hour)
+            const { data, error } = await supabase.storage
+                .from('carrier-guidelines')
+                .createSignedUrl(filePath, 3600);
+
+            if (error) throw error;
+
             if (data?.signedUrl) {
                 window.open(data.signedUrl, '_blank');
             }
         } catch (error: any) {
+            console.error('Preview error:', error);
             toast({
-                title: "Preview Failed",
-                description: "Could not generate access link. Bucket may be private.",
-                variant: "destructive"
-            });
-        } finally {
-            setPreviewLoading(null);
-        }
-    };
-
-    const handleRetry = async (guidelineId: string) => {
-        setRetryLoading(guidelineId);
-        try {
-            const { error } = await supabase.functions.invoke('process-guideline', {
-                body: { guideline_id: guidelineId }
-            });
-            if (error) throw error;
-
-            toast({ title: "Processing Queued", description: "Retrying extraction and embedding..." });
-            // Optimistic update or just invalidate
-            queryClient.invalidateQueries({ queryKey: ["carrier-guidelines"] });
-        } catch (error: any) {
-            toast({
-                title: "Retry Failed",
+                title: "Failed to preview document",
                 description: error.message,
                 variant: "destructive"
             });
         } finally {
-            setRetryLoading(null);
+            setPreviewingId(null);
         }
     };
 
-    const getStatusBadge = (status: string) => {
+    const getStatusBadge = (status: string, doc: any) => {
         switch (status) {
             case 'active':
                 return <Badge className="bg-green-500 hover:bg-green-600 border-green-600/20 text-green-50">Active</Badge>;
@@ -145,7 +178,6 @@ export const GuidelineTable = () => {
                         <CardTitle>Guideline Library</CardTitle>
                         <CardDescription>Manage uploaded carrier documents and processing status.</CardDescription>
                     </div>
-                    {/* Add Search/Filter controls here in Phase 5 polish */}
                 </div>
             </CardHeader>
             <CardContent className="p-0">
@@ -194,52 +226,81 @@ export const GuidelineTable = () => {
                                                 {doc.chunks_processed_count} chunks
                                             </div>
                                         )}
+                                        {doc.processing_time_ms > 0 && (
+                                            <div className="text-[10px] text-muted-foreground/70">
+                                                {(doc.processing_time_ms / 1000).toFixed(1)}s
+                                            </div>
+                                        )}
                                     </TableCell>
                                     <TableCell>
                                         <TooltipProvider>
                                             <Tooltip>
-                                                <TooltipTrigger className="cursor-default">
-                                                    {getStatusBadge(doc.status)}
+                                                <TooltipTrigger>
+                                                    {getStatusBadge(doc.status, doc)}
                                                 </TooltipTrigger>
-                                                {(doc.processing_error || doc.status === 'partial') && (
-                                                    <TooltipContent className="max-w-xs bg-destructive text-destructive-foreground border-destructive/20">
-                                                        <p className="font-semibold text-xs mb-1">Processing Issue:</p>
-                                                        <p className="text-xs">{doc.processing_error || "Content truncated due to limits."}</p>
+                                                {(doc.processing_error || doc.processing_time_ms) && (
+                                                    <TooltipContent className="max-w-xs">
+                                                        {doc.processing_error && (
+                                                            <p className="text-red-500 text-xs mb-1">{doc.processing_error}</p>
+                                                        )}
+                                                        {doc.processing_time_ms && (
+                                                            <p className="text-xs text-muted-foreground">
+                                                                Processed in {(doc.processing_time_ms / 1000).toFixed(1)}s
+                                                            </p>
+                                                        )}
                                                     </TooltipContent>
                                                 )}
                                             </Tooltip>
                                         </TooltipProvider>
                                     </TableCell>
-                                    <TableCell className="text-right pr-6 space-x-1">
-                                        {/* Retry Action */}
+                                    <TableCell className="text-right space-x-1">
+                                        {/* Retry button - shows for error or partial status */}
                                         {(doc.status === 'error' || doc.status === 'partial') && (
-                                            <Button
-                                                size="icon"
-                                                variant="ghost"
-                                                className="h-8 w-8 text-amber-500 hover:text-amber-600 hover:bg-amber-100"
-                                                onClick={() => handleRetry(doc.id)}
-                                                disabled={retryLoading === doc.id}
-                                            >
-                                                <RefreshCw className={`h-4 w-4 ${retryLoading === doc.id ? 'animate-spin' : ''}`} />
-                                                <span className="sr-only">Retry</span>
-                                            </Button>
+                                            <TooltipProvider>
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild>
+                                                        <Button
+                                                            size="icon"
+                                                            variant="ghost"
+                                                            className="text-amber-600 hover:text-amber-700"
+                                                            onClick={() => retryMutation.mutate(doc.id)}
+                                                            disabled={retryMutation.isPending}
+                                                        >
+                                                            {retryMutation.isPending ? (
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                            ) : (
+                                                                <RefreshCw className="h-4 w-4" />
+                                                            )}
+                                                        </Button>
+                                                    </TooltipTrigger>
+                                                    <TooltipContent>
+                                                        <p>Retry Processing</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            </TooltipProvider>
                                         )}
-
-                                        {/* Preview Action */}
-                                        <Button
-                                            size="icon"
-                                            variant="ghost"
-                                            className="h-8 w-8 text-muted-foreground hover:text-primary hover:bg-primary/10"
-                                            onClick={() => handlePreview(doc)}
-                                            disabled={previewLoading === doc.id}
-                                        >
-                                            {previewLoading === doc.id ? (
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            ) : (
-                                                <Eye className="h-4 w-4" />
-                                            )}
-                                            <span className="sr-only">Preview</span>
-                                        </Button>
+                                        {/* Preview button with signed URL */}
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Button
+                                                        size="icon"
+                                                        variant="ghost"
+                                                        disabled={previewingId === doc.id}
+                                                        onClick={() => handlePreview(doc)}
+                                                    >
+                                                        {previewingId === doc.id ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
+                                                        ) : (
+                                                            <ExternalLink className="h-4 w-4" />
+                                                        )}
+                                                    </Button>
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Preview Document</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
 
                                         {/* Delete Action */}
                                         <Button

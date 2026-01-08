@@ -202,6 +202,84 @@ export type Database = {
           },
         ]
       }
+      carrier_guidelines: {
+        Row: {
+          carrier_name: string
+          chunks_processed_count: number
+          created_at: string
+          document_type: string
+          effective_date: string | null
+          expiration_date: string | null
+          file_name: string
+          file_path: string | null
+          file_size: number | null
+          file_url: string
+          id: string
+          last_processing_at: string | null
+          max_age: number | null
+          max_coverage: number | null
+          min_age: number | null
+          min_coverage: number | null
+          notes: string | null
+          processing_error: string | null
+          processing_time_ms: number | null
+          product_type: string
+          status: string
+          updated_at: string
+          uploaded_by: string | null
+        }
+        Insert: {
+          carrier_name: string
+          chunks_processed_count?: number
+          created_at?: string
+          document_type?: string
+          effective_date?: string | null
+          expiration_date?: string | null
+          file_name: string
+          file_path?: string | null
+          file_size?: number | null
+          file_url: string
+          id?: string
+          last_processing_at?: string | null
+          max_age?: number | null
+          max_coverage?: number | null
+          min_age?: number | null
+          min_coverage?: number | null
+          notes?: string | null
+          processing_error?: string | null
+          processing_time_ms?: number | null
+          product_type: string
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Update: {
+          carrier_name?: string
+          chunks_processed_count?: number
+          created_at?: string
+          document_type?: string
+          effective_date?: string | null
+          expiration_date?: string | null
+          file_name?: string
+          file_path?: string | null
+          file_size?: number | null
+          file_url?: string
+          id?: string
+          last_processing_at?: string | null
+          max_age?: number | null
+          max_coverage?: number | null
+          min_age?: number | null
+          min_coverage?: number | null
+          notes?: string | null
+          processing_error?: string | null
+          processing_time_ms?: number | null
+          product_type?: string
+          status?: string
+          updated_at?: string
+          uploaded_by?: string | null
+        }
+        Relationships: []
+      }
       carrier_news: {
         Row: {
           archive_date: string | null
@@ -447,6 +525,44 @@ export type Database = {
             columns: ["agent_id"]
             isOneToOne: true
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      guideline_chunks: {
+        Row: {
+          chunk_index: number
+          content: string
+          created_at: string
+          embedding: string | null
+          guideline_id: string
+          id: string
+          metadata: Json | null
+        }
+        Insert: {
+          chunk_index: number
+          content: string
+          created_at?: string
+          embedding?: string | null
+          guideline_id: string
+          id?: string
+          metadata?: Json | null
+        }
+        Update: {
+          chunk_index?: number
+          content?: string
+          created_at?: string
+          embedding?: string | null
+          guideline_id?: string
+          id?: string
+          metadata?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "guideline_chunks_guideline_id_fkey"
+            columns: ["guideline_id"]
+            isOneToOne: false
+            referencedRelation: "carrier_guidelines"
             referencedColumns: ["id"]
           },
         ]
@@ -928,6 +1044,65 @@ export type Database = {
         }
         Relationships: []
       }
+      underwriting_chats: {
+        Row: {
+          created_at: string
+          id: string
+          title: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          title?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      underwriting_messages: {
+        Row: {
+          chat_id: string
+          content: string
+          created_at: string
+          id: string
+          role: string
+          sources: Json | null
+        }
+        Insert: {
+          chat_id: string
+          content: string
+          created_at?: string
+          id?: string
+          role: string
+          sources?: Json | null
+        }
+        Update: {
+          chat_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          role?: string
+          sources?: Json | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "underwriting_messages_chat_id_fkey"
+            columns: ["chat_id"]
+            isOneToOne: false
+            referencedRelation: "underwriting_chats"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_brand_kits: {
         Row: {
           accent_color: string | null
@@ -1195,6 +1370,26 @@ export type Database = {
       increment_training_views: {
         Args: { training_id: string }
         Returns: undefined
+      }
+      match_guideline_chunks: {
+        Args: {
+          filter_age?: number
+          filter_carrier_id?: string
+          filter_coverage?: number
+          match_count?: number
+          match_threshold?: number
+          query_embedding: string
+        }
+        Returns: {
+          carrier_name: string
+          content: string
+          document_type: string
+          guideline_id: string
+          id: string
+          metadata: Json
+          product_type: string
+          similarity: number
+        }[]
       }
     }
     Enums: {
