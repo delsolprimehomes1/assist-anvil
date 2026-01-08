@@ -137,8 +137,51 @@ serve(async (req) => {
 
     console.log("Video uploaded successfully:", { fileUri, fileMimeType });
 
-    // Wait a moment for file to be processed
-    await new Promise(resolve => setTimeout(resolve, 2000));
+    // Poll for file to become ACTIVE
+    const fileName = uploadResult.file?.name;
+    if (!fileName) {
+      console.error("No file name in upload response:", uploadResult);
+      return new Response(
+        JSON.stringify({ error: "Failed to get file name after upload" }),
+        { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("Waiting for file to become ACTIVE...");
+    let fileState = "PROCESSING";
+    let pollAttempts = 0;
+    const maxPollAttempts = 30; // Max 60 seconds (30 * 2 seconds)
+    
+    while (fileState !== "ACTIVE" && pollAttempts < maxPollAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 2000));
+      
+      const fileStatusResponse = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/${fileName}?key=${GEMINI_API_KEY}`
+      );
+      
+      if (fileStatusResponse.ok) {
+        const fileStatus = await fileStatusResponse.json();
+        fileState = fileStatus.state;
+        console.log(`File state (attempt ${pollAttempts + 1}): ${fileState}`);
+        
+        if (fileState === "FAILED") {
+          return new Response(
+            JSON.stringify({ error: "Video processing failed. Please try a different video." }),
+            { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+          );
+        }
+      }
+      pollAttempts++;
+    }
+
+    if (fileState !== "ACTIVE") {
+      return new Response(
+        JSON.stringify({ error: "Video processing timed out. Please try a shorter video." }),
+        { status: 408, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
+    }
+
+    console.log("File is ACTIVE, proceeding with analysis...");
 
     // Build the prompt based on analysis type
     let userPrompt = custom_prompt || "";
