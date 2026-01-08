@@ -33,9 +33,9 @@ serve(async (req) => {
 
         console.log(`Searching for: "${query}" with filters: age=${age}, coverage=${coverage_amount}`);
 
-        // 1. Generate Query Embedding
+        // 1. Generate Query Embedding (using text-embedding-3-small for 1536 dimensions)
         const embeddingResponse = await openai.embeddings.create({
-            model: "text-embedding-3-large",
+            model: "text-embedding-3-small",
             input: query.replace(/\n/g, ' '),
         });
 

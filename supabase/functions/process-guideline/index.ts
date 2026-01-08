@@ -1,8 +1,5 @@
-
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { PDFDocument } from 'https://cdn.skypack.dev/pdf-lib';
-import pdfParse from 'https://esm.sh/pdf-parse@1.1.1';
 import OpenAI from 'https://esm.sh/openai@4.20.1';
 
 const corsHeaders = {
@@ -47,6 +44,55 @@ function splitTextRecursive(
     return chunks;
 }
 
+// Simple PDF text extraction without external dependencies
+async function extractTextFromPDF(buffer: ArrayBuffer): Promise<string> {
+    const bytes = new Uint8Array(buffer);
+    const text: string[] = [];
+    
+    // Convert to string to search for text streams
+    let pdfContent = '';
+    for (let i = 0; i < bytes.length; i++) {
+        pdfContent += String.fromCharCode(bytes[i]);
+    }
+    
+    // Find text between BT and ET markers (PDF text objects)
+    const textRegex = /BT[\s\S]*?ET/g;
+    const matches = pdfContent.match(textRegex) || [];
+    
+    for (const match of matches) {
+        // Extract text from Tj and TJ operators
+        const tjRegex = /\(([^)]*)\)\s*Tj/g;
+        let tjMatch;
+        while ((tjMatch = tjRegex.exec(match)) !== null) {
+            text.push(tjMatch[1]);
+        }
+        
+        // Extract from TJ arrays
+        const tjArrayRegex = /\[([^\]]*)\]\s*TJ/g;
+        let tjArrayMatch;
+        while ((tjArrayMatch = tjArrayRegex.exec(match)) !== null) {
+            const arrayContent = tjArrayMatch[1];
+            const stringRegex = /\(([^)]*)\)/g;
+            let stringMatch;
+            while ((stringMatch = stringRegex.exec(arrayContent)) !== null) {
+                text.push(stringMatch[1]);
+            }
+        }
+    }
+    
+    // Also try to find plain text streams
+    const streamRegex = /stream\s*([\s\S]*?)\s*endstream/g;
+    let streamMatch;
+    while ((streamMatch = streamRegex.exec(pdfContent)) !== null) {
+        const streamContent = streamMatch[1];
+        // Only include if it looks like readable text
+        if (/^[\x20-\x7E\s]+$/.test(streamContent) && streamContent.length > 50) {
+            text.push(streamContent);
+        }
+    }
+    
+    return text.join(' ').replace(/\s+/g, ' ').trim();
+}
 
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
@@ -81,8 +127,6 @@ serve(async (req) => {
 
         // 2. Download File
         console.log(`Downloading file: ${guideline.file_name} from URL: ${guideline.file_url}`);
-        // Note: file_url is public, so we can fetch it directly. 
-        // If it were private, we'd use supabase.storage.download
 
         const fileResponse = await fetch(guideline.file_url);
         if (!fileResponse.ok) {
@@ -92,20 +136,22 @@ serve(async (req) => {
 
         // 3. Extract Text
         let rawText = "";
-        // Note: Deno pdf-parse wrapper might need specific handling or a different lib if it fails.
-        // For simplicity in this env, we try a robust approach or fallback.
-
         const fileExt = guideline.file_name.split('.').pop()?.toLowerCase();
 
         if (fileExt === 'pdf') {
-            const pdfData = await pdfParse(new Uint8Array(fileBuffer));
-            rawText = pdfData.text;
+            rawText = await extractTextFromPDF(fileBuffer);
+            
+            // If basic extraction fails, try a simple fallback
+            if (!rawText || rawText.length < 100) {
+                console.log('Basic PDF extraction yielded little text, using fallback...');
+                const decoder = new TextDecoder('utf-8', { fatal: false });
+                const fullText = decoder.decode(new Uint8Array(fileBuffer));
+                // Extract readable ASCII text
+                rawText = fullText.replace(/[^\x20-\x7E\n\r\t]/g, ' ').replace(/\s+/g, ' ').trim();
+            }
         } else if (fileExt === 'txt' || fileExt === 'md') {
             rawText = new TextDecoder().decode(fileBuffer);
         } else {
-            // DOCX requires Mammoth or similar, adding that complexity might be risky in Deno Edge 
-            // without import maps matching exact versions.
-            // For now, let's assume PDF is primary, and if DOCX fails we note it.
             throw new Error(`Unsupported file type for processing: ${fileExt} (Currently supports PDF, TXT)`);
         }
 
@@ -120,8 +166,7 @@ serve(async (req) => {
         console.log(`Created ${chunks.length} chunks.`);
 
         // 5. Generate Embeddings & Store
-        // OpenAI recommends batching, but we must stay under token limits.
-        // Let's do batches of 10.
+        // Using text-embedding-3-small for 1536 dimensions (within Supabase vector limits)
         const batchSize = 10;
 
         for (let i = 0; i < chunks.length; i += batchSize) {
@@ -130,17 +175,15 @@ serve(async (req) => {
             console.log(`Generating embeddings for batch ${i / batchSize + 1}...`);
 
             const embeddingResponse = await openai.embeddings.create({
-                model: "text-embedding-3-large",
+                model: "text-embedding-3-small",
                 input: batchChunks.map(c => c.replace(/\n/g, ' ')),
             });
 
             // Prepare insert data
             const insertData = batchChunks.map((chunk, idx) => ({
                 guideline_id: guideline.id,
-                chunk_text: chunk,
+                content: chunk,
                 chunk_index: i + idx,
-                section_title: "General Content", // Advanced parsing in Phase 3
-                page_number: 1, // Need better PDF parser for per-page extraction
                 embedding: embeddingResponse.data[idx].embedding,
                 metadata: {
                     source: guideline.file_name,
@@ -184,8 +227,6 @@ serve(async (req) => {
             const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
             const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
-            // We might not have parsed guideline_id successfully if it failed early
-            // But if we did, try to save the error
             const reqJson = await req.clone().json().catch(() => null);
             if (reqJson?.guideline_id) {
                 await supabase
