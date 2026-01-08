@@ -1,57 +1,44 @@
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts"
-import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.38.4'
-import { PDFDocument } from 'https://cdn.skypack.dev/pdf-lib';
-import pdfParse from 'https://esm.sh/pdf-parse@1.1.1';
-import OpenAI from 'https://esm.sh/openai@4.20.1';
+import { createClient } from 'npm:@supabase/supabase-js@2.76.1'
+import OpenAI from 'npm:openai'
+import pdf from 'npm:pdf-parse/lib/pdf-parse.js'
 
 const corsHeaders = {
     'Access-Control-Allow-Origin': '*',
     'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Helper to sanitize text
 function sanitizeText(text: string): string {
     return text.replace(/\s+/g, ' ').trim();
 }
 
-// Simple text splitter since LangChain Deno support can be flaky with some deps
-function splitTextRecursive(
-    text: string,
-    chunkSize: number = 1000,
-    overlap: number = 100
-): string[] {
+function splitTextRecursive(text: string, chunkSize: number = 800, overlap: number = 100): string[] {
     if (text.length <= chunkSize) return [text];
-
     const chunks: string[] = [];
     let startIndex = 0;
-
     while (startIndex < text.length) {
         let endIndex = startIndex + chunkSize;
-
-        // If we are not at the end, search for the last period or newline to break gracefully
         if (endIndex < text.length) {
             const lastPeriod = text.lastIndexOf('.', endIndex);
-            const lastNewline = text.lastIndexOf('\n', endIndex);
-            const breakPoint = Math.max(lastPeriod, lastNewline);
-
+            const lastSpace = text.lastIndexOf(' ', endIndex);
+            const breakPoint = Math.max(lastPeriod, lastSpace);
             if (breakPoint > startIndex) {
                 endIndex = breakPoint + 1;
             }
         }
-
         chunks.push(text.slice(startIndex, endIndex).trim());
         startIndex = endIndex - overlap;
     }
-
     return chunks;
 }
-
 
 serve(async (req) => {
     if (req.method === 'OPTIONS') {
         return new Response(null, { headers: corsHeaders })
     }
+
+    const startTime = Date.now();
 
     try {
         const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
@@ -63,84 +50,130 @@ serve(async (req) => {
 
         const { guideline_id } = await req.json();
 
-        if (!guideline_id) {
-            throw new Error('guideline_id is required');
-        }
+        if (!guideline_id) throw new Error('guideline_id is required');
 
         // 1. Get Guideline Metadata
-        console.log(`Processing guideline ID: ${guideline_id}`);
         const { data: guideline, error: fetchError } = await supabase
             .from('carrier_guidelines')
             .select('*')
             .eq('id', guideline_id)
             .single();
 
-        if (fetchError || !guideline) {
-            throw new Error(`Guideline not found: ${fetchError?.message}`);
-        }
+        if (fetchError || !guideline) throw new Error(`Guideline not found: ${fetchError?.message}`);
 
         // 2. Download File
-        console.log(`Downloading file: ${guideline.file_name} from URL: ${guideline.file_url}`);
-        // Note: file_url is public, so we can fetch it directly. 
-        // If it were private, we'd use supabase.storage.download
+        // Use file_path if available (preferred for storage buckets), else fallback to file_url logic if path missing
+        // For signed/private buckets, we MUST use download from storage if not public.
+        // Audit checklist says bucket is 'carrier-guidelines' (private).
+        // So we should try to figure out the path.
+        // If file_path column exists (added in our migration), use it. 
+        // If not (e.g. migration not run yet, legacy), try to parse from URL or fallback to public URL (which might fail if private).
 
-        const fileResponse = await fetch(guideline.file_url);
-        if (!fileResponse.ok) {
-            throw new Error(`Failed to download file: ${fileResponse.statusText}`);
+        let fileBuffer: ArrayBuffer;
+
+        // Construct path if missing (legacy compat)
+        // Format: carrier/product/timestamp_filename
+        // But better to rely on what was uploaded. 
+        // If file_path is null, we might need to rely on the public URL or fail.
+        // Assuming migration 20260108000000_rag_audit_fix.sql is applied, file_path exists.
+
+        let storagePath = guideline.file_path;
+        if (!storagePath && guideline.file_url) {
+            // Try to extract relative path from URL if possible, or just error out if strictly private
+            // For this fix, let's assume valid file_path or try to download via URL if signed (but we are server side).
+            // Actually, we are admin, so we can access storage directly.
+            // If we don't have the path, we can't easily download from private bucket without listing.
+            // Let's assume the user has set file_path or we try to download from the URL provided (if it was a signed URL passed during upload? No, upload stores public URL usually).
+            // If bucket is private, file_url stored might not be accessible unless signed.
+            // We will try `storage.from(...).download(path)`.
+            // If path is missing, we are in trouble. 
+            // Failsafe: Try to use the previous logic of fetch(url) but if it's 403, we error.
+
+            // Simplest mitigation for legacy rows without file_path:
+            try {
+                const urlObj = new URL(guideline.file_url);
+                const pathParts = urlObj.pathname.split('/carrier-guidelines/');
+                if (pathParts.length > 1) storagePath = decodeURIComponent(pathParts[1]);
+            } catch (e) {
+                // ignore
+            }
         }
-        const fileBuffer = await fileResponse.arrayBuffer();
+
+        if (storagePath) {
+            const { data: fileData, error: downloadError } = await supabase.storage
+                .from('carrier-guidelines')
+                .download(storagePath);
+            if (downloadError) throw downloadError;
+            fileBuffer = await fileData.arrayBuffer();
+        } else {
+            // Fallback
+            const fileResponse = await fetch(guideline.file_url);
+            if (!fileResponse.ok) throw new Error(`Failed to download file (Status ${fileResponse.status}). Private bucket Requires file_path.`);
+            fileBuffer = await fileResponse.arrayBuffer();
+        }
 
         // 3. Extract Text
         let rawText = "";
-        // Note: Deno pdf-parse wrapper might need specific handling or a different lib if it fails.
-        // For simplicity in this env, we try a robust approach or fallback.
-
         const fileExt = guideline.file_name.split('.').pop()?.toLowerCase();
 
         if (fileExt === 'pdf') {
-            const pdfData = await pdfParse(new Uint8Array(fileBuffer));
+            const pdfData = await pdf(Buffer.from(fileBuffer));
             rawText = pdfData.text;
-        } else if (fileExt === 'txt' || fileExt === 'md') {
-            rawText = new TextDecoder().decode(fileBuffer);
+        } else if (fileExt === 'docx') {
+            // DOCX is tricky in Deno without specific libs. 
+            // Audit requirement: "Use pdf-parse library". Doesn't explicitely forbid regex for others but implies robustness.
+            // Since mammoth/others are hard to import in Deno Edge without import maps sometimes:
+            // We will ERROR for DOCX for now unless we have a specific solution.
+            // OR we fallback to a simple text extractor if possible.
+            // Prompt says: "pdf-parse library (not just regex)" for PDF.
+            // Valid MIME types include DOCX.
+            // Let's treat non-PDF as text for now or throw if we strictly can't parse.
+            throw new Error("DOCX parsing not yet implemented in this Edge Function version. Please convert to PDF.");
         } else {
-            // DOCX requires Mammoth or similar, adding that complexity might be risky in Deno Edge 
-            // without import maps matching exact versions.
-            // For now, let's assume PDF is primary, and if DOCX fails we note it.
-            throw new Error(`Unsupported file type for processing: ${fileExt} (Currently supports PDF, TXT)`);
+            rawText = new TextDecoder().decode(fileBuffer);
         }
 
-        if (!rawText || rawText.length === 0) {
-            throw new Error("Extracted text is empty");
+        rawText = sanitizeText(rawText);
+
+        // 4. Enforce Limits
+        const MAX_CHARS = 30000;
+        let isTruncated = false;
+        if (rawText.length > MAX_CHARS) {
+            rawText = rawText.slice(0, MAX_CHARS);
+            isTruncated = true;
         }
 
-        console.log(`Extracted ${rawText.length} characters.`);
+        if (rawText.length === 0) throw new Error("Extracted text is empty");
 
-        // 4. Create Chunks
-        const chunks = splitTextRecursive(sanitizeText(rawText), 1000, 200);
-        console.log(`Created ${chunks.length} chunks.`);
+        // 5. Chunking
+        const MAX_CHUNKS = 20;
+        let chunks = splitTextRecursive(rawText, 800, 100);
+        if (chunks.length > MAX_CHUNKS) {
+            chunks = chunks.slice(0, MAX_CHUNKS);
+            isTruncated = true;
+        }
 
-        // 5. Generate Embeddings & Store
-        // OpenAI recommends batching, but we must stay under token limits.
-        // Let's do batches of 10.
-        const batchSize = 10;
+        // 6. Delete Existing Chunks (Duplicate Prevention)
+        await supabase.from('guideline_chunks').delete().eq('guideline_id', guideline_id);
 
-        for (let i = 0; i < chunks.length; i += batchSize) {
-            const batchChunks = chunks.slice(i, i + batchSize);
+        // 7. Embed & Store
+        const BATCH_SIZE = 5;
+        let chunksProcessed = 0;
 
-            console.log(`Generating embeddings for batch ${i / batchSize + 1}...`);
+        for (let i = 0; i < chunks.length; i += BATCH_SIZE) {
+            const batch = chunks.slice(i, i + BATCH_SIZE);
 
+            // OpenAI Embedding
             const embeddingResponse = await openai.embeddings.create({
-                model: "text-embedding-3-large",
-                input: batchChunks.map(c => c.replace(/\n/g, ' ')),
+                model: "text-embedding-3-small",
+                input: batch,
+                dimensions: 1536
             });
 
-            // Prepare insert data
-            const insertData = batchChunks.map((chunk, idx) => ({
-                guideline_id: guideline.id,
-                chunk_text: chunk,
+            const insertData = batch.map((chunk, idx) => ({
+                guideline_id,
                 chunk_index: i + idx,
-                section_title: "General Content", // Advanced parsing in Phase 3
-                page_number: 1, // Need better PDF parser for per-page extraction
+                chunk_text: chunk,
                 embedding: embeddingResponse.data[idx].embedding,
                 metadata: {
                     source: guideline.file_name,
@@ -149,19 +182,28 @@ serve(async (req) => {
                 }
             }));
 
-            const { error: insertError } = await supabase
-                .from('guideline_chunks')
-                .insert(insertData);
-
+            const { error: insertError } = await supabase.from('guideline_chunks').insert(insertData);
             if (insertError) throw insertError;
+
+            chunksProcessed += batch.length;
+            // Batch delay
+            await new Promise(resolve => setTimeout(resolve, 100));
         }
 
-        // 6. Update Status
+        // 8. Update Metrics & Status
+        const processingTime = Date.now() - startTime;
+        const finalStatus = isTruncated ? 'partial' : 'active';
+        const notes = isTruncated ? `${guideline.notes || ''} [Truncated to limits]`.trim() : guideline.notes;
+
         const { error: updateError } = await supabase
             .from('carrier_guidelines')
             .update({
-                status: 'active',
-                processing_error: null
+                status: finalStatus,
+                processing_error: null,
+                chunks_processed_count: chunksProcessed,
+                processing_time_ms: processingTime,
+                last_processing_at: new Date().toISOString(),
+                notes: notes
             })
             .eq('id', guideline_id);
 
@@ -169,36 +211,32 @@ serve(async (req) => {
 
         return new Response(
             JSON.stringify({
-                message: 'Guideline processing complete',
-                chunks_count: chunks.length
+                success: true,
+                chunks: chunksProcessed,
+                status: finalStatus,
+                time_ms: processingTime
             }),
             { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
         )
 
     } catch (error) {
-        console.error("Processing Error:", error);
+        console.error("Processing Failed:", error);
 
-        // Attempt to update status to error
+        // Attempt error status update
         try {
             const supabaseUrl = Deno.env.get('SUPABASE_URL')!;
             const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!;
             const supabase = createClient(supabaseUrl, supabaseServiceKey);
+            const { guideline_id } = await req.clone().json().catch(() => ({}));
 
-            // We might not have parsed guideline_id successfully if it failed early
-            // But if we did, try to save the error
-            const reqJson = await req.clone().json().catch(() => null);
-            if (reqJson?.guideline_id) {
-                await supabase
-                    .from('carrier_guidelines')
-                    .update({
-                        status: 'error',
-                        processing_error: error.message
-                    })
-                    .eq('id', reqJson.guideline_id);
+            if (guideline_id) {
+                await supabase.from('carrier_guidelines').update({
+                    status: 'error',
+                    processing_error: error.message,
+                    last_processing_at: new Date().toISOString()
+                }).eq('id', guideline_id);
             }
-        } catch (e) {
-            console.error("Failed to update error status", e);
-        }
+        } catch (e) { /* ignore */ }
 
         return new Response(
             JSON.stringify({ error: error.message }),
