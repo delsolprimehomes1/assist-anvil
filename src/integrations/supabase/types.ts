@@ -205,6 +205,7 @@ export type Database = {
       carrier_guidelines: {
         Row: {
           carrier_name: string
+          chunks_processed_count: number
           created_at: string
           document_type: string
           effective_date: string | null
@@ -214,12 +215,14 @@ export type Database = {
           file_size: number | null
           file_url: string
           id: string
+          last_processing_at: string | null
           max_age: number | null
           max_coverage: number | null
           min_age: number | null
           min_coverage: number | null
           notes: string | null
           processing_error: string | null
+          processing_time_ms: number | null
           product_type: string
           status: string
           updated_at: string
@@ -227,6 +230,7 @@ export type Database = {
         }
         Insert: {
           carrier_name: string
+          chunks_processed_count?: number
           created_at?: string
           document_type?: string
           effective_date?: string | null
@@ -236,12 +240,14 @@ export type Database = {
           file_size?: number | null
           file_url: string
           id?: string
+          last_processing_at?: string | null
           max_age?: number | null
           max_coverage?: number | null
           min_age?: number | null
           min_coverage?: number | null
           notes?: string | null
           processing_error?: string | null
+          processing_time_ms?: number | null
           product_type: string
           status?: string
           updated_at?: string
@@ -249,6 +255,7 @@ export type Database = {
         }
         Update: {
           carrier_name?: string
+          chunks_processed_count?: number
           created_at?: string
           document_type?: string
           effective_date?: string | null
@@ -258,12 +265,14 @@ export type Database = {
           file_size?: number | null
           file_url?: string
           id?: string
+          last_processing_at?: string | null
           max_age?: number | null
           max_coverage?: number | null
           min_age?: number | null
           min_coverage?: number | null
           notes?: string | null
           processing_error?: string | null
+          processing_time_ms?: number | null
           product_type?: string
           status?: string
           updated_at?: string
