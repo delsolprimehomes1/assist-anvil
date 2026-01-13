@@ -85,10 +85,13 @@ serve(async (req) => {
       responseContent = responseText;
     }
 
-    console.log(`[rag-n8n] Returning response of length: ${responseContent.length}`);
+    // Apply markdown formatting for better readability
+    const formattedContent = enhanceMarkdownFormatting(responseContent);
+
+    console.log(`[rag-n8n] Returning response of length: ${formattedContent.length}`);
 
     return new Response(
-      JSON.stringify({ output: responseContent }),
+      JSON.stringify({ output: formattedContent }),
       { headers: { ...corsHeaders, 'Content-Type': 'application/json' } }
     );
 
@@ -100,6 +103,41 @@ serve(async (req) => {
     );
   }
 });
+
+// Helper function to enhance markdown formatting for better readability
+function enhanceMarkdownFormatting(text: string): string {
+  if (!text) return text;
+  
+  let formatted = text;
+  
+  // Ensure paragraphs have proper spacing (double newlines)
+  formatted = formatted.replace(/\n(?!\n)/g, '\n\n');
+  
+  // Clean up excessive newlines (more than 2 in a row)
+  formatted = formatted.replace(/\n{3,}/g, '\n\n');
+  
+  // Convert numbered patterns to proper markdown lists
+  formatted = formatted.replace(/^(\d+)[.)]\s+/gm, '$1. ');
+  
+  // Convert bullet-like patterns to markdown bullets
+  formatted = formatted.replace(/^[•●○]\s+/gm, '- ');
+  
+  // Bold key phrases that look like section headers (lines ending with ":" that are short)
+  formatted = formatted.replace(/^([A-Z][^:\n]{0,50}):(\s*\n)/gm, '**$1:**$2');
+  
+  // Bold common section keywords
+  const sectionKeywords = [
+    'Summary', 'Overview', 'Key Points', 'Important', 
+    'Note', 'Conclusion', 'Recommendation', 'Answer',
+    'Guidelines', 'Requirements', 'Steps', 'Process'
+  ];
+  sectionKeywords.forEach(keyword => {
+    const regex = new RegExp(`^(${keyword})(:?)`, 'gim');
+    formatted = formatted.replace(regex, '**$1$2**');
+  });
+  
+  return formatted.trim();
+}
 
 // Helper function to format JSON objects as readable markdown
 function formatObjectAsMarkdown(obj: Record<string, unknown>, indent = 0): string {
