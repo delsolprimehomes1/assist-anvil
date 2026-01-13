@@ -219,21 +219,39 @@ export default function AIAssist() {
                   onCitationClick={(cite) => setSelectedCitation(cite)}
                 />
               ))}
-              {isLoading && (
-                <div className="px-4 md:px-8 py-4 animate-fade-in">
-                  <div className="flex items-start gap-3">
-                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-                      <Bot className="h-4 w-4 text-primary" />
-                    </div>
-                    <div className="flex-1 space-y-3 pt-1">
-                      <div className="h-4 bg-muted rounded-md w-3/4 animate-pulse" />
-                      <div className="h-4 bg-muted rounded-md w-full animate-pulse" style={{ animationDelay: '150ms' }} />
-                      <div className="h-4 bg-muted rounded-md w-5/6 animate-pulse" style={{ animationDelay: '300ms' }} />
-                      <div className="h-4 bg-muted rounded-md w-2/3 animate-pulse" style={{ animationDelay: '450ms' }} />
-                    </div>
+          {isLoading && (
+            <div className="px-4 md:px-8 py-4 animate-fade-in">
+              <div className="flex items-start gap-3">
+                {/* AI Avatar with pulse ring */}
+                <div className="relative flex-shrink-0">
+                  <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
+                    <Bot className="h-4 w-4 text-primary" />
+                  </div>
+                  <span className="absolute inset-0 rounded-full bg-primary/20 animate-ping" />
+                </div>
+                
+                <div className="flex-1 space-y-3 pt-1">
+                  {/* "Thinking" text with animated dots */}
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <span>Thinking</span>
+                    <span className="flex gap-1">
+                      <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '0ms' }} />
+                      <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '150ms' }} />
+                      <span className="w-1.5 h-1.5 bg-primary/60 rounded-full animate-bounce" style={{ animationDelay: '300ms' }} />
+                    </span>
+                  </div>
+                  
+                  {/* Shimmer skeleton lines */}
+                  <div className="space-y-2">
+                    <div className="h-4 rounded-md w-3/4 bg-gradient-to-r from-muted via-muted-foreground/10 to-muted bg-[length:200%_100%] animate-shimmer" />
+                    <div className="h-4 rounded-md w-full bg-gradient-to-r from-muted via-muted-foreground/10 to-muted bg-[length:200%_100%] animate-shimmer" style={{ animationDelay: '100ms' }} />
+                    <div className="h-4 rounded-md w-5/6 bg-gradient-to-r from-muted via-muted-foreground/10 to-muted bg-[length:200%_100%] animate-shimmer" style={{ animationDelay: '200ms' }} />
+                    <div className="h-4 rounded-md w-2/3 bg-gradient-to-r from-muted via-muted-foreground/10 to-muted bg-[length:200%_100%] animate-shimmer" style={{ animationDelay: '300ms' }} />
                   </div>
                 </div>
-              )}
+              </div>
+            </div>
+          )}
               <div ref={scrollRef} />
             </div>
           )}
