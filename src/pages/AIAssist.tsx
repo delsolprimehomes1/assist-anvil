@@ -52,7 +52,7 @@ export default function AIAssist() {
       .insert({
         id: newId,
         user_id: user.id,
-        session_title: 'New Conversation'
+        title: 'New Conversation'
       })
       .select()
       .single();
