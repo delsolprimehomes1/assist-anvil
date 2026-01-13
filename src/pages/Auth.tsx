@@ -23,6 +23,7 @@ const Auth = () => {
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
+  const [resetFullName, setResetFullName] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
   useEffect(() => {
     supabase.auth.getSession().then(({
@@ -113,27 +114,31 @@ const Auth = () => {
       setLoading(false);
     }
   };
-  const handleForgotPassword = async (e: React.FormEvent) => {
+  const handlePasswordResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetLoading(true);
     try {
-      const {
-        error
-      } = await supabase.auth.resetPasswordForEmail(resetEmail, {
-        redirectTo: `${window.location.origin}/reset-password`
-      });
+      const { error } = await supabase
+        .from("password_reset_requests")
+        .insert({
+          email: resetEmail.toLowerCase().trim(),
+          full_name: resetFullName.trim(),
+        });
+
       if (error) throw error;
+      
       toast({
-        title: "Check your email",
-        description: "We sent you a password reset link."
+        title: "Request Submitted",
+        description: "An administrator will reset your password shortly. Please check your email for the new password.",
       });
       setShowForgotPassword(false);
       setResetEmail("");
+      setResetFullName("");
     } catch (error: any) {
       toast({
         title: "Error",
         description: error.message,
-        variant: "destructive"
+        variant: "destructive",
       });
     } finally {
       setResetLoading(false);
@@ -261,29 +266,63 @@ const Auth = () => {
 
       <OnboardingDialog open={showOnboarding} onOpenChange={setShowOnboarding} />
 
-      {/* Forgot Password Dialog */}
+      {/* Password Reset Request Dialog */}
       <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Reset Password</DialogTitle>
+            <DialogTitle>Request Password Reset</DialogTitle>
             <DialogDescription>
-              Enter your email address and we'll send you a password reset link.
+              Enter your information and an administrator will reset your password for you.
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handleForgotPassword} className="space-y-4">
+          <form onSubmit={handlePasswordResetRequest} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="reset-name">Full Name</Label>
+              <Input 
+                id="reset-name" 
+                type="text" 
+                placeholder="John Doe" 
+                value={resetFullName} 
+                onChange={e => setResetFullName(e.target.value)} 
+                required 
+                disabled={resetLoading} 
+              />
+            </div>
             <div className="space-y-2">
               <Label htmlFor="reset-email">Email Address</Label>
-              <Input id="reset-email" type="email" placeholder="you@example.com" value={resetEmail} onChange={e => setResetEmail(e.target.value)} required disabled={resetLoading} />
+              <Input 
+                id="reset-email" 
+                type="email" 
+                placeholder="you@example.com" 
+                value={resetEmail} 
+                onChange={e => setResetEmail(e.target.value)} 
+                required 
+                disabled={resetLoading} 
+              />
             </div>
             <div className="flex gap-2">
-              <Button type="button" variant="outline" onClick={() => setShowForgotPassword(false)} disabled={resetLoading} className="flex-1">
+              <Button 
+                type="button" 
+                variant="outline" 
+                onClick={() => {
+                  setShowForgotPassword(false);
+                  setResetEmail("");
+                  setResetFullName("");
+                }} 
+                disabled={resetLoading} 
+                className="flex-1"
+              >
                 Cancel
               </Button>
               <Button type="submit" disabled={resetLoading} className="flex-1">
-                {resetLoading ? <>
+                {resetLoading ? (
+                  <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Sending...
-                  </> : "Send Reset Link"}
+                    Submitting...
+                  </>
+                ) : (
+                  "Submit Request"
+                )}
               </Button>
             </div>
           </form>
