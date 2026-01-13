@@ -45,7 +45,7 @@ export function ChatMessage({ message, onCitationClick }: ChatMessageProps) {
             </div>
 
             <div className="flex-1 space-y-2 overflow-hidden">
-                <div className="prose prose-sm dark:prose-invert max-w-none break-words">
+                <div className="prose prose-sm dark:prose-invert max-w-none break-words prose-p:my-3 prose-ul:my-2 prose-ol:my-2 prose-li:my-1 prose-headings:mt-4 prose-headings:mb-2 prose-strong:text-foreground">
                     <ReactMarkdown
                         remarkPlugins={[remarkGfm]}
                         components={{
