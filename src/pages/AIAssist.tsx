@@ -220,9 +220,18 @@ export default function AIAssist() {
                 />
               ))}
               {isLoading && (
-                <div className="px-8 py-4 flex items-center gap-2 text-muted-foreground">
-                  <Loader2 className="h-4 w-4 animate-spin" />
-                  <span className="text-xs">Thinking...</span>
+                <div className="px-4 md:px-8 py-4 animate-fade-in">
+                  <div className="flex items-start gap-3">
+                    <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
+                      <Bot className="h-4 w-4 text-primary" />
+                    </div>
+                    <div className="flex-1 space-y-3 pt-1">
+                      <div className="h-4 bg-muted rounded-md w-3/4 animate-pulse" />
+                      <div className="h-4 bg-muted rounded-md w-full animate-pulse" style={{ animationDelay: '150ms' }} />
+                      <div className="h-4 bg-muted rounded-md w-5/6 animate-pulse" style={{ animationDelay: '300ms' }} />
+                      <div className="h-4 bg-muted rounded-md w-2/3 animate-pulse" style={{ animationDelay: '450ms' }} />
+                    </div>
+                  </div>
                 </div>
               )}
               <div ref={scrollRef} />
