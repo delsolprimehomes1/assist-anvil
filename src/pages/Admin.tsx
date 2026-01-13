@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus, Newspaper } from "lucide-react";
+import { Settings, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus, Newspaper, KeyRound } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -23,6 +23,7 @@ import { ScheduleManagement } from "@/components/admin/schedule/ScheduleManageme
 import { NewsManagement } from "@/components/admin/news/NewsManagement";
 import { MarketingManagement } from "@/components/admin/marketing/MarketingManagement";
 import { GuidelineManagement } from "@/components/admin/guidelines/GuidelineManagement";
+import { PasswordResetRequestsList } from "@/components/admin/PasswordResetRequestsList";
 
 type ApprovedEmail = {
   id: string;
@@ -172,6 +173,7 @@ const Admin = () => {
           <TabsTrigger value="carriers" className="whitespace-nowrap px-4 py-2">Carriers</TabsTrigger>
           <TabsTrigger value="users" className="whitespace-nowrap px-4 py-2">Users</TabsTrigger>
           <TabsTrigger value="user-management" className="whitespace-nowrap px-4 py-2">User Management</TabsTrigger>
+          <TabsTrigger value="password-resets" className="whitespace-nowrap px-4 py-2">Password Resets</TabsTrigger>
           <TabsTrigger value="onboarding" className="whitespace-nowrap px-4 py-2">Onboarding</TabsTrigger>
           <TabsTrigger value="analytics" className="whitespace-nowrap px-4 py-2">Analytics</TabsTrigger>
           <TabsTrigger value="settings" className="whitespace-nowrap px-4 py-2">Settings</TabsTrigger>
@@ -346,6 +348,10 @@ const Admin = () => {
               </Tabs>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        <TabsContent value="password-resets" className="space-y-6">
+          <PasswordResetRequestsList />
         </TabsContent>
 
         <TabsContent value="onboarding" className="space-y-6">
