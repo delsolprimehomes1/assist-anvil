@@ -14,7 +14,7 @@ serve(async (req) => {
   }
 
   try {
-    const { question, session_id } = await req.json();
+    const { question, session_id, history = [] } = await req.json();
     
     if (!question) {
       return new Response(
@@ -23,15 +23,16 @@ serve(async (req) => {
       );
     }
 
-    console.log(`[rag-n8n] Question: "${question.substring(0, 100)}...", Session: ${session_id}`);
+    console.log(`[rag-n8n] Question: "${question.substring(0, 100)}...", Session: ${session_id}, History: ${history.length} messages`);
 
-    // Forward to n8n webhook
+    // Forward to n8n webhook with conversation history
     const n8nResponse = await fetch(N8N_WEBHOOK_URL, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ 
         question, 
-        sessionId: session_id 
+        sessionId: session_id,
+        history: history
       }),
     });
 
