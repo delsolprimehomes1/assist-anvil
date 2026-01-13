@@ -1,8 +1,9 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus, Newspaper, KeyRound } from "lucide-react";
+import { Settings, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus, Newspaper, KeyRound, AlertCircle } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -10,6 +11,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Textarea } from "@/components/ui/textarea";
 import { CarriersList } from "@/components/admin/CarriersList";
 import { InviteAgentDialog } from "@/components/admin/InviteAgentDialog";
@@ -41,7 +43,22 @@ const Admin = () => {
   const [emailForm, setEmailForm] = useState({ email: "", notes: "" });
   const [loadingEmails, setLoadingEmails] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState("approvals");
   const { toast } = useToast();
+
+  const { data: pendingResets } = useQuery({
+    queryKey: ["pending-password-resets-count"],
+    queryFn: async () => {
+      const { count, error } = await supabase
+        .from("password_reset_requests")
+        .select("*", { count: "exact", head: true })
+        .eq("status", "pending");
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: isAdmin,
+  });
 
   useEffect(() => {
     if (!authLoading && !adminLoading) {
@@ -167,7 +184,28 @@ const Admin = () => {
         </div>
       </div>
 
-      <Tabs defaultValue="approvals" className="w-full">
+      {pendingResets && pendingResets > 0 && (
+        <Alert className="border-orange-500 bg-orange-50 dark:bg-orange-950/20">
+          <AlertCircle className="h-5 w-5 text-orange-500" />
+          <AlertTitle className="font-semibold text-orange-700 dark:text-orange-400">Password Reset Required</AlertTitle>
+          <AlertDescription className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+            <span className="text-orange-600 dark:text-orange-300">
+              {pendingResets} user{pendingResets > 1 ? 's' : ''} {pendingResets > 1 ? 'have' : 'has'} requested a password reset.
+            </span>
+            <Button 
+              size="sm" 
+              variant="outline"
+              onClick={() => setActiveTab("password-resets")}
+              className="border-orange-500 text-orange-600 hover:bg-orange-100 dark:hover:bg-orange-900/30"
+            >
+              <KeyRound className="mr-2 h-4 w-4" />
+              View Requests
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
         <TabsList className="h-auto flex w-full overflow-x-auto gap-1 p-1 justify-start scrollbar-hide">
           <TabsTrigger value="approvals" className="whitespace-nowrap px-4 py-2">Admin Approvals</TabsTrigger>
           <TabsTrigger value="carriers" className="whitespace-nowrap px-4 py-2">Carriers</TabsTrigger>
