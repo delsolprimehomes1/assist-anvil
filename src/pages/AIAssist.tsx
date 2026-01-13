@@ -126,6 +126,12 @@ export default function AIAssist() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
+      // Get last 5 messages for context (excluding the current user message we just added)
+      const recentMessages = messages.slice(-5).map(m => ({
+        role: m.role,
+        content: m.content
+      }));
+
       const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-n8n`, {
         method: 'POST',
         headers: {
@@ -134,7 +140,8 @@ export default function AIAssist() {
         },
         body: JSON.stringify({
           question: content,
-          session_id: currentSessionId
+          session_id: currentSessionId,
+          history: recentMessages
         })
       });
 
