@@ -126,47 +126,31 @@ export default function AIAssist() {
     try {
       const { data: { session } } = await supabase.auth.getSession();
 
-      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-chat`, {
+      const response = await fetch(`${import.meta.env.VITE_SUPABASE_URL}/functions/v1/rag-n8n`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session?.access_token}`
         },
         body: JSON.stringify({
-          messages: [...messages, userMsg],
+          question: content,
           session_id: currentSessionId
         })
       });
 
-      if (!response.ok) throw new Error('Failed to fetch response');
-
-      // Streaming logic
-      const reader = response.body?.getReader();
-      const decoder = new TextDecoder();
-      let aiContent = "";
-
-      setMessages(prev => [...prev, { role: 'assistant', content: '' }]);
-
-      while (true) {
-        const { done, value } = await reader!.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        aiContent += chunk;
-
-        setMessages(prev => {
-          const newMsgs = [...prev];
-          const lastMsg = newMsgs[newMsgs.length - 1];
-          lastMsg.content = aiContent;
-          return newMsgs;
-        });
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.error || 'Failed to fetch response');
       }
 
-      // TODO: Save messages to DB here if full persistence desired
+      const data = await response.json();
+      const aiContent = data.output || data.response || 'No response received.';
+
+      setMessages(prev => [...prev, { role: 'assistant', content: aiContent }]);
 
     } catch (error) {
       console.error(error);
-      toast.error("Failed to generate response");
+      toast.error(error instanceof Error ? error.message : "Failed to generate response");
       setMessages(prev => [...prev, { role: 'assistant', content: "**Error generating response.** Please try again." }]);
     } finally {
       setIsLoading(false);
