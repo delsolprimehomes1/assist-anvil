@@ -5,7 +5,7 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 };
 
-const N8N_WEBHOOK_URL = "https://n8n2.a3innercircle.com/webhook-test/a83d9f8a-8284-4679-b2e7-fa9f10675085";
+const N8N_WEBHOOK_URL = "https://n8n2.a3innercircle.com/webhook/a83d9f8a-8284-4679-b2e7-fa9f10675085";
 
 serve(async (req) => {
   // Handle CORS preflight requests
