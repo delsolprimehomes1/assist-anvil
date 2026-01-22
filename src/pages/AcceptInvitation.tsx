@@ -131,6 +131,34 @@ export default function AcceptInvitation() {
         console.error("Error updating invitation:", updateError);
       }
 
+      // Place new user under their inviter in the hierarchy
+      if (invitation.invited_by) {
+        const { data: inviterHierarchy } = await supabase
+          .from("hierarchy_agents")
+          .select("id, path, depth")
+          .eq("user_id", invitation.invited_by)
+          .single();
+
+        if (inviterHierarchy) {
+          const newPath = `${inviterHierarchy.path}.${authData.user.id.replace(/-/g, '_')}`;
+          const newDepth = (inviterHierarchy.depth || 0) + 1;
+
+          // Update the auto-created hierarchy record to be under the inviter
+          const { error: hierarchyError } = await supabase
+            .from("hierarchy_agents")
+            .update({
+              parent_id: inviterHierarchy.id,
+              path: newPath,
+              depth: newDepth,
+            })
+            .eq("user_id", authData.user.id);
+
+          if (hierarchyError) {
+            console.error("Error updating hierarchy placement:", hierarchyError);
+          }
+        }
+      }
+
       toast({
         title: "Account created successfully!",
         description: "You can now log in with your credentials",
