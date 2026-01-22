@@ -1,9 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Trash2, Mail, Clock, CheckCircle, XCircle, Loader2, RefreshCw, Copy, Check } from "lucide-react";
+import { Trash2, Mail, Clock, CheckCircle, XCircle, Loader2, RefreshCw, Copy, Check, Send } from "lucide-react";
 import { toast } from "sonner";
 import {
   AlertDialog,
@@ -26,6 +26,7 @@ interface Invitation {
   invited_at: string;
   expires_at: string;
   invitation_token: string;
+  accepted_at: string | null;
 }
 
 export function MyInvitationsList() {
@@ -35,8 +36,9 @@ export function MyInvitationsList() {
   const [deleteId, setDeleteId] = useState<string | null>(null);
   const [deleting, setDeleting] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [resendingId, setResendingId] = useState<string | null>(null);
 
-  const fetchInvitations = async () => {
+  const fetchInvitations = useCallback(async () => {
     if (!user) return;
 
     setLoading(true);
@@ -48,21 +50,55 @@ export function MyInvitationsList() {
         .order("invited_at", { ascending: false });
 
       if (error) throw error;
-      setInvitations(data || []);
+      // Cast to handle accepted_at column that may not be in generated types yet
+      setInvitations((data || []) as unknown as Invitation[]);
     } catch (error: any) {
       console.error("Error fetching invitations:", error);
       toast.error("Failed to load invitations");
     } finally {
       setLoading(false);
     }
-  };
+  }, [user]);
 
   useEffect(() => {
     fetchInvitations();
-  }, [user]);
+  }, [fetchInvitations]);
+
+  // Real-time subscription for invitation updates
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("my-invitations-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "user_invitations",
+          filter: `invited_by=eq.${user.id}`,
+        },
+        (payload) => {
+          console.log("Invitation change detected:", payload);
+          fetchInvitations();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user, fetchInvitations]);
 
   const handleDelete = async () => {
     if (!deleteId) return;
+
+    const invitation = invitations.find((inv) => inv.id === deleteId);
+    if (invitation?.status === "accepted") {
+      toast.error("Cannot delete accepted invitations");
+      setDeleteId(null);
+      return;
+    }
 
     setDeleting(true);
     try {
@@ -84,6 +120,29 @@ export function MyInvitationsList() {
     }
   };
 
+  const handleResendInvitation = async (invitation: Invitation) => {
+    setResendingId(invitation.id);
+    try {
+      const { error } = await supabase.functions.invoke("send-invitation", {
+        body: {
+          email: invitation.email,
+          role: invitation.role,
+          notes: invitation.notes,
+        },
+      });
+
+      if (error) throw error;
+
+      toast.success("Invitation resent successfully!");
+      fetchInvitations();
+    } catch (error: any) {
+      console.error("Error resending invitation:", error);
+      toast.error(error.message || "Failed to resend invitation");
+    } finally {
+      setResendingId(null);
+    }
+  };
+
   const copyInviteLink = async (token: string, id: string) => {
     const link = `${window.location.origin}/accept-invitation?token=${token}`;
     try {
@@ -96,14 +155,19 @@ export function MyInvitationsList() {
     }
   };
 
-  const getStatusBadge = (status: string, expiresAt: string) => {
-    const isExpired = new Date(expiresAt) < new Date();
+  const getStatusBadge = (invitation: Invitation) => {
+    const isExpired = new Date(invitation.expires_at) < new Date();
 
-    if (status === "accepted") {
+    if (invitation.status === "accepted") {
       return (
         <Badge className="bg-emerald-500/20 text-emerald-600 border-emerald-500/30">
           <CheckCircle className="h-3 w-3 mr-1" />
           Accepted
+          {invitation.accepted_at && (
+            <span className="ml-1 opacity-75">
+              {formatDistanceToNow(new Date(invitation.accepted_at), { addSuffix: true })}
+            </span>
+          )}
         </Badge>
       );
     }
@@ -158,6 +222,8 @@ export function MyInvitationsList() {
       {invitations.map((invitation) => {
         const isExpired = new Date(invitation.expires_at) < new Date();
         const isPending = invitation.status === "pending" && !isExpired;
+        const isAccepted = invitation.status === "accepted";
+        const canResend = isPending || isExpired;
 
         return (
           <div
@@ -172,7 +238,7 @@ export function MyInvitationsList() {
                 </Badge>
               </div>
               <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                {getStatusBadge(invitation.status, invitation.expires_at)}
+                {getStatusBadge(invitation)}
                 <span>
                   Sent {formatDistanceToNow(new Date(invitation.invited_at), { addSuffix: true })}
                 </span>
@@ -199,15 +265,32 @@ export function MyInvitationsList() {
                   )}
                 </Button>
               )}
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => setDeleteId(invitation.id)}
-                className="text-destructive hover:text-destructive hover:bg-destructive/10"
-                title="Delete invitation"
-              >
-                <Trash2 className="h-4 w-4" />
-              </Button>
+              {canResend && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => handleResendInvitation(invitation)}
+                  disabled={resendingId === invitation.id}
+                  title="Resend invitation"
+                >
+                  {resendingId === invitation.id ? (
+                    <Loader2 className="h-4 w-4 animate-spin" />
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              )}
+              {!isAccepted && (
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  onClick={() => setDeleteId(invitation.id)}
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10"
+                  title="Delete invitation"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              )}
             </div>
           </div>
         );
