@@ -1477,6 +1477,14 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      can_view_hierarchy_agent: {
+        Args: {
+          _agent_path: string
+          _agent_user_id: string
+          _viewer_id: string
+        }
+        Returns: boolean
+      }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
