@@ -26,6 +26,10 @@
     --accent-gold-light: 34 55% 61%;
     --accent-gold-foreground: 0 0% 100%;
     
+    /* Brand color aliases for easier reference */
+    --brand-teal: 193 31% 66%;
+    --brand-gold: 34 55% 51%;
+    
     /* Neutral Secondary */
     --secondary: 214 32% 91%;
     --secondary-foreground: 222 47% 11%;
@@ -89,6 +93,10 @@
     
     --accent-gold: 34 55% 61%;
     --accent-gold-foreground: 0 0% 100%;
+    
+    /* Brand color aliases for easier reference */
+    --brand-teal: 193 31% 56%;
+    --brand-gold: 34 55% 61%;
     
     --secondary: 217 33% 17%;
     --secondary-foreground: 210 40% 98%;
