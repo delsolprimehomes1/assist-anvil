@@ -12,14 +12,15 @@ import {
   type NodeTypes,
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
-import { AgentNode, type AgentNodeData } from "./AgentNode";
+import { CircularAgentNode, type CircularAgentNodeData } from "./CircularAgentNode";
 import { HeatmapNode, type HeatmapNodeData } from "./HeatmapNode";
 import { HierarchyAgent } from "@/hooks/useHierarchy";
 import { ViewMode } from "@/pages/Organization";
+import { zoneColors, determineAgentZone, EnhancedAgent } from "@/lib/licensing-logic";
 
 // Define node types with proper typing
 const nodeTypes: NodeTypes = {
-  agent: AgentNode as any,
+  agent: CircularAgentNode as any,
   heatmap: HeatmapNode as any,
 };
 
@@ -28,13 +29,7 @@ interface HierarchyTreeProps {
   viewMode: ViewMode;
 }
 
-// Tier colors for edges
-const tierColors: Record<string, string> = {
-  new_agent: "#3b82f6",
-  producer: "#a855f7",
-  power_producer: "#f97316",
-  elite: "#fbbf24",
-};
+// Zone colors for edges (imported from licensing-logic)
 
 export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
@@ -47,9 +42,9 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
     // Create a map for quick parent lookup
     const agentMap = new Map(agents.map((a) => [a.id, a]));
 
-    // Calculate positions based on hierarchy
-    const horizontalSpacing = viewMode === "heatmap" ? 100 : 320;
-    const verticalSpacing = viewMode === "heatmap" ? 100 : 220;
+    // Calculate positions based on hierarchy - larger spacing for circular nodes
+    const horizontalSpacing = viewMode === "heatmap" ? 100 : 180;
+    const verticalSpacing = viewMode === "heatmap" ? 100 : 200;
 
     // Track children count per parent for horizontal positioning
     const childrenPositions = new Map<string | null, number>();
@@ -126,7 +121,7 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
             type: "smoothstep",
             animated: agent.status === "active",
             style: {
-              stroke: tierColors[agent.tier] || "#64748b",
+              stroke: zoneColors[determineAgentZone(agent as EnhancedAgent)] || "#64748b",
               strokeWidth: 2,
             },
           });
@@ -171,8 +166,12 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
           className="bg-background border shadow-md"
           nodeColor={(node: Node) => {
             const data = node.data as any;
-            const tier = data?.agent?.tier;
-            return tierColors[tier || ""] || "#64748b";
+            const agent = data?.agent;
+            if (agent) {
+              const zone = determineAgentZone(agent as EnhancedAgent);
+              return zoneColors[zone];
+            }
+            return "#64748b";
           }}
           maskColor="rgba(0, 0, 0, 0.1)"
         />

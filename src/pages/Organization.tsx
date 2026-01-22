@@ -32,7 +32,7 @@ const Organization = () => {
   });
 
   return (
-    <div className="flex flex-col h-full">
+    <div className="flex flex-col" style={{ height: 'calc(100vh - 80px)' }}>
       {/* Header */}
       <div className="flex flex-col gap-4 p-6 border-b bg-background">
         <div className="flex items-center justify-between">
