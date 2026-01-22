@@ -6,13 +6,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Loader2, CheckCircle2, XCircle } from "lucide-react";
+import { Loader2, CheckCircle2, XCircle, UserPlus } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function AcceptInvitation() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, loading: authLoading } = useAuth();
   const token = searchParams.get("token");
 
   const [invitation, setInvitation] = useState<any>(null);
@@ -24,6 +26,8 @@ export default function AcceptInvitation() {
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    if (authLoading) return;
+    
     if (!token) {
       setError("Invalid invitation link");
       setLoading(false);
@@ -34,9 +38,6 @@ export default function AcceptInvitation() {
       try {
         const { data, error } = await supabase
           .from("user_invitations")
-          // NOTE: Don't join to profiles here.
-          // `user_invitations.invited_by` is not a declared FK relationship, so PostgREST will error.
-          // This page must be able to load for logged-out users.
           .select("*")
           .eq("invitation_token", token)
           .single();
@@ -58,6 +59,12 @@ export default function AcceptInvitation() {
           return;
         }
 
+        // If user is logged in, check email match
+        if (user && user.email?.toLowerCase() !== data.email.toLowerCase()) {
+          setError(`This invitation was sent to ${data.email}. Please log out and use that email address, or log in with the correct account.`);
+          return;
+        }
+
         setInvitation(data);
       } catch (error: any) {
         console.error("Error fetching invitation:", error);
@@ -68,8 +75,54 @@ export default function AcceptInvitation() {
     };
 
     fetchInvitation();
-  }, [token]);
+  }, [token, user, authLoading]);
 
+  const callAcceptInvitation = async (payload: { token: string; fullName?: string; password?: string }) => {
+    const response = await supabase.functions.invoke("accept-invitation", {
+      body: payload,
+    });
+
+    if (response.error) {
+      throw new Error(response.error.message || "Failed to accept invitation");
+    }
+
+    if (response.data?.error) {
+      throw new Error(response.data.error);
+    }
+
+    return response.data;
+  };
+
+  // Handle existing user joining organization
+  const handleJoinOrganization = async () => {
+    if (!user) return;
+
+    setSubmitting(true);
+
+    try {
+      await callAcceptInvitation({ token: token! });
+
+      toast({
+        title: "Successfully joined organization!",
+        description: "You have been placed under your inviter in the hierarchy.",
+      });
+
+      setTimeout(() => {
+        navigate("/dashboard/organization");
+      }, 1500);
+    } catch (error: any) {
+      console.error("Error joining organization:", error);
+      toast({
+        title: "Failed to join organization",
+        description: error.message || "Please try again",
+        variant: "destructive",
+      });
+    } finally {
+      setSubmitting(false);
+    }
+  };
+
+  // Handle new user signup
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
@@ -103,70 +156,35 @@ export default function AcceptInvitation() {
     setSubmitting(true);
 
     try {
-      // Sign up the user
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: invitation.email,
+      const result = await callAcceptInvitation({
+        token: token!,
+        fullName,
         password,
-        options: {
-          data: {
-            full_name: fullName,
-          },
-          emailRedirectTo: `${window.location.origin}/`,
-        },
       });
-
-      if (authError) throw authError;
-
-      if (!authData.user) {
-        throw new Error("Failed to create user");
-      }
-
-      // Update invitation status
-      const { error: updateError } = await supabase
-        .from("user_invitations")
-        .update({ status: "accepted" })
-        .eq("invitation_token", token);
-
-      if (updateError) {
-        console.error("Error updating invitation:", updateError);
-      }
-
-      // Place new user under their inviter in the hierarchy
-      if (invitation.invited_by) {
-        const { data: inviterHierarchy } = await supabase
-          .from("hierarchy_agents")
-          .select("id, path, depth")
-          .eq("user_id", invitation.invited_by)
-          .single();
-
-        if (inviterHierarchy) {
-          const newPath = `${inviterHierarchy.path}.${authData.user.id.replace(/-/g, '_')}`;
-          const newDepth = (inviterHierarchy.depth || 0) + 1;
-
-          // Update the auto-created hierarchy record to be under the inviter
-          const { error: hierarchyError } = await supabase
-            .from("hierarchy_agents")
-            .update({
-              parent_id: inviterHierarchy.id,
-              path: newPath,
-              depth: newDepth,
-            })
-            .eq("user_id", authData.user.id);
-
-          if (hierarchyError) {
-            console.error("Error updating hierarchy placement:", hierarchyError);
-          }
-        }
-      }
 
       toast({
         title: "Account created successfully!",
-        description: "You can now log in with your credentials",
+        description: "You can now log in with your credentials.",
       });
 
-      setTimeout(() => {
-        navigate("/auth");
-      }, 2000);
+      // Sign in the user automatically
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: invitation.email,
+        password,
+      });
+
+      if (signInError) {
+        console.error("Auto sign-in failed:", signInError);
+        // Still redirect to auth page
+        setTimeout(() => {
+          navigate("/auth");
+        }, 2000);
+      } else {
+        // Redirect to dashboard
+        setTimeout(() => {
+          navigate("/dashboard");
+        }, 1500);
+      }
     } catch (error: any) {
       console.error("Error accepting invitation:", error);
       toast({
@@ -179,7 +197,7 @@ export default function AcceptInvitation() {
     }
   };
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10">
         <Loader2 className="h-8 w-8 animate-spin" />
@@ -196,7 +214,12 @@ export default function AcceptInvitation() {
             <CardTitle>Invalid Invitation</CardTitle>
             <CardDescription>{error}</CardDescription>
           </CardHeader>
-          <CardContent>
+          <CardContent className="space-y-3">
+            {user && (
+              <Button variant="outline" className="w-full" onClick={() => supabase.auth.signOut()}>
+                Sign Out
+              </Button>
+            )}
             <Button className="w-full" onClick={() => navigate("/auth")}>
               Go to Login
             </Button>
@@ -206,6 +229,64 @@ export default function AcceptInvitation() {
     );
   }
 
+  // Logged-in user flow: Join Organization
+  if (user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
+        <Card className="w-full max-w-md">
+          <CardHeader>
+            <UserPlus className="h-12 w-12 text-primary mx-auto mb-4" />
+            <CardTitle className="text-center">Join Organization</CardTitle>
+            <CardDescription className="text-center">
+              You've been invited to join the team
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="mb-6 p-4 bg-muted rounded-lg">
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Your Email:</span>
+                <span className="text-sm">{user.email}</span>
+              </div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="text-sm font-medium">Role:</span>
+                <Badge variant="outline" className="capitalize">{invitation.role}</Badge>
+              </div>
+              {invitation.notes && (
+                <div className="mt-3 pt-3 border-t">
+                  <p className="text-sm italic text-muted-foreground">"{invitation.notes}"</p>
+                </div>
+              )}
+            </div>
+
+            <p className="text-sm text-muted-foreground mb-6 text-center">
+              Clicking below will add you to the organization under your inviter's team.
+            </p>
+
+            <Button 
+              onClick={handleJoinOrganization} 
+              className="w-full" 
+              disabled={submitting}
+              size="lg"
+            >
+              {submitting ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Joining...
+                </>
+              ) : (
+                <>
+                  <UserPlus className="mr-2 h-4 w-4" />
+                  Join Organization
+                </>
+              )}
+            </Button>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
+  // New user flow: Create Account
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-secondary/10 p-4">
       <Card className="w-full max-w-md">
@@ -224,7 +305,7 @@ export default function AcceptInvitation() {
             </div>
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Role:</span>
-              <Badge variant="outline">{invitation.role}</Badge>
+              <Badge variant="outline" className="capitalize">{invitation.role}</Badge>
             </div>
             {invitation.notes && (
               <div className="mt-3 pt-3 border-t">
@@ -281,6 +362,14 @@ export default function AcceptInvitation() {
               )}
             </Button>
           </form>
+
+          <p className="text-xs text-muted-foreground text-center mt-4">
+            Already have an account?{" "}
+            <Button variant="link" className="p-0 h-auto text-xs" onClick={() => navigate("/auth")}>
+              Log in first
+            </Button>
+            , then click your invite link again.
+          </p>
         </CardContent>
       </Card>
     </div>

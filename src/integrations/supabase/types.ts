@@ -1323,6 +1323,7 @@ export type Database = {
       }
       user_invitations: {
         Row: {
+          accepted_at: string | null
           email: string
           expires_at: string
           id: string
@@ -1334,6 +1335,7 @@ export type Database = {
           status: string
         }
         Insert: {
+          accepted_at?: string | null
           email: string
           expires_at?: string
           id?: string
@@ -1345,6 +1347,7 @@ export type Database = {
           status?: string
         }
         Update: {
+          accepted_at?: string | null
           email?: string
           expires_at?: string
           id?: string
