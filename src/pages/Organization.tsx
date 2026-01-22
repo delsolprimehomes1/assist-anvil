@@ -68,7 +68,7 @@ const Organization = () => {
             )}
             <Button onClick={() => setAddModalOpen(true)} className="gap-2">
               <UserPlus className="h-4 w-4" />
-              Add Agent
+              Invite Agent
             </Button>
           </div>
         </div>
@@ -134,7 +134,7 @@ const Organization = () => {
               </p>
               <Button onClick={() => setAddModalOpen(true)} variant="outline">
                 <UserPlus className="h-4 w-4 mr-2" />
-                Add Your First Agent
+                Invite Your First Agent
               </Button>
             </div>
           </div>
