@@ -21,7 +21,55 @@ import confetti from "canvas-confetti";
 const BRAND_TEAL = "#8BBAC4";
 const BRAND_GOLD = "#C98A3A";
 
+// Trigger haptic feedback on mobile devices
+const triggerHapticFeedback = () => {
+  if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+    // Pattern: short burst, pause, longer celebration burst
+    navigator.vibrate([50, 30, 100, 30, 50]);
+  }
+};
+
+// Play a subtle celebration sound
+const playCelebrationSound = () => {
+  try {
+    // Create a simple celebration tone using Web Audio API
+    const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
+    
+    // Create two quick ascending tones for a "success" feel
+    const playTone = (frequency: number, startTime: number, duration: number) => {
+      const oscillator = audioContext.createOscillator();
+      const gainNode = audioContext.createGain();
+      
+      oscillator.connect(gainNode);
+      gainNode.connect(audioContext.destination);
+      
+      oscillator.frequency.value = frequency;
+      oscillator.type = "sine";
+      
+      // Gentle volume envelope
+      gainNode.gain.setValueAtTime(0, startTime);
+      gainNode.gain.linearRampToValueAtTime(0.1, startTime + 0.02);
+      gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
+      
+      oscillator.start(startTime);
+      oscillator.stop(startTime + duration);
+    };
+    
+    const now = audioContext.currentTime;
+    // Quick ascending "ding-ding" celebration sound
+    playTone(523.25, now, 0.15); // C5
+    playTone(659.25, now + 0.1, 0.2); // E5
+    playTone(783.99, now + 0.2, 0.25); // G5
+  } catch (error) {
+    // Silently fail if audio isn't available
+    console.log("Audio not available:", error);
+  }
+};
+
 const fireBrandConfetti = () => {
+  // Trigger haptic feedback and sound
+  triggerHapticFeedback();
+  playCelebrationSound();
   const count = 200;
   const defaults = {
     origin: { y: 0.7 },
