@@ -147,7 +147,7 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
   }, [nodes, edges, setNodes, setEdges]);
 
   return (
-    <div className="w-full h-full">
+    <div className="absolute inset-0">
       <ReactFlow
         nodes={nodesState}
         edges={edgesState}
