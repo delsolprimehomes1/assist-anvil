@@ -34,10 +34,10 @@ export default function AcceptInvitation() {
       try {
         const { data, error } = await supabase
           .from("user_invitations")
-          .select(`
-            *,
-            profiles:invited_by(full_name, email)
-          `)
+          // NOTE: Don't join to profiles here.
+          // `user_invitations.invited_by` is not a declared FK relationship, so PostgREST will error.
+          // This page must be able to load for logged-out users.
+          .select("*")
           .eq("invitation_token", token)
           .single();
 
@@ -225,12 +225,6 @@ export default function AcceptInvitation() {
             <div className="flex items-center justify-between mb-2">
               <span className="text-sm font-medium">Role:</span>
               <Badge variant="outline">{invitation.role}</Badge>
-            </div>
-            <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Invited by:</span>
-              <span className="text-sm">
-                {invitation.profiles?.full_name || invitation.profiles?.email || "Admin"}
-              </span>
             </div>
             {invitation.notes && (
               <div className="mt-3 pt-3 border-t">
