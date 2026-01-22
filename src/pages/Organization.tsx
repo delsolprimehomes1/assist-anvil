@@ -2,16 +2,24 @@ import { useState } from "react";
 import { HierarchyTree } from "@/components/hierarchy/HierarchyTree";
 import { HierarchySearchBar } from "@/components/hierarchy/HierarchySearchBar";
 import { ViewToggle } from "@/components/hierarchy/ViewToggle";
+import { ProductionGalaxy } from "@/components/hierarchy/galaxy/ProductionGalaxy";
+import { LicensingCommandCenter } from "@/components/hierarchy/LicensingCommandCenter";
+import { AddAgentModal } from "@/components/hierarchy/AddAgentModal";
 import { useHierarchy } from "@/hooks/useHierarchy";
 import { Skeleton } from "@/components/ui/skeleton";
-import { Network, Users } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Network, Users, Sparkles, Shield, UserPlus } from "lucide-react";
+import { EnhancedAgent } from "@/lib/licensing-logic";
 
-export type ViewMode = "standard" | "heatmap";
+export type ViewMode = "standard" | "heatmap" | "galaxy";
 
 const Organization = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("standard");
   const [searchQuery, setSearchQuery] = useState("");
-  const { agents, loading, error } = useHierarchy();
+  const [activeTab, setActiveTab] = useState("hierarchy");
+  const [addModalOpen, setAddModalOpen] = useState(false);
+  const { agents, loading, error, refetch } = useHierarchy();
 
   // Filter agents based on search query
   const filteredAgents = agents.filter((agent) => {
@@ -27,31 +35,59 @@ const Organization = () => {
     <div className="flex flex-col h-full">
       {/* Header */}
       <div className="flex flex-col gap-4 p-6 border-b bg-background">
-        <div className="flex items-center gap-3">
-          <div className="p-2 rounded-lg bg-primary/10">
-            <Network className="h-6 w-6 text-primary" />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="p-2 rounded-lg bg-primary/10">
+              <Network className="h-6 w-6 text-primary" />
+            </div>
+            <div>
+              <h1 className="text-2xl font-bold text-foreground">
+                Agent Command OS
+              </h1>
+              <p className="text-sm text-muted-foreground">
+                Visualize, manage, and monitor your team
+              </p>
+            </div>
           </div>
-          <div>
-            <h1 className="text-2xl font-bold text-foreground">
-              Organization Hierarchy
-            </h1>
-            <p className="text-sm text-muted-foreground">
-              Visualize and manage your team structure
-            </p>
-          </div>
+          <Button onClick={() => setAddModalOpen(true)} className="gap-2">
+            <UserPlus className="h-4 w-4" />
+            Add Agent
+          </Button>
         </div>
 
-        {/* Controls */}
-        <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-          <HierarchySearchBar
-            value={searchQuery}
-            onChange={setSearchQuery}
-          />
-          <ViewToggle mode={viewMode} onChange={setViewMode} />
-        </div>
+        {/* Tabs */}
+        <Tabs value={activeTab} onValueChange={setActiveTab}>
+          <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+            <TabsList className="grid w-full sm:w-auto grid-cols-3">
+              <TabsTrigger value="hierarchy" className="gap-2">
+                <Network className="h-4 w-4" />
+                <span className="hidden sm:inline">Hierarchy</span>
+              </TabsTrigger>
+              <TabsTrigger value="galaxy" className="gap-2">
+                <Sparkles className="h-4 w-4" />
+                <span className="hidden sm:inline">Galaxy</span>
+              </TabsTrigger>
+              <TabsTrigger value="licensing" className="gap-2">
+                <Shield className="h-4 w-4" />
+                <span className="hidden sm:inline">Licensing</span>
+              </TabsTrigger>
+            </TabsList>
+
+            {/* Controls for hierarchy tab */}
+            {activeTab === "hierarchy" && (
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center w-full sm:w-auto">
+                <HierarchySearchBar
+                  value={searchQuery}
+                  onChange={setSearchQuery}
+                />
+                <ViewToggle mode={viewMode} onChange={setViewMode} />
+              </div>
+            )}
+          </div>
+        </Tabs>
       </div>
 
-      {/* Tree Visualization */}
+      {/* Content */}
       <div className="flex-1 min-h-0">
         {loading ? (
           <div className="flex items-center justify-center h-full">
@@ -73,17 +109,42 @@ const Organization = () => {
             <div className="text-center text-muted-foreground">
               <Users className="h-16 w-16 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium">No agents found</p>
-              <p className="text-sm">
+              <p className="text-sm mb-4">
                 {searchQuery
                   ? "Try adjusting your search query"
-                  : "Your organization hierarchy will appear here"}
+                  : "Start by adding agents to your organization"}
               </p>
+              <Button onClick={() => setAddModalOpen(true)} variant="outline">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Add Your First Agent
+              </Button>
             </div>
           </div>
         ) : (
-          <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
+          <Tabs value={activeTab} className="h-full">
+            <TabsContent value="hierarchy" className="h-full m-0">
+              {viewMode === "galaxy" ? (
+                <ProductionGalaxy agents={filteredAgents as EnhancedAgent[]} />
+              ) : (
+                <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
+              )}
+            </TabsContent>
+            <TabsContent value="galaxy" className="h-full m-0">
+              <ProductionGalaxy agents={filteredAgents as EnhancedAgent[]} />
+            </TabsContent>
+            <TabsContent value="licensing" className="h-full m-0">
+              <LicensingCommandCenter agents={filteredAgents as EnhancedAgent[]} />
+            </TabsContent>
+          </Tabs>
         )}
       </div>
+
+      {/* Add Agent Modal */}
+      <AddAgentModal
+        open={addModalOpen}
+        onOpenChange={setAddModalOpen}
+        onAgentAdded={refetch}
+      />
     </div>
   );
 };

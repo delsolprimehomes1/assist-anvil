@@ -4,6 +4,12 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDown, ChevronRight, Users } from "lucide-react";
 import { HierarchyAgent } from "@/hooks/useHierarchy";
+import { 
+  determineAgentZone, 
+  zoneTailwindClasses, 
+  zoneColors,
+  EnhancedAgent 
+} from "@/lib/licensing-logic";
 import { cn } from "@/lib/utils";
 
 export interface AgentNodeData {
@@ -21,13 +27,6 @@ const tierConfig: Record<string, { label: string; color: string; bgColor: string
   elite: { label: "Elite", color: "text-amber-700", bgColor: "bg-amber-100" },
 };
 
-// Status colors
-const statusColors: Record<string, string> = {
-  active: "bg-green-500",
-  inactive: "bg-yellow-500",
-  terminated: "bg-red-500",
-};
-
 interface AgentNodeProps {
   data: AgentNodeData;
 }
@@ -36,6 +35,11 @@ export const AgentNode = memo(({ data }: AgentNodeProps) => {
   const { agent, isCollapsed, downlineCount, onToggleCollapse } = data;
   const tier = tierConfig[agent.tier] || tierConfig.new_agent;
   const goalProgress = Math.min((agent.ytdPremium / agent.monthlyGoal) * 100, 100);
+  
+  // Get zone and styling
+  const zone = determineAgentZone(agent as EnhancedAgent);
+  const zoneClass = zoneTailwindClasses[zone];
+  const zoneColor = zoneColors[zone];
   
   // Get initials from name
   const initials = agent.fullName
@@ -57,9 +61,19 @@ export const AgentNode = memo(({ data }: AgentNodeProps) => {
       <div
         className={cn(
           "bg-card border-2 rounded-xl shadow-lg p-4 w-[260px] transition-all hover:shadow-xl",
-          agent.status === "active" ? "border-primary/20" : "border-muted"
+          zoneClass.border,
+          zoneClass.shadow
         )}
+        style={{
+          boxShadow: `0 4px 20px -4px ${zoneColor}40`,
+        }}
       >
+        {/* Zone indicator bar */}
+        <div
+          className="absolute -top-px left-4 right-4 h-1 rounded-b-full"
+          style={{ backgroundColor: zoneColor }}
+        />
+
         {/* Header with avatar and info */}
         <div className="flex items-start gap-3 mb-3">
           {/* Avatar with progress ring */}
@@ -80,13 +94,17 @@ export const AgentNode = memo(({ data }: AgentNodeProps) => {
                 strokeWidth="4"
                 fill="none"
                 strokeDasharray={`${(goalProgress / 100) * 150.8} 150.8`}
-                className="stroke-primary transition-all duration-500"
+                stroke={zoneColor}
+                className="transition-all duration-500"
                 strokeLinecap="round"
               />
             </svg>
-            <Avatar className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 border-2 border-background">
+            <Avatar className={cn("absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-10 w-10 border-2", zoneClass.border)}>
               <AvatarImage src={agent.avatarUrl || undefined} alt={agent.fullName} />
-              <AvatarFallback className="text-xs font-medium bg-primary/10 text-primary">
+              <AvatarFallback 
+                className="text-xs font-medium"
+                style={{ backgroundColor: `${zoneColor}20`, color: zoneColor }}
+              >
                 {initials}
               </AvatarFallback>
             </Avatar>
@@ -104,10 +122,11 @@ export const AgentNode = memo(({ data }: AgentNodeProps) => {
             </Badge>
           </div>
 
-          {/* Status indicator */}
+          {/* Zone status indicator */}
           <div
-            className={cn("w-3 h-3 rounded-full", statusColors[agent.status])}
-            title={agent.status}
+            className="w-3 h-3 rounded-full ring-2 ring-offset-2 ring-offset-background animate-pulse"
+            style={{ backgroundColor: zoneColor }}
+            title={`${zone.charAt(0).toUpperCase() + zone.slice(1)} Zone`}
           />
         </div>
 

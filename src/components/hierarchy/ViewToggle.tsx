@@ -1,4 +1,4 @@
-import { LayoutGrid, Flame } from "lucide-react";
+import { LayoutGrid, Flame, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { ViewMode } from "@/pages/Organization";
 import { cn } from "@/lib/utils";
@@ -38,6 +38,20 @@ export const ViewToggle = ({ mode, onChange }: ViewToggleProps) => {
       >
         <Flame className="h-4 w-4" />
         <span className="hidden sm:inline">Heat Map</span>
+      </Button>
+      <Button
+        variant="ghost"
+        size="sm"
+        onClick={() => onChange("galaxy")}
+        className={cn(
+          "gap-2 transition-all",
+          mode === "galaxy"
+            ? "bg-background shadow-sm text-foreground"
+            : "text-muted-foreground hover:text-foreground"
+        )}
+      >
+        <Sparkles className="h-4 w-4" />
+        <span className="hidden sm:inline">Galaxy</span>
       </Button>
     </div>
   );

@@ -1,6 +1,12 @@
 import { memo } from "react";
 import { Handle, Position } from "@xyflow/react";
 import { HierarchyAgent } from "@/hooks/useHierarchy";
+import { 
+  determineAgentZone, 
+  zoneColors, 
+  getZonePulseSpeed,
+  EnhancedAgent 
+} from "@/lib/licensing-logic";
 import { cn } from "@/lib/utils";
 import {
   Tooltip,
@@ -15,25 +21,17 @@ export interface HeatmapNodeData {
   onToggleCollapse: () => void;
 }
 
-// Get heat color based on YTD premium
-const getHeatColor = (premium: number): string => {
-  if (premium < 5000) return "bg-red-500";
-  if (premium < 20000) return "bg-yellow-500";
-  return "bg-green-500";
-};
-
-const getHeatBorderColor = (premium: number): string => {
-  if (premium < 5000) return "border-red-600";
-  if (premium < 20000) return "border-yellow-600";
-  return "border-green-600";
-};
-
 interface HeatmapNodeProps {
   data: HeatmapNodeData;
 }
 
 export const HeatmapNode = memo(({ data }: HeatmapNodeProps) => {
   const { agent, isCollapsed, downlineCount, onToggleCollapse } = data;
+  
+  // Get zone-based colors
+  const zone = determineAgentZone(agent as EnhancedAgent);
+  const zoneColor = zoneColors[zone];
+  const pulseSpeed = getZonePulseSpeed(zone);
   
   // Get initials from name
   const initials = agent.fullName
@@ -43,8 +41,8 @@ export const HeatmapNode = memo(({ data }: HeatmapNodeProps) => {
     .toUpperCase()
     .slice(0, 2);
 
-  const heatColor = getHeatColor(agent.ytdPremium);
-  const borderColor = getHeatBorderColor(agent.ytdPremium);
+  // Dynamic animation based on zone
+  const animationDuration = 1 / pulseSpeed;
 
   return (
     <>
@@ -60,11 +58,17 @@ export const HeatmapNode = memo(({ data }: HeatmapNodeProps) => {
             onClick={downlineCount > 0 ? onToggleCollapse : undefined}
             className={cn(
               "w-12 h-12 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-lg transition-all hover:scale-110 border-2",
-              heatColor,
-              borderColor,
               downlineCount > 0 && "cursor-pointer",
               isCollapsed && "ring-2 ring-primary ring-offset-2"
             )}
+            style={{
+              backgroundColor: zoneColor,
+              borderColor: zoneColor,
+              boxShadow: `0 0 20px ${zoneColor}60`,
+              animation: zone === 'red' || zone === 'yellow' 
+                ? `pulse ${animationDuration}s ease-in-out infinite`
+                : undefined,
+            }}
           >
             {initials}
           </button>
@@ -78,6 +82,12 @@ export const HeatmapNode = memo(({ data }: HeatmapNodeProps) => {
             <p className="text-xs">
               YTD: ${agent.ytdPremium.toLocaleString()}
             </p>
+            <div 
+              className="text-xs px-2 py-0.5 rounded mt-1 inline-block"
+              style={{ backgroundColor: zoneColor, color: 'white' }}
+            >
+              {zone.toUpperCase()} ZONE
+            </div>
             {downlineCount > 0 && (
               <p className="text-xs text-muted-foreground">
                 {downlineCount} in downline
