@@ -123,11 +123,11 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <UserPlus className="h-5 w-5" />
-            Add Team Member
+            <UserPlus className="h-5 w-5 text-primary" />
+            Invite Team Member
           </DialogTitle>
           <DialogDescription>
-            Create an invitation for a new agent to join your team. They will be added to your downline.
+            Send an invitation link to a new agent or admin. They'll appear in your organization tree once they accept and complete signup.
           </DialogDescription>
         </DialogHeader>
 
@@ -223,10 +223,10 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
                 <Check className="h-6 w-6 text-emerald-500" />
               </div>
               <h3 className="font-semibold text-foreground mb-1">
-                Invitation Created!
+                Invitation Sent!
               </h3>
               <p className="text-sm text-muted-foreground">
-                Share this link with {form.getValues("firstName")} to invite them to your team.
+                Share this link with {form.getValues("firstName")}. Once they accept and sign up, they'll automatically appear in your organization tree.
               </p>
             </div>
 

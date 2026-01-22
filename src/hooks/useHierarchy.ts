@@ -118,7 +118,7 @@ export const useHierarchy = (): UseHierarchyReturn => {
     fetchHierarchy();
   }, [user]);
 
-  // Real-time subscription
+  // Real-time subscription for hierarchy changes
   useEffect(() => {
     if (!user) return;
 
@@ -131,12 +131,31 @@ export const useHierarchy = (): UseHierarchyReturn => {
           schema: "public",
           table: "hierarchy_agents",
         },
-        () => {
+        (payload) => {
+          console.log("Hierarchy change detected:", payload);
           // Refetch when changes occur
           fetchHierarchy();
         }
       )
-      .subscribe();
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "user_invitations",
+          filter: `invited_by=eq.${user.id}`,
+        },
+        (payload: any) => {
+          // When an invitation is accepted, refetch the hierarchy
+          if (payload.new?.status === 'accepted') {
+            console.log("Invitation accepted, refetching hierarchy");
+            fetchHierarchy();
+          }
+        }
+      )
+      .subscribe((status) => {
+        console.log("Realtime subscription status:", status);
+      });
 
     return () => {
       supabase.removeChannel(channel);
