@@ -1516,6 +1516,10 @@ export type Database = {
           similarity: number
         }[]
       }
+      move_agent_subtree: {
+        Args: { _agent_id: string; _new_parent_id: string }
+        Returns: undefined
+      }
     }
     Enums: {
       app_role: "admin" | "agent" | "user"
