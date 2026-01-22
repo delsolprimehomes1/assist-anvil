@@ -567,6 +567,69 @@ export type Database = {
           },
         ]
       }
+      hierarchy_agents: {
+        Row: {
+          created_at: string | null
+          depth: number | null
+          id: string
+          last_activity_at: string | null
+          license_states: string[] | null
+          monthly_goal: number | null
+          parent_id: string | null
+          path: string
+          status: string | null
+          tier: string | null
+          updated_at: string | null
+          user_id: string | null
+          ytd_premium: number | null
+        }
+        Insert: {
+          created_at?: string | null
+          depth?: number | null
+          id?: string
+          last_activity_at?: string | null
+          license_states?: string[] | null
+          monthly_goal?: number | null
+          parent_id?: string | null
+          path: string
+          status?: string | null
+          tier?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          ytd_premium?: number | null
+        }
+        Update: {
+          created_at?: string | null
+          depth?: number | null
+          id?: string
+          last_activity_at?: string | null
+          license_states?: string[] | null
+          monthly_goal?: number | null
+          parent_id?: string | null
+          path?: string
+          status?: string | null
+          tier?: string | null
+          updated_at?: string | null
+          user_id?: string | null
+          ytd_premium?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hierarchy_agents_parent_id_fkey"
+            columns: ["parent_id"]
+            isOneToOne: false
+            referencedRelation: "hierarchy_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hierarchy_agents_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lead_captures: {
         Row: {
           consent_text: string

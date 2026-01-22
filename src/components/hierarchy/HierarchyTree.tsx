@@ -1,0 +1,189 @@
+import { useCallback, useMemo, useState } from "react";
+import ReactFlow, {
+  Node,
+  Edge,
+  Controls,
+  Background,
+  useNodesState,
+  useEdgesState,
+  ConnectionMode,
+  MiniMap,
+} from "reactflow";
+import "reactflow/dist/style.css";
+import { AgentNode } from "./AgentNode";
+import { HeatmapNode } from "./HeatmapNode";
+import { HierarchyAgent } from "@/hooks/useHierarchy";
+import { ViewMode } from "@/pages/Organization";
+
+const nodeTypes = {
+  agent: AgentNode,
+  heatmap: HeatmapNode,
+};
+
+interface HierarchyTreeProps {
+  agents: HierarchyAgent[];
+  viewMode: ViewMode;
+}
+
+// Tier colors for edges
+const tierColors: Record<string, string> = {
+  new_agent: "#3b82f6",
+  producer: "#a855f7",
+  power_producer: "#f97316",
+  elite: "#fbbf24",
+};
+
+export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
+  const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
+
+  // Build tree layout from flat agent list
+  const { nodes, edges } = useMemo(() => {
+    const nodeList: Node[] = [];
+    const edgeList: Edge[] = [];
+
+    // Create a map for quick parent lookup
+    const agentMap = new Map(agents.map((a) => [a.id, a]));
+    
+    // Group agents by depth for layout
+    const depthGroups = new Map<number, HierarchyAgent[]>();
+    agents.forEach((agent) => {
+      const group = depthGroups.get(agent.depth) || [];
+      group.push(agent);
+      depthGroups.set(agent.depth, group);
+    });
+
+    // Calculate positions based on hierarchy
+    const nodeWidth = viewMode === "heatmap" ? 80 : 280;
+    const nodeHeight = viewMode === "heatmap" ? 80 : 180;
+    const horizontalSpacing = viewMode === "heatmap" ? 100 : 320;
+    const verticalSpacing = viewMode === "heatmap" ? 100 : 220;
+
+    // Track children count per parent for horizontal positioning
+    const childrenPositions = new Map<string | null, number>();
+
+    // Sort agents by path to ensure correct ordering
+    const sortedAgents = [...agents].sort((a, b) => a.path.localeCompare(b.path));
+
+    // Check if a node should be visible (not hidden by collapsed parent)
+    const isNodeVisible = (agent: HierarchyAgent): boolean => {
+      const pathParts = agent.path.split(".");
+      for (let i = 0; i < pathParts.length - 1; i++) {
+        const ancestorPath = pathParts.slice(0, i + 1).join(".");
+        const ancestorAgent = agents.find((a) => a.path === ancestorPath);
+        if (ancestorAgent && collapsedNodes.has(ancestorAgent.id)) {
+          return false;
+        }
+      }
+      return true;
+    };
+
+    // Calculate downline count for each agent
+    const getDownlineCount = (agentId: string): number => {
+      const agent = agentMap.get(agentId);
+      if (!agent) return 0;
+      return agents.filter(
+        (a) => a.path.startsWith(agent.path + ".") && a.id !== agentId
+      ).length;
+    };
+
+    sortedAgents.forEach((agent) => {
+      if (!isNodeVisible(agent)) return;
+
+      // Calculate x position based on sibling index
+      const siblingIndex = childrenPositions.get(agent.parentId) || 0;
+      childrenPositions.set(agent.parentId, siblingIndex + 1);
+
+      // Calculate position
+      const x = siblingIndex * horizontalSpacing;
+      const y = agent.depth * verticalSpacing;
+
+      const isCollapsed = collapsedNodes.has(agent.id);
+      const downlineCount = getDownlineCount(agent.id);
+
+      nodeList.push({
+        id: agent.id,
+        type: viewMode === "heatmap" ? "heatmap" : "agent",
+        position: { x, y },
+        data: {
+          agent,
+          isCollapsed,
+          downlineCount,
+          onToggleCollapse: () => {
+            setCollapsedNodes((prev) => {
+              const next = new Set(prev);
+              if (next.has(agent.id)) {
+                next.delete(agent.id);
+              } else {
+                next.add(agent.id);
+              }
+              return next;
+            });
+          },
+        },
+      });
+
+      // Create edge to parent
+      if (agent.parentId && agentMap.has(agent.parentId)) {
+        const parentAgent = agentMap.get(agent.parentId);
+        if (parentAgent && isNodeVisible(parentAgent)) {
+          edgeList.push({
+            id: `${agent.parentId}-${agent.id}`,
+            source: agent.parentId,
+            target: agent.id,
+            type: "smoothstep",
+            animated: agent.status === "active",
+            style: {
+              stroke: tierColors[agent.tier] || "#64748b",
+              strokeWidth: 2,
+            },
+          });
+        }
+      }
+    });
+
+    return { nodes: nodeList, edges: edgeList };
+  }, [agents, viewMode, collapsedNodes]);
+
+  const [nodesState, setNodes, onNodesChange] = useNodesState(nodes);
+  const [edgesState, setEdges, onEdgesChange] = useEdgesState(edges);
+
+  // Update nodes when they change
+  useMemo(() => {
+    setNodes(nodes);
+    setEdges(edges);
+  }, [nodes, edges, setNodes, setEdges]);
+
+  return (
+    <div className="w-full h-full">
+      <ReactFlow
+        nodes={nodesState}
+        edges={edgesState}
+        onNodesChange={onNodesChange}
+        onEdgesChange={onEdgesChange}
+        nodeTypes={nodeTypes}
+        connectionMode={ConnectionMode.Loose}
+        fitView
+        fitViewOptions={{
+          padding: 0.2,
+          minZoom: 0.1,
+          maxZoom: 1.5,
+        }}
+        minZoom={0.1}
+        maxZoom={2}
+        attributionPosition="bottom-left"
+        className="bg-muted/30"
+      >
+        <Controls className="bg-background border shadow-md" />
+        <MiniMap
+          className="bg-background border shadow-md"
+          nodeColor={(node) => {
+            const tier = node.data?.agent?.tier;
+            return tierColors[tier] || "#64748b";
+          }}
+          maskColor="rgba(0, 0, 0, 0.1)"
+        />
+        <Background color="hsl(var(--border))" gap={24} />
+      </ReactFlow>
+    </div>
+  );
+};

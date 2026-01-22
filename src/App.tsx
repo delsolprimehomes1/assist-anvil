@@ -24,6 +24,7 @@ import News from "./pages/News";
 import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
+import Organization from "./pages/Organization";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ const App = () => (
             <Route path="marketing" element={<Marketing />} />
             <Route path="compliance" element={<Compliance />} />
             <Route path="profile" element={<ProfileSettings />} />
+            <Route path="organization" element={<Organization />} />
             <Route path="admin" element={<Admin />} />
           </Route>
           <Route path="*" element={<NotFound />} />
