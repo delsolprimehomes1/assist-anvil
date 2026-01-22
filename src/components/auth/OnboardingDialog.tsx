@@ -15,6 +15,61 @@ import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
+import confetti from "canvas-confetti";
+
+// Brand colors for confetti
+const BRAND_TEAL = "#8BBAC4";
+const BRAND_GOLD = "#C98A3A";
+
+const fireBrandConfetti = () => {
+  const count = 200;
+  const defaults = {
+    origin: { y: 0.7 },
+    colors: [BRAND_TEAL, BRAND_GOLD, "#FFFFFF"],
+  };
+
+  function fire(particleRatio: number, opts: confetti.Options) {
+    confetti({
+      ...defaults,
+      ...opts,
+      particleCount: Math.floor(count * particleRatio),
+    });
+  }
+
+  // Left side burst
+  fire(0.25, {
+    spread: 26,
+    startVelocity: 55,
+    origin: { x: 0, y: 0.7 },
+  });
+  fire(0.2, {
+    spread: 60,
+    origin: { x: 0, y: 0.7 },
+  });
+  fire(0.35, {
+    spread: 100,
+    decay: 0.91,
+    scalar: 0.8,
+    origin: { x: 0.1, y: 0.7 },
+  });
+
+  // Right side burst
+  fire(0.25, {
+    spread: 26,
+    startVelocity: 55,
+    origin: { x: 1, y: 0.7 },
+  });
+  fire(0.2, {
+    spread: 60,
+    origin: { x: 1, y: 0.7 },
+  });
+  fire(0.35, {
+    spread: 100,
+    decay: 0.91,
+    scalar: 0.8,
+    origin: { x: 0.9, y: 0.7 },
+  });
+};
 
 // Private mapping - never displayed to user
 const AGENCY_MANAGER_MAP: Record<string, string[]> = {
@@ -204,6 +259,9 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
       if (webhookError) {
         console.error("Webhook error:", webhookError);
       }
+
+      // Fire branded confetti celebration
+      fireBrandConfetti();
 
       toast.success("Request submitted successfully!");
       onOpenChange(false);
