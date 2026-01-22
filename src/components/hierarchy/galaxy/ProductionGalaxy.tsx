@@ -36,7 +36,7 @@ export function ProductionGalaxy({ agents }: ProductionGalaxyProps) {
   }, [agents]);
 
   return (
-    <div className="relative w-full h-full bg-slate-950 rounded-lg overflow-hidden">
+    <div className="absolute inset-0 bg-slate-950 rounded-lg overflow-hidden">
       {/* 3D Canvas */}
       <Canvas>
         <Suspense fallback={null}>

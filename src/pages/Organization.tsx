@@ -88,9 +88,9 @@ const Organization = () => {
       </div>
 
       {/* Content */}
-      <div className="flex-1 min-h-0">
+      <div className="flex-1 min-h-0 relative">
         {loading ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="flex flex-col items-center gap-4">
               <Skeleton className="h-32 w-32 rounded-full" />
               <Skeleton className="h-4 w-48" />
@@ -98,14 +98,14 @@ const Organization = () => {
             </div>
           </div>
         ) : error ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-muted-foreground">
               <p className="text-lg font-medium">Error loading hierarchy</p>
               <p className="text-sm">{error}</p>
             </div>
           </div>
         ) : filteredAgents.length === 0 ? (
-          <div className="flex items-center justify-center h-full">
+          <div className="absolute inset-0 flex items-center justify-center">
             <div className="text-center text-muted-foreground">
               <Users className="h-16 w-16 mx-auto mb-4 opacity-50" />
               <p className="text-lg font-medium">No agents found</p>
@@ -121,18 +121,18 @@ const Organization = () => {
             </div>
           </div>
         ) : (
-          <Tabs value={activeTab} className="h-full">
-            <TabsContent value="hierarchy" className="h-full m-0">
+          <Tabs value={activeTab} className="absolute inset-0">
+            <TabsContent value="hierarchy" className="absolute inset-0 m-0">
               {viewMode === "galaxy" ? (
                 <ProductionGalaxy agents={filteredAgents as EnhancedAgent[]} />
               ) : (
                 <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
               )}
             </TabsContent>
-            <TabsContent value="galaxy" className="h-full m-0">
+            <TabsContent value="galaxy" className="absolute inset-0 m-0">
               <ProductionGalaxy agents={filteredAgents as EnhancedAgent[]} />
             </TabsContent>
-            <TabsContent value="licensing" className="h-full m-0">
+            <TabsContent value="licensing" className="absolute inset-0 m-0 overflow-auto">
               <LicensingCommandCenter agents={filteredAgents as EnhancedAgent[]} />
             </TabsContent>
           </Tabs>
