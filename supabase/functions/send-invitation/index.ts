@@ -80,7 +80,15 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("User with this email already exists");
     }
 
-    // Check if there's already a pending invitation
+    // Mark any expired pending invitations as expired
+    await supabase
+      .from("user_invitations")
+      .update({ status: "expired" })
+      .eq("email", email)
+      .eq("status", "pending")
+      .lt("expires_at", new Date().toISOString());
+
+    // Check if there's already a pending (non-expired) invitation
     const { data: existingInvitation } = await supabase
       .from("user_invitations")
       .select("id")
