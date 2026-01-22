@@ -2,7 +2,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
-import { Copy, Check, UserPlus, Link2 } from "lucide-react";
+import { Copy, Check, UserPlus, Link2, Mail } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -51,6 +51,7 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [inviteLink, setInviteLink] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
+  const [emailSent, setEmailSent] = useState(false);
 
   const form = useForm<FormValues>({
     resolver: zodResolver(formSchema),
@@ -69,30 +70,57 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
     }
 
     setIsSubmitting(true);
+    setEmailSent(false);
+    
     try {
-      // Create invitation record with unique token
-      const { data: invitation, error: inviteError } = await supabase
+      // Call the edge function to send the invitation email via Resend
+      const { data: response, error: functionError } = await supabase.functions.invoke(
+        "send-invitation",
+        {
+          body: {
+            email: data.email,
+            role: data.role,
+            notes: `${data.firstName} ${data.lastName}`,
+          },
+        }
+      );
+
+      if (functionError) {
+        console.error("Edge function error:", functionError);
+        throw new Error(functionError.message || "Failed to send invitation");
+      }
+
+      if (response?.error) {
+        throw new Error(response.error);
+      }
+
+      // Get the invitation token to generate the link
+      const { data: invitation, error: fetchError } = await supabase
         .from("user_invitations")
-        .insert({
-          email: data.email,
-          invited_by: user.id,
-          role: data.role as "agent" | "admin",
-          notes: `${data.firstName} ${data.lastName}`,
-        })
         .select("invitation_token")
+        .eq("email", data.email)
+        .eq("status", "pending")
+        .order("invited_at", { ascending: false })
+        .limit(1)
         .single();
 
-      if (inviteError) throw inviteError;
+      if (fetchError) {
+        console.error("Error fetching invitation:", fetchError);
+      }
 
       // Generate the invite link
-      const link = `${window.location.origin}/accept-invitation?token=${invitation.invitation_token}`;
+      const link = invitation?.invitation_token
+        ? `${window.location.origin}/accept-invitation?token=${invitation.invitation_token}`
+        : null;
+      
       setInviteLink(link);
+      setEmailSent(true);
 
-      toast.success("Invitation created successfully!");
+      toast.success("Invitation email sent successfully!");
       onAgentAdded?.();
     } catch (error: any) {
-      console.error("Error creating invitation:", error);
-      toast.error(error.message || "Failed to create invitation");
+      console.error("Error sending invitation:", error);
+      toast.error(error.message || "Failed to send invitation");
     } finally {
       setIsSubmitting(false);
     }
@@ -115,6 +143,7 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
     form.reset();
     setInviteLink(null);
     setCopied(false);
+    setEmailSent(false);
     onOpenChange(false);
   };
 
@@ -127,11 +156,11 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
             Invite Team Member
           </DialogTitle>
           <DialogDescription>
-            Send an invitation link to a new agent or admin. They'll appear in your organization tree once they accept and complete signup.
+            Send an invitation email to a new agent or admin. They'll appear in your organization tree once they accept and complete signup.
           </DialogDescription>
         </DialogHeader>
 
-        {!inviteLink ? (
+        {!emailSent ? (
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
@@ -211,7 +240,8 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
                   Cancel
                 </Button>
                 <Button type="submit" disabled={isSubmitting}>
-                  {isSubmitting ? "Creating..." : "Create Invitation"}
+                  <Mail className="h-4 w-4 mr-2" />
+                  {isSubmitting ? "Sending..." : "Send Invitation"}
                 </Button>
               </div>
             </form>
@@ -220,40 +250,47 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
           <div className="space-y-4">
             <div className="bg-muted/50 rounded-lg p-4 text-center">
               <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-emerald-500/20 flex items-center justify-center">
-                <Check className="h-6 w-6 text-emerald-500" />
+                <Mail className="h-6 w-6 text-emerald-500" />
               </div>
               <h3 className="font-semibold text-foreground mb-1">
-                Invitation Sent!
+                Invitation Email Sent!
               </h3>
               <p className="text-sm text-muted-foreground">
-                Share this link with {form.getValues("firstName")}. Once they accept and sign up, they'll automatically appear in your organization tree.
+                A branded invitation email has been sent to {form.getValues("firstName")} at {form.getValues("email")}. Once they accept and sign up, they'll automatically appear in your organization tree.
               </p>
             </div>
 
-            <div className="flex items-center gap-2">
-              <div className="flex-1 relative">
-                <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                <Input
-                  readOnly
-                  value={inviteLink}
-                  className="pl-9 pr-2 text-xs font-mono truncate"
-                />
-              </div>
-              <Button
-                size="icon"
-                variant={copied ? "default" : "outline"}
-                onClick={copyToClipboard}
-              >
-                {copied ? (
-                  <Check className="h-4 w-4" />
-                ) : (
-                  <Copy className="h-4 w-4" />
-                )}
-              </Button>
-            </div>
+            {inviteLink && (
+              <>
+                <p className="text-xs text-muted-foreground text-center">
+                  You can also share this link directly:
+                </p>
+                <div className="flex items-center gap-2">
+                  <div className="flex-1 relative">
+                    <Link2 className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                    <Input
+                      readOnly
+                      value={inviteLink}
+                      className="pl-9 pr-2 text-xs font-mono truncate"
+                    />
+                  </div>
+                  <Button
+                    size="icon"
+                    variant={copied ? "default" : "outline"}
+                    onClick={copyToClipboard}
+                  >
+                    {copied ? (
+                      <Check className="h-4 w-4" />
+                    ) : (
+                      <Copy className="h-4 w-4" />
+                    )}
+                  </Button>
+                </div>
+              </>
+            )}
 
             <p className="text-xs text-muted-foreground text-center">
-              This link expires in 7 days
+              This invitation expires in 7 days
             </p>
 
             <div className="flex justify-end gap-2 pt-2">
@@ -264,9 +301,10 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
                 onClick={() => {
                   form.reset();
                   setInviteLink(null);
+                  setEmailSent(false);
                 }}
               >
-                Add Another
+                Invite Another
               </Button>
             </div>
           </div>

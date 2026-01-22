@@ -39,17 +39,28 @@ const handler = async (req: Request): Promise<Response> => {
       throw new Error("Unauthorized");
     }
 
-    // Check if user is admin
-    const { data: roleData, error: roleError } = await supabase
+    // Check if user is admin OR has a hierarchy_agents record (can invite to their own org)
+    const { data: roleData } = await supabase
       .from("user_roles")
       .select("role")
       .eq("user_id", user.id)
       .eq("role", "admin")
-      .single();
+      .maybeSingle();
 
-    if (roleError || !roleData) {
-      throw new Error("Unauthorized: Admin access required");
+    const { data: hierarchyData } = await supabase
+      .from("hierarchy_agents")
+      .select("id")
+      .eq("user_id", user.id)
+      .maybeSingle();
+
+    const isAdmin = !!roleData;
+    const hasHierarchy = !!hierarchyData;
+
+    if (!isAdmin && !hasHierarchy) {
+      throw new Error("Unauthorized: You must be an admin or have an organization to invite agents");
     }
+    
+    console.log(`User ${user.id} authorized - isAdmin: ${isAdmin}, hasHierarchy: ${hasHierarchy}`);
 
     const { email, role, notes }: InvitationRequest = await req.json();
 
