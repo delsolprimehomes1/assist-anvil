@@ -18,26 +18,47 @@ Deno.serve(async (req) => {
     // Send data to webhook
     const webhookUrl = 'https://services.leadconnectorhq.com/hooks/8QTBB0ELEbvOf31OXIdM/webhook-trigger/7676888d-9040-4f44-bb44-b6699e3238b7';
     
+    const payload = {
+      // Standard contact fields (camelCase for LeadConnector)
+      firstName: firstName,
+      lastName: lastName,
+      name: `${firstName} ${lastName}`,
+      email: email,
+      phone: phone,
+      
+      // Custom fields - both formats for compatibility
+      first_name: firstName,
+      last_name: lastName,
+      is_licensed: isLicensed,
+      isLicensed: isLicensed,
+      agency_code: agencyCode,
+      agencyCode: agencyCode,
+      assigned_manager: assignedManager,
+      assignedManager: assignedManager,
+      referred_by: referredBy,
+      referredBy: referredBy,
+      
+      // Metadata
+      source: "BatterBox Onboarding",
+      timestamp: new Date().toISOString(),
+    };
+
+    console.log('Sending webhook payload:', JSON.stringify(payload));
+
     const webhookResponse = await fetch(webhookUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        first_name: firstName,
-        last_name: lastName,
-        email: email,
-        phone: phone,
-        is_licensed: isLicensed,
-        agency_code: agencyCode,
-        assigned_manager: assignedManager,
-        referred_by: referredBy,
-        timestamp: new Date().toISOString(),
-      }),
+      body: JSON.stringify(payload),
     });
 
+    const responseText = await webhookResponse.text();
+    console.log('Webhook response status:', webhookResponse.status);
+    console.log('Webhook response body:', responseText);
+
     if (!webhookResponse.ok) {
-      console.error('Webhook failed:', await webhookResponse.text());
+      console.error('Webhook failed:', responseText);
       throw new Error('Failed to send webhook');
     }
 
