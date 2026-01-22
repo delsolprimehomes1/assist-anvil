@@ -32,10 +32,10 @@ import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 
 const formSchema = z.object({
-  firstName: z.string().min(1, "First name is required"),
-  lastName: z.string().min(1, "Last name is required"),
-  email: z.string().email("Invalid email address"),
-  role: z.enum(["agent", "manager"]),
+  firstName: z.string().min(1, "First name is required").max(50, "First name too long"),
+  lastName: z.string().min(1, "Last name is required").max(50, "Last name too long"),
+  email: z.string().email("Invalid email address").max(255, "Email too long"),
+  role: z.enum(["agent", "admin"]),
 });
 
 type FormValues = z.infer<typeof formSchema>;
@@ -198,7 +198,7 @@ export function AddAgentModal({ open, onOpenChange, onAgentAdded }: AddAgentModa
                       </FormControl>
                       <SelectContent>
                         <SelectItem value="agent">Agent</SelectItem>
-                        <SelectItem value="manager">Manager</SelectItem>
+                        <SelectItem value="admin">Team Lead / Manager</SelectItem>
                       </SelectContent>
                     </Select>
                     <FormMessage />
