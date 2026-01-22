@@ -12,7 +12,8 @@ import {
   ShoppingBag,
   Users,
   Newspaper,
-  ExternalLink
+  ExternalLink,
+  Network
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -38,6 +39,7 @@ const navigation = [
   { name: "Marketing", href: "/dashboard/marketing", icon: Megaphone },
   { name: "Compliance", href: "/dashboard/compliance", icon: Shield },
   { name: "AI Assist", href: "/dashboard/ai-assist", icon: Bot },
+  { name: "Organization", href: "/dashboard/organization", icon: Network },
   { name: "Admin", href: "/dashboard/admin", icon: Settings },
 ];
 
