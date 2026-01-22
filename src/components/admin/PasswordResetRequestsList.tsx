@@ -61,7 +61,7 @@ export const PasswordResetRequestsList = () => {
 
       // Call the admin reset password function
       const { error } = await supabase.functions.invoke("admin-reset-password", {
-        body: { userId: profile.id, newPassword: password },
+        body: { user_id: profile.id, new_password: password },
       });
 
       if (error) throw error;
