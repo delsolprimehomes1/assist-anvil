@@ -8,12 +8,15 @@ interface UseHierarchyReturn {
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
+  moveAgent: (agentUserId: string, newParentUserId: string) => Promise<void>;
+  isMoving: boolean;
 }
 
 export const useHierarchy = (): UseHierarchyReturn => {
   const [agents, setAgents] = useState<EnhancedAgent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [isMoving, setIsMoving] = useState(false);
   const { user } = useAuth();
 
   const fetchHierarchy = async () => {
@@ -140,11 +143,40 @@ export const useHierarchy = (): UseHierarchyReturn => {
     };
   }, [user]);
 
+  // Move an agent to a new parent using the RPC function
+  const moveAgent = async (agentUserId: string, newParentUserId: string) => {
+    setIsMoving(true);
+    try {
+      const { error: rpcError } = await supabase.rpc('move_agent_subtree', {
+        _agent_id: agentUserId,
+        _new_parent_id: newParentUserId,
+      });
+
+      if (rpcError) {
+        // Handle specific error messages from the DB function
+        if (rpcError.message.includes('descendant')) {
+          throw new Error('Cannot move an agent under their own team member');
+        }
+        if (rpcError.message.includes('not found')) {
+          throw new Error('Agent or manager not found. Please refresh and try again.');
+        }
+        throw new Error(rpcError.message);
+      }
+
+      // Refetch will also happen via realtime subscription, but we call it explicitly for immediate feedback
+      await fetchHierarchy();
+    } finally {
+      setIsMoving(false);
+    }
+  };
+
   return {
     agents,
     loading,
     error,
     refetch: fetchHierarchy,
+    moveAgent,
+    isMoving,
   };
 };
 
