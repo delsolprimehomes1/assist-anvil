@@ -569,48 +569,69 @@ export type Database = {
       }
       hierarchy_agents: {
         Row: {
+          ce_due_date: string | null
+          contracts_approved: number | null
+          contracts_pending: number | null
           created_at: string | null
           depth: number | null
           id: string
+          joined_at: string | null
           last_activity_at: string | null
+          last_login_at: string | null
           license_states: string[] | null
           monthly_goal: number | null
           parent_id: string | null
           path: string
+          resident_license_exp: string | null
           status: string | null
           tier: string | null
           updated_at: string | null
           user_id: string | null
+          verification_complete: boolean | null
           ytd_premium: number | null
         }
         Insert: {
+          ce_due_date?: string | null
+          contracts_approved?: number | null
+          contracts_pending?: number | null
           created_at?: string | null
           depth?: number | null
           id?: string
+          joined_at?: string | null
           last_activity_at?: string | null
+          last_login_at?: string | null
           license_states?: string[] | null
           monthly_goal?: number | null
           parent_id?: string | null
           path: string
+          resident_license_exp?: string | null
           status?: string | null
           tier?: string | null
           updated_at?: string | null
           user_id?: string | null
+          verification_complete?: boolean | null
           ytd_premium?: number | null
         }
         Update: {
+          ce_due_date?: string | null
+          contracts_approved?: number | null
+          contracts_pending?: number | null
           created_at?: string | null
           depth?: number | null
           id?: string
+          joined_at?: string | null
           last_activity_at?: string | null
+          last_login_at?: string | null
           license_states?: string[] | null
           monthly_goal?: number | null
           parent_id?: string | null
           path?: string
+          resident_license_exp?: string | null
           status?: string | null
           tier?: string | null
           updated_at?: string | null
           user_id?: string | null
+          verification_complete?: boolean | null
           ytd_premium?: number | null
         }
         Relationships: [

@@ -1,35 +1,17 @@
 import { useState, useEffect } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-
-export interface HierarchyAgent {
-  id: string;
-  userId: string;
-  parentId: string | null;
-  path: string;
-  depth: number;
-  status: "active" | "inactive" | "terminated";
-  tier: "new_agent" | "producer" | "power_producer" | "elite";
-  monthlyGoal: number;
-  ytdPremium: number;
-  lastActivityAt: string;
-  licenseStates: string[];
-  fullName: string;
-  email: string;
-  avatarUrl: string | null;
-  createdAt: string;
-  updatedAt: string;
-}
+import { EnhancedAgent } from "@/lib/licensing-logic";
 
 interface UseHierarchyReturn {
-  agents: HierarchyAgent[];
+  agents: EnhancedAgent[];
   loading: boolean;
   error: string | null;
   refetch: () => Promise<void>;
 }
 
 export const useHierarchy = (): UseHierarchyReturn => {
-  const [agents, setAgents] = useState<HierarchyAgent[]>([]);
+  const [agents, setAgents] = useState<EnhancedAgent[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const { user } = useAuth();
@@ -44,8 +26,7 @@ export const useHierarchy = (): UseHierarchyReturn => {
       setLoading(true);
       setError(null);
 
-      // Fetch hierarchy agents with profile data
-      // Using any type since hierarchy_agents table was just created
+      // Fetch hierarchy agents with all new columns
       const { data, error: fetchError } = await supabase
         .from("hierarchy_agents" as any)
         .select(`
@@ -61,7 +42,14 @@ export const useHierarchy = (): UseHierarchyReturn => {
           last_activity_at,
           license_states,
           created_at,
-          updated_at
+          updated_at,
+          verification_complete,
+          joined_at,
+          last_login_at,
+          contracts_pending,
+          contracts_approved,
+          resident_license_exp,
+          ce_due_date
         `)
         .order("path");
 
@@ -85,8 +73,8 @@ export const useHierarchy = (): UseHierarchyReturn => {
         }, {});
       }
 
-      // Transform data to match interface
-      const transformedAgents: HierarchyAgent[] = (data || []).map((agent: any) => {
+      // Transform data to match EnhancedAgent interface
+      const transformedAgents: EnhancedAgent[] = (data || []).map((agent: any) => {
         const profile = profilesMap[agent.user_id] || {};
         return {
           id: agent.id,
@@ -99,12 +87,17 @@ export const useHierarchy = (): UseHierarchyReturn => {
           monthlyGoal: parseFloat(agent.monthly_goal) || 10000,
           ytdPremium: parseFloat(agent.ytd_premium) || 0,
           lastActivityAt: agent.last_activity_at,
+          lastLoginAt: agent.last_login_at,
+          joinedAt: agent.joined_at,
+          verificationComplete: agent.verification_complete || false,
+          contractsPending: agent.contracts_pending || 0,
+          contractsApproved: agent.contracts_approved || 0,
+          residentLicenseExp: agent.resident_license_exp,
+          ceDueDate: agent.ce_due_date,
           licenseStates: agent.license_states || [],
           fullName: profile.full_name || "Unknown Agent",
           email: profile.email || "",
           avatarUrl: profile.avatar_url,
-          createdAt: agent.created_at,
-          updatedAt: agent.updated_at,
         };
       });
 
@@ -117,8 +110,34 @@ export const useHierarchy = (): UseHierarchyReturn => {
     }
   };
 
+  // Initial fetch
   useEffect(() => {
     fetchHierarchy();
+  }, [user]);
+
+  // Real-time subscription
+  useEffect(() => {
+    if (!user) return;
+
+    const channel = supabase
+      .channel("hierarchy-changes")
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "hierarchy_agents",
+        },
+        () => {
+          // Refetch when changes occur
+          fetchHierarchy();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, [user]);
 
   return {
@@ -128,3 +147,6 @@ export const useHierarchy = (): UseHierarchyReturn => {
     refetch: fetchHierarchy,
   };
 };
+
+// Re-export HierarchyAgent type for backwards compatibility
+export type HierarchyAgent = EnhancedAgent;
