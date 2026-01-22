@@ -5,12 +5,15 @@ import { ViewToggle } from "@/components/hierarchy/ViewToggle";
 import { ProductionGalaxy } from "@/components/hierarchy/galaxy/ProductionGalaxy";
 import { LicensingCommandCenter } from "@/components/hierarchy/LicensingCommandCenter";
 import { AddAgentModal } from "@/components/hierarchy/AddAgentModal";
+import { HierarchyPlacementModal } from "@/components/hierarchy/HierarchyPlacementModal";
 import { useHierarchy } from "@/hooks/useHierarchy";
+import { useAdmin } from "@/hooks/useAdmin";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Network, Users, Sparkles, Shield, UserPlus } from "lucide-react";
+import { Network, Users, Sparkles, Shield, UserPlus, GitBranch } from "lucide-react";
 import { EnhancedAgent } from "@/lib/licensing-logic";
+import { useToast } from "@/hooks/use-toast";
 
 export type ViewMode = "standard" | "heatmap" | "galaxy";
 
@@ -19,7 +22,10 @@ const Organization = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("hierarchy");
   const [addModalOpen, setAddModalOpen] = useState(false);
-  const { agents, loading, error, refetch } = useHierarchy();
+  const [placementModalOpen, setPlacementModalOpen] = useState(false);
+  const { agents, loading, error, refetch, moveAgent, isMoving } = useHierarchy();
+  const { isAdmin } = useAdmin();
+  const { toast } = useToast();
 
   // Filter agents based on search query
   const filteredAgents = agents.filter((agent) => {
@@ -49,10 +55,22 @@ const Organization = () => {
               </p>
             </div>
           </div>
-          <Button onClick={() => setAddModalOpen(true)} className="gap-2">
-            <UserPlus className="h-4 w-4" />
-            Add Agent
-          </Button>
+          <div className="flex items-center gap-2">
+            {isAdmin && (
+              <Button
+                variant="outline"
+                onClick={() => setPlacementModalOpen(true)}
+                className="gap-2"
+              >
+                <GitBranch className="h-4 w-4" />
+                Reassign
+              </Button>
+            )}
+            <Button onClick={() => setAddModalOpen(true)} className="gap-2">
+              <UserPlus className="h-4 w-4" />
+              Add Agent
+            </Button>
+          </div>
         </div>
 
         {/* Tabs */}
@@ -144,6 +162,21 @@ const Organization = () => {
         open={addModalOpen}
         onOpenChange={setAddModalOpen}
         onAgentAdded={refetch}
+      />
+
+      {/* Hierarchy Placement Modal (Admin Only) */}
+      <HierarchyPlacementModal
+        open={placementModalOpen}
+        onOpenChange={setPlacementModalOpen}
+        agents={agents as EnhancedAgent[]}
+        onMove={async (agentUserId, newParentUserId) => {
+          await moveAgent(agentUserId, newParentUserId);
+          toast({
+            title: "Agent reassigned",
+            description: "The agent and their downline have been moved successfully.",
+          });
+        }}
+        isMoving={isMoving}
       />
     </div>
   );
