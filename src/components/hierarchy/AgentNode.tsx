@@ -1,12 +1,12 @@
 import { memo } from "react";
-import { Handle, Position, NodeProps } from "reactflow";
+import { Handle, Position } from "@xyflow/react";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { ChevronDown, ChevronRight, Users } from "lucide-react";
 import { HierarchyAgent } from "@/hooks/useHierarchy";
 import { cn } from "@/lib/utils";
 
-interface AgentNodeData {
+export interface AgentNodeData {
   agent: HierarchyAgent;
   isCollapsed: boolean;
   downlineCount: number;
@@ -28,7 +28,11 @@ const statusColors: Record<string, string> = {
   terminated: "bg-red-500",
 };
 
-export const AgentNode = memo(({ data }: NodeProps<AgentNodeData>) => {
+interface AgentNodeProps {
+  data: AgentNodeData;
+}
+
+export const AgentNode = memo(({ data }: AgentNodeProps) => {
   const { agent, isCollapsed, downlineCount, onToggleCollapse } = data;
   const tier = tierConfig[agent.tier] || tierConfig.new_agent;
   const goalProgress = Math.min((agent.ytdPremium / agent.monthlyGoal) * 100, 100);

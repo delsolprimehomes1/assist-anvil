@@ -1,23 +1,26 @@
-import { useCallback, useMemo, useState } from "react";
-import ReactFlow, {
-  Node,
-  Edge,
+import { useMemo, useState, useEffect } from "react";
+import {
+  ReactFlow,
   Controls,
   Background,
+  MiniMap,
   useNodesState,
   useEdgesState,
   ConnectionMode,
-  MiniMap,
-} from "reactflow";
-import "reactflow/dist/style.css";
-import { AgentNode } from "./AgentNode";
-import { HeatmapNode } from "./HeatmapNode";
+  type Node,
+  type Edge,
+  type NodeTypes,
+} from "@xyflow/react";
+import "@xyflow/react/dist/style.css";
+import { AgentNode, type AgentNodeData } from "./AgentNode";
+import { HeatmapNode, type HeatmapNodeData } from "./HeatmapNode";
 import { HierarchyAgent } from "@/hooks/useHierarchy";
 import { ViewMode } from "@/pages/Organization";
 
-const nodeTypes = {
-  agent: AgentNode,
-  heatmap: HeatmapNode,
+// Define node types with proper typing
+const nodeTypes: NodeTypes = {
+  agent: AgentNode as any,
+  heatmap: HeatmapNode as any,
 };
 
 interface HierarchyTreeProps {
@@ -43,18 +46,8 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
 
     // Create a map for quick parent lookup
     const agentMap = new Map(agents.map((a) => [a.id, a]));
-    
-    // Group agents by depth for layout
-    const depthGroups = new Map<number, HierarchyAgent[]>();
-    agents.forEach((agent) => {
-      const group = depthGroups.get(agent.depth) || [];
-      group.push(agent);
-      depthGroups.set(agent.depth, group);
-    });
 
     // Calculate positions based on hierarchy
-    const nodeWidth = viewMode === "heatmap" ? 80 : 280;
-    const nodeHeight = viewMode === "heatmap" ? 80 : 180;
     const horizontalSpacing = viewMode === "heatmap" ? 100 : 320;
     const verticalSpacing = viewMode === "heatmap" ? 100 : 220;
 
@@ -120,7 +113,7 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
             });
           },
         },
-      });
+      } as Node);
 
       // Create edge to parent
       if (agent.parentId && agentMap.has(agent.parentId)) {
@@ -148,7 +141,7 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
   const [edgesState, setEdges, onEdgesChange] = useEdgesState(edges);
 
   // Update nodes when they change
-  useMemo(() => {
+  useEffect(() => {
     setNodes(nodes);
     setEdges(edges);
   }, [nodes, edges, setNodes, setEdges]);
@@ -176,9 +169,10 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
         <Controls className="bg-background border shadow-md" />
         <MiniMap
           className="bg-background border shadow-md"
-          nodeColor={(node) => {
-            const tier = node.data?.agent?.tier;
-            return tierColors[tier] || "#64748b";
+          nodeColor={(node: Node) => {
+            const data = node.data as any;
+            const tier = data?.agent?.tier;
+            return tierColors[tier || ""] || "#64748b";
           }}
           maskColor="rgba(0, 0, 0, 0.1)"
         />

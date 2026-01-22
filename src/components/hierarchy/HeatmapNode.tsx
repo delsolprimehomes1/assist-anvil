@@ -1,5 +1,5 @@
 import { memo } from "react";
-import { Handle, Position, NodeProps } from "reactflow";
+import { Handle, Position } from "@xyflow/react";
 import { HierarchyAgent } from "@/hooks/useHierarchy";
 import { cn } from "@/lib/utils";
 import {
@@ -8,7 +8,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 
-interface HeatmapNodeData {
+export interface HeatmapNodeData {
   agent: HierarchyAgent;
   isCollapsed: boolean;
   downlineCount: number;
@@ -28,7 +28,11 @@ const getHeatBorderColor = (premium: number): string => {
   return "border-green-600";
 };
 
-export const HeatmapNode = memo(({ data }: NodeProps<HeatmapNodeData>) => {
+interface HeatmapNodeProps {
+  data: HeatmapNodeData;
+}
+
+export const HeatmapNode = memo(({ data }: HeatmapNodeProps) => {
   const { agent, isCollapsed, downlineCount, onToggleCollapse } = data;
   
   // Get initials from name
