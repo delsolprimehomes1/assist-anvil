@@ -1,8 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { Settings, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus, Newspaper, KeyRound, AlertCircle } from "lucide-react";
+import { Settings, Users, BarChart3, FileText, Database, Shield, Loader2, Mail, Trash2, UserCheck, UserPlus, Newspaper, KeyRound, AlertCircle, Network } from "lucide-react";
 import { useAdmin } from "@/hooks/useAdmin";
 import { useAuth } from "@/hooks/useAuth";
+import { useHierarchy } from "@/hooks/useHierarchy";
 import { useQuery } from "@tanstack/react-query";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -26,6 +27,7 @@ import { NewsManagement } from "@/components/admin/news/NewsManagement";
 import { MarketingManagement } from "@/components/admin/marketing/MarketingManagement";
 import { GuidelineManagement } from "@/components/admin/guidelines/GuidelineManagement";
 import { PasswordResetRequestsList } from "@/components/admin/PasswordResetRequestsList";
+import { HierarchyPlacementModal } from "@/components/hierarchy/HierarchyPlacementModal";
 
 type ApprovedEmail = {
   id: string;
@@ -43,8 +45,31 @@ const Admin = () => {
   const [emailForm, setEmailForm] = useState({ email: "", notes: "" });
   const [loadingEmails, setLoadingEmails] = useState(false);
   const [inviteDialogOpen, setInviteDialogOpen] = useState(false);
+  const [hierarchyModalOpen, setHierarchyModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState("approvals");
   const { toast } = useToast();
+  
+  // Hierarchy data for the placement modal
+  const { agents: hierarchyAgents, moveAgent, isMoving, refetch: refetchHierarchy } = useHierarchy();
+  
+  // Hierarchy statistics
+  const hierarchyStats = useMemo(() => {
+    if (!hierarchyAgents || hierarchyAgents.length === 0) {
+      return { total: 0, rootAgents: 0, avgDepth: 0 };
+    }
+    const rootAgents = hierarchyAgents.filter(a => a.depth === 0).length;
+    const totalDepth = hierarchyAgents.reduce((sum, a) => sum + (a.depth || 0), 0);
+    const avgDepth = hierarchyAgents.length > 0 ? (totalDepth / hierarchyAgents.length).toFixed(1) : 0;
+    return { total: hierarchyAgents.length, rootAgents, avgDepth };
+  }, [hierarchyAgents]);
+  
+  const handleMoveAgent = async (agentUserId: string, newParentUserId: string) => {
+    await moveAgent(agentUserId, newParentUserId);
+    toast({
+      title: "Agent Moved",
+      description: "The agent has been successfully reassigned to their new manager.",
+    });
+  };
 
   const { data: pendingResets } = useQuery({
     queryKey: ["pending-password-resets-count"],
@@ -220,6 +245,7 @@ const Admin = () => {
           <TabsTrigger value="news" className="whitespace-nowrap px-4 py-2">Carrier News</TabsTrigger>
           <TabsTrigger value="marketing" className="whitespace-nowrap px-4 py-2">Marketing</TabsTrigger>
           <TabsTrigger value="guidelines" className="whitespace-nowrap px-4 py-2">Carrier Guidelines</TabsTrigger>
+          <TabsTrigger value="hierarchy" className="whitespace-nowrap px-4 py-2">Hierarchy</TabsTrigger>
         </TabsList>
 
         <TabsContent value="training" className="space-y-6">
@@ -240,6 +266,53 @@ const Admin = () => {
 
         <TabsContent value="guidelines" className="space-y-6">
           <GuidelineManagement />
+        </TabsContent>
+
+        <TabsContent value="hierarchy" className="space-y-6">
+          <Card className="stat-card">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Network className="h-5 w-5 text-primary" />
+                Hierarchy Manager
+              </CardTitle>
+              <CardDescription>
+                Manage agent organizational structure by placing independent users under managers
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              {/* Stats Grid */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="p-4 bg-accent/50 rounded-lg text-center">
+                  <p className="text-2xl font-bold text-primary">{hierarchyStats.total}</p>
+                  <p className="text-sm text-muted-foreground">Total Agents</p>
+                </div>
+                <div className="p-4 bg-accent/50 rounded-lg text-center">
+                  <p className="text-2xl font-bold text-orange-500">{hierarchyStats.rootAgents}</p>
+                  <p className="text-sm text-muted-foreground">Root Agents (No Manager)</p>
+                </div>
+                <div className="p-4 bg-accent/50 rounded-lg text-center">
+                  <p className="text-2xl font-bold text-emerald-500">{hierarchyStats.avgDepth}</p>
+                  <p className="text-sm text-muted-foreground">Avg. Depth</p>
+                </div>
+              </div>
+              
+              {/* Action Button */}
+              <Button 
+                onClick={() => setHierarchyModalOpen(true)} 
+                className="w-full sm:w-auto"
+                disabled={hierarchyAgents.length < 2}
+              >
+                <Network className="mr-2 h-4 w-4" />
+                Move Agent to New Manager
+              </Button>
+              
+              {hierarchyAgents.length < 2 && (
+                <p className="text-sm text-muted-foreground">
+                  At least 2 agents are required in the hierarchy to perform reassignments.
+                </p>
+              )}
+            </CardContent>
+          </Card>
         </TabsContent>
 
 
@@ -459,6 +532,13 @@ const Admin = () => {
         onInvitationSent={() => {
           // Refresh will happen automatically when InvitationsList remounts
         }}
+      />
+      <HierarchyPlacementModal
+        open={hierarchyModalOpen}
+        onOpenChange={setHierarchyModalOpen}
+        agents={hierarchyAgents}
+        onMove={handleMoveAgent}
+        isMoving={isMoving}
       />
     </div>
   );
