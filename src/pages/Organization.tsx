@@ -6,12 +6,14 @@ import { ProductionGalaxy } from "@/components/hierarchy/galaxy/ProductionGalaxy
 import { LicensingCommandCenter } from "@/components/hierarchy/LicensingCommandCenter";
 import { AddAgentModal } from "@/components/hierarchy/AddAgentModal";
 import { HierarchyPlacementModal } from "@/components/hierarchy/HierarchyPlacementModal";
+import { MyInvitationsList } from "@/components/hierarchy/MyInvitationsList";
 import { useHierarchy } from "@/hooks/useHierarchy";
 import { useAdmin } from "@/hooks/useAdmin";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Network, Users, Sparkles, Shield, UserPlus, GitBranch } from "lucide-react";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { Network, Users, Sparkles, Shield, UserPlus, GitBranch, Mail } from "lucide-react";
 import { EnhancedAgent } from "@/lib/licensing-logic";
 import { useToast } from "@/hooks/use-toast";
 
@@ -76,7 +78,7 @@ const Organization = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <TabsList className="grid w-full sm:w-auto grid-cols-3">
+            <TabsList className="grid w-full sm:w-auto grid-cols-4">
               <TabsTrigger value="hierarchy" className="gap-2">
                 <Network className="h-4 w-4" />
                 <span className="hidden sm:inline">Hierarchy</span>
@@ -88,6 +90,10 @@ const Organization = () => {
               <TabsTrigger value="licensing" className="gap-2">
                 <Shield className="h-4 w-4" />
                 <span className="hidden sm:inline">Licensing</span>
+              </TabsTrigger>
+              <TabsTrigger value="invitations" className="gap-2">
+                <Mail className="h-4 w-4" />
+                <span className="hidden sm:inline">Invitations</span>
               </TabsTrigger>
             </TabsList>
 
@@ -152,6 +158,22 @@ const Organization = () => {
             </TabsContent>
             <TabsContent value="licensing" className="absolute inset-0 m-0 overflow-auto">
               <LicensingCommandCenter agents={filteredAgents as EnhancedAgent[]} />
+            </TabsContent>
+            <TabsContent value="invitations" className="absolute inset-0 m-0 overflow-auto p-6">
+              <Card className="max-w-2xl mx-auto">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Mail className="h-5 w-5 text-primary" />
+                    My Invitations
+                  </CardTitle>
+                  <CardDescription>
+                    Track and manage invitations you've sent to new team members
+                  </CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <MyInvitationsList />
+                </CardContent>
+              </Card>
             </TabsContent>
           </Tabs>
         )}
