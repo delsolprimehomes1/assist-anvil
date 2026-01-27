@@ -25,6 +25,7 @@ import ResetPassword from "./pages/ResetPassword";
 import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Organization from "./pages/Organization";
+import Performance from "./pages/Performance";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
             <Route path="marketing" element={<Marketing />} />
             <Route path="compliance" element={<Compliance />} />
             <Route path="profile" element={<ProfileSettings />} />
+            <Route path="performance" element={<Performance />} />
             <Route path="organization" element={<Organization />} />
             <Route path="admin" element={<Admin />} />
           </Route>

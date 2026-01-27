@@ -3,7 +3,7 @@ import {
   BarChart3, 
   Building2, 
   Calculator, 
-  Bot,
+  TrendingUp,
   ShoppingBag,
   Users
 } from "lucide-react";
@@ -13,8 +13,8 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "Order Leads", href: "https://leads.lifecoimo.com/leads", icon: ShoppingBag, external: true },
   { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
+  { name: "Performance", href: "/dashboard/performance", icon: TrendingUp },
   { name: "Carriers", href: "/dashboard/carriers", icon: Building2 },
-  { name: "Quoting Tools", href: "/dashboard/tools", icon: Calculator },
 ];
 
 export const BottomNav = () => {

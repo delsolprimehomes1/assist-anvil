@@ -14,6 +14,110 @@ export type Database = {
   }
   public: {
     Tables: {
+      agent_notes: {
+        Row: {
+          agent_id: string
+          created_at: string | null
+          created_by: string
+          id: string
+          note: string
+          note_type: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          created_at?: string | null
+          created_by: string
+          id?: string
+          note: string
+          note_type?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          created_at?: string | null
+          created_by?: string
+          id?: string
+          note?: string
+          note_type?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_notes_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "hierarchy_agents"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "agent_notes_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      agent_performance_entries: {
+        Row: {
+          agent_id: string
+          appointments_held: number | null
+          appointments_set: number | null
+          clients_closed: number | null
+          cost_per_lead: number | null
+          created_at: string | null
+          dials_made: number | null
+          entry_date: string
+          id: string
+          lead_type: string
+          leads_worked: number | null
+          notes: string | null
+          revenue: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          agent_id: string
+          appointments_held?: number | null
+          appointments_set?: number | null
+          clients_closed?: number | null
+          cost_per_lead?: number | null
+          created_at?: string | null
+          dials_made?: number | null
+          entry_date?: string
+          id?: string
+          lead_type: string
+          leads_worked?: number | null
+          notes?: string | null
+          revenue?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          agent_id?: string
+          appointments_held?: number | null
+          appointments_set?: number | null
+          clients_closed?: number | null
+          cost_per_lead?: number | null
+          created_at?: string | null
+          dials_made?: number | null
+          entry_date?: string
+          id?: string
+          lead_type?: string
+          leads_worked?: number | null
+          notes?: string | null
+          revenue?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agent_performance_entries_agent_id_fkey"
+            columns: ["agent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_profiles: {
         Row: {
           agency_name: string | null
@@ -63,6 +167,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      agent_rank_config: {
+        Row: {
+          badge_color: string | null
+          comp_level_percentage: number | null
+          created_at: string | null
+          display_order: number
+          id: string
+          min_agents_recruited: number | null
+          min_ytd_premium: number | null
+          rank_name: string
+        }
+        Insert: {
+          badge_color?: string | null
+          comp_level_percentage?: number | null
+          created_at?: string | null
+          display_order: number
+          id?: string
+          min_agents_recruited?: number | null
+          min_ytd_premium?: number | null
+          rank_name: string
+        }
+        Update: {
+          badge_color?: string | null
+          comp_level_percentage?: number | null
+          created_at?: string | null
+          display_order?: number
+          id?: string
+          min_agents_recruited?: number | null
+          min_ytd_premium?: number | null
+          rank_name?: string
+        }
+        Relationships: []
       }
       approved_admin_emails: {
         Row: {
@@ -570,6 +707,7 @@ export type Database = {
       hierarchy_agents: {
         Row: {
           ce_due_date: string | null
+          comp_level: number | null
           contracts_approved: number | null
           contracts_pending: number | null
           created_at: string | null
@@ -577,6 +715,7 @@ export type Database = {
           id: string
           joined_at: string | null
           last_activity_at: string | null
+          last_business_date: string | null
           last_login_at: string | null
           license_states: string[] | null
           monthly_goal: number | null
@@ -588,10 +727,12 @@ export type Database = {
           updated_at: string | null
           user_id: string | null
           verification_complete: boolean | null
+          weekly_business_submitted: number | null
           ytd_premium: number | null
         }
         Insert: {
           ce_due_date?: string | null
+          comp_level?: number | null
           contracts_approved?: number | null
           contracts_pending?: number | null
           created_at?: string | null
@@ -599,6 +740,7 @@ export type Database = {
           id?: string
           joined_at?: string | null
           last_activity_at?: string | null
+          last_business_date?: string | null
           last_login_at?: string | null
           license_states?: string[] | null
           monthly_goal?: number | null
@@ -610,10 +752,12 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           verification_complete?: boolean | null
+          weekly_business_submitted?: number | null
           ytd_premium?: number | null
         }
         Update: {
           ce_due_date?: string | null
+          comp_level?: number | null
           contracts_approved?: number | null
           contracts_pending?: number | null
           created_at?: string | null
@@ -621,6 +765,7 @@ export type Database = {
           id?: string
           joined_at?: string | null
           last_activity_at?: string | null
+          last_business_date?: string | null
           last_login_at?: string | null
           license_states?: string[] | null
           monthly_goal?: number | null
@@ -632,6 +777,7 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           verification_complete?: boolean | null
+          weekly_business_submitted?: number | null
           ytd_premium?: number | null
         }
         Relationships: [
@@ -693,6 +839,48 @@ export type Database = {
           sms_consent?: boolean
           source?: string | null
           user_agent?: string | null
+        }
+        Relationships: []
+      }
+      lead_products: {
+        Row: {
+          badge: string | null
+          category: string
+          created_at: string | null
+          display_order: number | null
+          expected_conversion: number | null
+          id: string
+          min_quantity: number | null
+          name: string
+          price: number
+          status: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          badge?: string | null
+          category: string
+          created_at?: string | null
+          display_order?: number | null
+          expected_conversion?: number | null
+          id?: string
+          min_quantity?: number | null
+          name: string
+          price: number
+          status?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          badge?: string | null
+          category?: string
+          created_at?: string | null
+          display_order?: number | null
+          expected_conversion?: number | null
+          id?: string
+          min_quantity?: number | null
+          name?: string
+          price?: number
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: []
       }
