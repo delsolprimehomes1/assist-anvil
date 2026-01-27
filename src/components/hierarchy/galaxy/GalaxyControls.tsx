@@ -16,12 +16,13 @@ export function GalaxyControls({ agents }: GalaxyControlsProps) {
   // Calculate zone distribution
   const zoneCounts = useMemo(() => {
     const counts: Record<AgentZone, number> = {
+      producing: 0,
+      investing: 0,
       red: 0,
       blue: 0,
       black: 0,
       yellow: 0,
       green: 0,
-      active_business: 0,
     };
 
     agents.forEach((agent) => {

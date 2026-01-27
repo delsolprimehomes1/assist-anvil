@@ -83,6 +83,8 @@ export function ZoneConfigModal({ open, onOpenChange }: ZoneConfigModalProps) {
   };
 
   const zoneDisplayNames: Record<string, string> = {
+    producing: "Producing Zone",
+    investing: "Investing Zone",
     red: "Red Zone",
     blue: "Blue Zone",
     black: "Black Zone",

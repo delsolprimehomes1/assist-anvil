@@ -44,11 +44,12 @@ export function LicensingCommandCenter({ agents }: LicensingCommandCenterProps) 
   // Zone priority for sorting (lower = more urgent)
   const zonePriority: Record<AgentZone, number> = {
     red: 1,
-    yellow: 2,
-    blue: 3,
-    black: 4,
-    green: 5,
-    active_business: 6,
+    investing: 2,
+    yellow: 3,
+    blue: 4,
+    black: 5,
+    green: 6,
+    producing: 7,
   };
 
   // Process and sort agents
@@ -95,12 +96,13 @@ export function LicensingCommandCenter({ agents }: LicensingCommandCenterProps) 
   // Zone statistics
   const zoneStats = useMemo(() => {
     const stats: Record<AgentZone, number> = {
+      producing: 0,
+      investing: 0,
       red: 0,
       blue: 0,
       black: 0,
       yellow: 0,
       green: 0,
-      active_business: 0,
     };
 
     agents.forEach((agent) => {

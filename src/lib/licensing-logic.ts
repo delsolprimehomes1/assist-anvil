@@ -1,7 +1,7 @@
 // Zone-based color logic for Agent Command OS
-// Determines agent status based on licensing, activity, and compliance
+// Determines agent status based on licensing, activity, compliance, and business production
 
-export type AgentZone = 'red' | 'blue' | 'black' | 'yellow' | 'green' | 'active_business';
+export type AgentZone = 'red' | 'blue' | 'black' | 'yellow' | 'green' | 'producing' | 'investing';
 
 export interface EnhancedAgent {
   id: string;
@@ -35,12 +35,13 @@ export interface EnhancedAgent {
 
 // Zone color definitions matching the design spec
 export const zoneColors: Record<AgentZone, string> = {
+  producing: '#22C55E',     // Producing - Business written this month
+  investing: '#8B5CF6',     // Investing - Buying leads but no closed business
   red: '#EF4444',           // Critical - License expired/expiring <7 days
   blue: '#3B82F6',          // Onboarding - Joined <30 days, not verified
   black: '#64748B',         // Inactive - No activity 7+ days
   yellow: '#F59E0B',        // Warning - Pending contracts, license 8-30 days
-  green: '#10B981',         // Active - All clear
-  active_business: '#22C55E', // Special - Has submitted business this week
+  green: '#10B981',         // Active - All clear, ready to work
 };
 
 // Tailwind class mappings for zone colors
@@ -51,6 +52,20 @@ export const zoneTailwindClasses: Record<AgentZone, {
   shadow: string;
   glow: string;
 }> = {
+  producing: {
+    border: 'border-green-500',
+    bg: 'bg-green-500',
+    text: 'text-green-500',
+    shadow: 'shadow-green-500/30',
+    glow: 'ring-green-500/50',
+  },
+  investing: {
+    border: 'border-violet-500',
+    bg: 'bg-violet-500',
+    text: 'text-violet-500',
+    shadow: 'shadow-violet-500/30',
+    glow: 'ring-violet-500/50',
+  },
   red: {
     border: 'border-red-500',
     bg: 'bg-red-500',
@@ -86,23 +101,17 @@ export const zoneTailwindClasses: Record<AgentZone, {
     shadow: 'shadow-emerald-500/30',
     glow: 'ring-emerald-500/50',
   },
-  active_business: {
-    border: 'border-green-400',
-    bg: 'bg-green-400',
-    text: 'text-green-400',
-    shadow: 'shadow-green-400/30',
-    glow: 'ring-green-400/50',
-  },
 };
 
 // Zone descriptions for UI
 export const zoneDescriptions: Record<AgentZone, { label: string; description: string }> = {
+  producing: { label: 'Producing', description: 'Business written this month' },
+  investing: { label: 'Investing', description: 'Buying leads but no closed business yet' },
   red: { label: 'Critical', description: 'License expired or expiring within 7 days' },
   blue: { label: 'Onboarding', description: 'New agent, verification incomplete' },
   black: { label: 'Inactive', description: 'No activity for 7+ days' },
   yellow: { label: 'Warning', description: 'Pending contracts or license expiring soon' },
-  green: { label: 'Active', description: 'All systems operational' },
-  active_business: { label: 'Producing', description: 'Submitted business this week' },
+  green: { label: 'Active', description: 'Active and ready to work' },
 };
 
 // Helper functions
@@ -141,13 +150,45 @@ function daysSinceLastActivity(agent: EnhancedAgent): number {
 }
 
 /**
- * Determines the agent's zone based on compliance and activity status.
- * Priority order: Red > Blue > Black > Yellow > Green
+ * Check if agent has written business this month
+ */
+function hasBusinessThisMonth(agent: EnhancedAgent): boolean {
+  if (!agent.lastBusinessDate) return false;
+  const businessDate = new Date(agent.lastBusinessDate);
+  const now = new Date();
+  return (
+    businessDate.getMonth() === now.getMonth() &&
+    businessDate.getFullYear() === now.getFullYear()
+  );
+}
+
+/**
+ * Check if agent is investing in leads but hasn't closed business
+ */
+function isInvestingNoClose(agent: EnhancedAgent): boolean {
+  const hasLeadSpend = (agent.totalLeadSpend || 0) > 0;
+  const noClosesRecorded = !agent.lastBusinessDate;
+  return hasLeadSpend && noClosesRecorded;
+}
+
+/**
+ * Determines the agent's zone based on compliance, activity, and business status.
+ * Priority order: Red > Producing > Investing > Blue > Black > Yellow > Green
  */
 export function determineAgentZone(agent: EnhancedAgent): AgentZone {
-  // RED: License expired or expiring within 7 days
+  // RED: License expired or expiring within 7 days (critical override)
   if (isLicenseExpired(agent) || isLicenseExpiringWithin(agent, 7)) {
     return 'red';
+  }
+
+  // PRODUCING: Has business written this month
+  if (hasBusinessThisMonth(agent)) {
+    return 'producing';
+  }
+
+  // INVESTING: Buying leads but no closed business yet
+  if (isInvestingNoClose(agent)) {
+    return 'investing';
   }
 
   // BLUE: New agent (joined <30 days) not verified
@@ -165,22 +206,24 @@ export function determineAgentZone(agent: EnhancedAgent): AgentZone {
     return 'yellow';
   }
 
-  // GREEN: All systems go
+  // GREEN: Active and ready to work
   return 'green';
 }
 
 /**
- * Get pulse speed for 3D star animation based on zone
- * Red zones pulse fastest to grab attention
+ * Get glow intensity for zone visualization
+ * Higher values = more prominent glow effect
  */
-export function getZonePulseSpeed(zone: AgentZone): number {
+export function getZoneGlowIntensity(zone: AgentZone): number {
   switch (zone) {
-    case 'red': return 0.5;      // Fast pulse - critical
-    case 'yellow': return 0.3;   // Medium pulse - warning
-    case 'blue': return 0.2;     // Slow pulse - onboarding
-    case 'black': return 0.05;   // Very slow - inactive
-    case 'green': return 0.1;    // Gentle pulse - active
-    default: return 0.1;
+    case 'producing': return 1.0;  // Brightest - actively producing
+    case 'investing': return 0.8;  // High - investing in business
+    case 'red': return 0.9;        // High - needs attention
+    case 'yellow': return 0.6;     // Medium - warning state
+    case 'blue': return 0.5;       // Medium - onboarding
+    case 'black': return 0.2;      // Low - inactive
+    case 'green': return 0.7;      // Good - ready to work
+    default: return 0.5;
   }
 }
 
