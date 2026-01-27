@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Network, Users, Sparkles, Shield, UserPlus, GitBranch, Mail } from "lucide-react";
+import { ZoneLegend } from "@/components/hierarchy/ZoneLegend";
 import { EnhancedAgent } from "@/lib/licensing-logic";
 import { useToast } from "@/hooks/use-toast";
 
@@ -152,9 +153,11 @@ const Organization = () => {
               ) : (
                 <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
               )}
+              <ZoneLegend />
             </TabsContent>
             <TabsContent value="galaxy" className="absolute inset-0 m-0">
               <ProductionGalaxy agents={filteredAgents as EnhancedAgent[]} />
+              <ZoneLegend />
             </TabsContent>
             <TabsContent value="licensing" className="absolute inset-0 m-0 overflow-auto">
               <LicensingCommandCenter agents={filteredAgents as EnhancedAgent[]} />

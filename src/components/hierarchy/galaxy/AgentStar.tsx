@@ -6,7 +6,6 @@ import {
   EnhancedAgent,
   determineAgentZone,
   zoneColors,
-  getZonePulseSpeed,
   getStarSize,
 } from "@/lib/licensing-logic";
 
@@ -23,17 +22,14 @@ export function AgentStar({ agent, position, onClick, isSelected }: AgentStarPro
 
   const zone = determineAgentZone(agent);
   const color = zoneColors[zone];
-  const pulseSpeed = getZonePulseSpeed(zone);
   const baseSize = getStarSize(agent.ytdPremium);
 
-  // Animate the star with breathing pulse
-  useFrame((state) => {
+  // Animate the star (hover/selected scaling only, no pulsing)
+  useFrame(() => {
     if (meshRef.current) {
-      // Breathing pulse effect
-      const pulse = 1 + Math.sin(state.clock.elapsedTime * pulseSpeed * Math.PI * 2) * 0.15;
       const hoverScale = hovered ? 1.3 : 1;
       const selectedScale = isSelected ? 1.5 : 1;
-      meshRef.current.scale.setScalar(pulse * hoverScale * selectedScale);
+      meshRef.current.scale.setScalar(hoverScale * selectedScale);
 
       // Gentle rotation
       meshRef.current.rotation.y += 0.005;

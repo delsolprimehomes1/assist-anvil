@@ -1690,6 +1690,39 @@ export type Database = {
           },
         ]
       }
+      zone_config: {
+        Row: {
+          color: string
+          created_at: string | null
+          description: string
+          display_order: number
+          id: string
+          label: string
+          updated_at: string | null
+          zone_key: string
+        }
+        Insert: {
+          color: string
+          created_at?: string | null
+          description: string
+          display_order?: number
+          id?: string
+          label: string
+          updated_at?: string | null
+          zone_key: string
+        }
+        Update: {
+          color?: string
+          created_at?: string | null
+          description?: string
+          display_order?: number
+          id?: string
+          label?: string
+          updated_at?: string | null
+          zone_key?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never

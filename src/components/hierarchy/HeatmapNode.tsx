@@ -4,7 +4,6 @@ import { HierarchyAgent } from "@/hooks/useHierarchy";
 import { 
   determineAgentZone, 
   zoneColors, 
-  getZonePulseSpeed,
   EnhancedAgent 
 } from "@/lib/licensing-logic";
 import { cn } from "@/lib/utils";
@@ -31,7 +30,6 @@ export const HeatmapNode = memo(({ data }: HeatmapNodeProps) => {
   // Get zone-based colors
   const zone = determineAgentZone(agent as EnhancedAgent);
   const zoneColor = zoneColors[zone];
-  const pulseSpeed = getZonePulseSpeed(zone);
   
   // Get initials from name
   const initials = agent.fullName
@@ -40,9 +38,6 @@ export const HeatmapNode = memo(({ data }: HeatmapNodeProps) => {
     .join("")
     .toUpperCase()
     .slice(0, 2);
-
-  // Dynamic animation based on zone
-  const animationDuration = 1 / pulseSpeed;
 
   return (
     <>
@@ -65,9 +60,6 @@ export const HeatmapNode = memo(({ data }: HeatmapNodeProps) => {
               backgroundColor: zoneColor,
               borderColor: zoneColor,
               boxShadow: `0 0 20px ${zoneColor}60`,
-              animation: zone === 'red' || zone === 'yellow' 
-                ? `pulse ${animationDuration}s ease-in-out infinite`
-                : undefined,
             }}
           >
             {initials}
