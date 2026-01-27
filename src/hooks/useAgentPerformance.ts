@@ -326,6 +326,7 @@ export const useAgentPerformance = (agentId?: string): UseAgentPerformanceReturn
     }
 
     toast({ title: "Updated", description: "Performance entry updated" });
+    await fetchEntries(); // Immediately refresh data
   };
 
   const deleteEntry = async (id: string) => {
@@ -340,6 +341,7 @@ export const useAgentPerformance = (agentId?: string): UseAgentPerformanceReturn
     }
 
     toast({ title: "Deleted", description: "Performance entry removed" });
+    await fetchEntries(); // Immediately refresh data
   };
 
   const getDownlinePerformance = async (agentUserId: string): Promise<PerformanceEntry[]> => {

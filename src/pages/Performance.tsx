@@ -1,8 +1,12 @@
 import { PerformanceForm } from "@/components/performance/PerformanceForm";
 import { PerformanceStatsPanel } from "@/components/performance/PerformanceStats";
+import { PerformanceEntriesList } from "@/components/performance/PerformanceEntriesList";
+import { useAgentPerformance } from "@/hooks/useAgentPerformance";
 import { BarChart3 } from "lucide-react";
 
 const Performance = () => {
+  const { entries, loading, updateEntry, deleteEntry } = useAgentPerformance();
+
   return (
     <div className="space-y-6 animate-fade-in">
       <div>
@@ -26,6 +30,14 @@ const Performance = () => {
           <PerformanceStatsPanel />
         </div>
       </div>
+
+      {/* Entry History - Full Width */}
+      <PerformanceEntriesList
+        entries={entries}
+        onUpdate={updateEntry}
+        onDelete={deleteEntry}
+        loading={loading}
+      />
     </div>
   );
 };
