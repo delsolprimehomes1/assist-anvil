@@ -61,51 +61,72 @@ export type Database = {
       }
       agent_performance_entries: {
         Row: {
+          advancement_percent: number | null
           agent_id: string
           appointments_held: number | null
           appointments_set: number | null
           clients_closed: number | null
+          comp_level_percent: number | null
           cost_per_lead: number | null
           created_at: string | null
           dials_made: number | null
+          discount_percent: number | null
           entry_date: string
+          expected_deferred_pay: number | null
+          expected_issue_pay: number | null
           id: string
           lead_type: string
+          leads_purchased: number | null
           leads_worked: number | null
           notes: string | null
           revenue: number | null
+          total_lead_cost: number | null
           updated_at: string | null
         }
         Insert: {
+          advancement_percent?: number | null
           agent_id: string
           appointments_held?: number | null
           appointments_set?: number | null
           clients_closed?: number | null
+          comp_level_percent?: number | null
           cost_per_lead?: number | null
           created_at?: string | null
           dials_made?: number | null
+          discount_percent?: number | null
           entry_date?: string
+          expected_deferred_pay?: number | null
+          expected_issue_pay?: number | null
           id?: string
           lead_type: string
+          leads_purchased?: number | null
           leads_worked?: number | null
           notes?: string | null
           revenue?: number | null
+          total_lead_cost?: number | null
           updated_at?: string | null
         }
         Update: {
+          advancement_percent?: number | null
           agent_id?: string
           appointments_held?: number | null
           appointments_set?: number | null
           clients_closed?: number | null
+          comp_level_percent?: number | null
           cost_per_lead?: number | null
           created_at?: string | null
           dials_made?: number | null
+          discount_percent?: number | null
           entry_date?: string
+          expected_deferred_pay?: number | null
+          expected_issue_pay?: number | null
           id?: string
           lead_type?: string
+          leads_purchased?: number | null
           leads_worked?: number | null
           notes?: string | null
           revenue?: number | null
+          total_lead_cost?: number | null
           updated_at?: string | null
         }
         Relationships: [
@@ -719,11 +740,13 @@ export type Database = {
           last_login_at: string | null
           license_states: string[] | null
           monthly_goal: number | null
+          net_profit: number | null
           parent_id: string | null
           path: string
           resident_license_exp: string | null
           status: string | null
           tier: string | null
+          total_lead_spend: number | null
           updated_at: string | null
           user_id: string | null
           verification_complete: boolean | null
@@ -744,11 +767,13 @@ export type Database = {
           last_login_at?: string | null
           license_states?: string[] | null
           monthly_goal?: number | null
+          net_profit?: number | null
           parent_id?: string | null
           path: string
           resident_license_exp?: string | null
           status?: string | null
           tier?: string | null
+          total_lead_spend?: number | null
           updated_at?: string | null
           user_id?: string | null
           verification_complete?: boolean | null
@@ -769,11 +794,13 @@ export type Database = {
           last_login_at?: string | null
           license_states?: string[] | null
           monthly_goal?: number | null
+          net_profit?: number | null
           parent_id?: string | null
           path?: string
           resident_license_exp?: string | null
           status?: string | null
           tier?: string | null
+          total_lead_spend?: number | null
           updated_at?: string | null
           user_id?: string | null
           verification_complete?: boolean | null

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,6 +9,8 @@ import { useLeadProducts } from "@/hooks/useLeadProducts";
 import { useAgentPerformance } from "@/hooks/useAgentPerformance";
 import { Loader2, Plus, DollarSign, Phone, Users, Target } from "lucide-react";
 import { format } from "date-fns";
+import { LeadPurchaseSection } from "./LeadPurchaseSection";
+import { CommissionSection } from "./CommissionSection";
 
 export const PerformanceForm = () => {
   const { activeProducts, loading: productsLoading } = useLeadProducts();
@@ -25,7 +27,28 @@ export const PerformanceForm = () => {
     revenue: 0,
     costPerLead: 0,
     notes: "",
+    // New fields
+    leadsPurchased: 0,
+    discountPercent: 0,
+    compLevelPercent: 100,
+    advancementPercent: 75,
   });
+
+  // Real-time calculations
+  const calculations = useMemo(() => {
+    const discountMultiplier = 1 - (formData.discountPercent / 100);
+    const totalLeadCost = formData.leadsPurchased * formData.costPerLead * discountMultiplier;
+    
+    const baseCommission = formData.revenue * (formData.compLevelPercent / 100);
+    const expectedIssuePay = baseCommission * (formData.advancementPercent / 100);
+    const expectedDeferredPay = baseCommission * (1 - formData.advancementPercent / 100);
+    
+    return {
+      totalLeadCost,
+      expectedIssuePay,
+      expectedDeferredPay,
+    };
+  }, [formData.leadsPurchased, formData.costPerLead, formData.discountPercent, formData.revenue, formData.compLevelPercent, formData.advancementPercent]);
 
   const handleLeadTypeChange = (value: string) => {
     const product = activeProducts.find((p) => p.name === value);
@@ -44,7 +67,12 @@ export const PerformanceForm = () => {
     }
 
     try {
-      await addEntry(formData);
+      await addEntry({
+        ...formData,
+        totalLeadCost: calculations.totalLeadCost,
+        expectedIssuePay: calculations.expectedIssuePay,
+        expectedDeferredPay: calculations.expectedDeferredPay,
+      });
       // Reset form
       setFormData({
         entryDate: format(new Date(), "yyyy-MM-dd"),
@@ -57,6 +85,10 @@ export const PerformanceForm = () => {
         revenue: 0,
         costPerLead: 0,
         notes: "",
+        leadsPurchased: 0,
+        discountPercent: 0,
+        compLevelPercent: 100,
+        advancementPercent: 75,
       });
     } catch (err) {
       // Error handled in hook
@@ -110,6 +142,16 @@ export const PerformanceForm = () => {
               </Select>
             </div>
           </div>
+
+          {/* Lead Purchase Section */}
+          <LeadPurchaseSection
+            leadsPurchased={formData.leadsPurchased}
+            discountPercent={formData.discountPercent}
+            costPerLead={formData.costPerLead}
+            totalLeadCost={calculations.totalLeadCost}
+            onLeadsPurchasedChange={(v) => setFormData((prev) => ({ ...prev, leadsPurchased: v }))}
+            onDiscountChange={(v) => setFormData((prev) => ({ ...prev, discountPercent: v }))}
+          />
 
           {/* Activity Section */}
           <div className="pt-2 border-t">
@@ -202,14 +244,24 @@ export const PerformanceForm = () => {
             </div>
           </div>
 
+          {/* Commission Section */}
+          <CommissionSection
+            revenue={formData.revenue}
+            compLevelPercent={formData.compLevelPercent}
+            advancementPercent={formData.advancementPercent}
+            expectedIssuePay={calculations.expectedIssuePay}
+            expectedDeferredPay={calculations.expectedDeferredPay}
+            onCompLevelChange={(v) => setFormData((prev) => ({ ...prev, compLevelPercent: v }))}
+            onAdvancementChange={(v) => setFormData((prev) => ({ ...prev, advancementPercent: v }))}
+          />
+
           {/* Cost Section */}
           <div className="pt-2 border-t">
             <div className="flex items-center gap-2 mb-3 text-sm font-medium text-muted-foreground">
               <DollarSign className="h-4 w-4" />
-              Cost
+              Cost Per Lead
             </div>
             <div className="space-y-2">
-              <Label htmlFor="costPerLead">Cost Per Lead ($)</Label>
               <Input
                 id="costPerLead"
                 type="number"
