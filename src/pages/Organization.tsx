@@ -41,40 +41,53 @@ const Organization = () => {
   });
 
   return (
-    <div className="flex flex-col" style={{ height: 'calc(100vh - 80px)' }}>
-      {/* Header */}
-      <div className="flex flex-col gap-4 p-6 border-b bg-background">
+    <div className="flex flex-col premium-ambient-bg" style={{ height: 'calc(100vh - 80px)' }}>
+      {/* Premium Header with glassmorphism */}
+      <div className="flex flex-col gap-4 p-6 border-b border-white/10 glass-premium-strong !rounded-none">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="p-2 rounded-lg bg-primary/10">
-              <Network className="h-6 w-6 text-primary" />
-            </div>
-            <div>
-              <h1 className="text-2xl font-bold text-foreground">
-                Agent Command OS
-              </h1>
-              <p className="text-sm text-muted-foreground">
-                Visualize, manage, and monitor your team
-              </p>
-            </div>
-          </div>
-          <div className="flex items-center gap-2">
-            {isAdmin && (
-              <Button
-                variant="outline"
-                onClick={() => setPlacementModalOpen(true)}
-                className="gap-2"
+            <div className="flex items-center gap-3">
+              <div 
+                className="p-2.5 rounded-xl"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(var(--primary) / 0.2) 0%, hsl(var(--primary) / 0.1) 100%)',
+                  boxShadow: '0 0 20px hsl(var(--primary) / 0.15)',
+                }}
               >
-                <GitBranch className="h-4 w-4" />
-                Reassign
+                <Network className="h-6 w-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-2xl font-bold text-foreground tracking-tight">
+                  Agent Command OS
+                </h1>
+                <p className="text-sm text-muted-foreground">
+                  Visualize, manage, and monitor your team
+                </p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              {isAdmin && (
+                <Button
+                  variant="outline"
+                  onClick={() => setPlacementModalOpen(true)}
+                  className="gap-2 glass-premium !rounded-xl border-white/10 hover:bg-white/10"
+                >
+                  <GitBranch className="h-4 w-4" />
+                  Reassign
+                </Button>
+              )}
+              <Button 
+                onClick={() => setAddModalOpen(true)} 
+                className="gap-2 !rounded-xl"
+                style={{
+                  background: 'linear-gradient(135deg, hsl(var(--primary)) 0%, hsl(var(--primary-dark)) 100%)',
+                  boxShadow: '0 4px 15px hsl(var(--primary) / 0.3)',
+                }}
+              >
+                <UserPlus className="h-4 w-4" />
+                Invite Agent
               </Button>
-            )}
-            <Button onClick={() => setAddModalOpen(true)} className="gap-2">
-              <UserPlus className="h-4 w-4" />
-              Invite Agent
-            </Button>
+            </div>
           </div>
-        </div>
 
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
