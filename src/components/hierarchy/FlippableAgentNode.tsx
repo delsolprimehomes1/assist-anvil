@@ -92,21 +92,18 @@ export const FlippableAgentNode = memo(({ data }: FlippableAgentNodeProps) => {
           >
             {/* Activity Ring for Weekly Business */}
             <div 
-              className={cn(
-                "relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300",
-                hasWeeklyBusiness && "animate-pulse"
-              )}
+              className="relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300"
               style={{
                 background: `linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)`,
                 boxShadow: `0 0 20px 4px ${zoneColor}40, 0 0 40px 8px ${zoneColor}20`,
                 border: `3px solid ${zoneColor}`,
               }}
             >
-              {/* Weekly business indicator ring */}
+              {/* Weekly business indicator ring - solid ring, no animation */}
               {hasWeeklyBusiness && (
                 <div 
-                  className="absolute -inset-1 rounded-full animate-ping opacity-30"
-                  style={{ borderColor: "#10B981", borderWidth: "2px", borderStyle: "solid" }}
+                  className="absolute -inset-1 rounded-full opacity-60"
+                  style={{ borderColor: "#10B981", borderWidth: "3px", borderStyle: "solid" }}
                 />
               )}
               
