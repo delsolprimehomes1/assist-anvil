@@ -1,132 +1,84 @@
 
 
-# Fix Net Profit Calculation and Add Total Leads Display
+# Fix: Performance Analytics Not Updating After Successful Entry
 
-The performance tracking system already has the infrastructure for lead purchases and commission calculations. However, the **Net Profit calculation is incorrect** and needs to be fixed to properly show when an agent is "in the hole."
-
----
-
-## The Problem
-
-**Current Logic (Wrong):**
-```
-Net Profit = Revenue - Lead Cost
-```
-Example: $1,000 revenue - $950 lead cost = $50 profit (WRONG)
-
-**Correct Logic (Your Business Model):**
-```
-Net Profit = Issue Pay - Lead Cost
-```
-Example: $750 issue pay - $950 lead cost = -$200 loss (CORRECT)
-
-The agent receives the **commission** (Issue Pay), not the full premium. So if they spend $950 on leads and only get $750 in issue pay at 75% advancement, they're **in the hole $200**.
+The data **is being saved correctly** to the database (confirmed). The issue is that the analytics panel doesn't refresh to show the new data.
 
 ---
 
-## Changes Required
+## Root Cause
 
-### 1. Fix `useAgentPerformance.ts` - Line 130
+The `addEntry` function in `useAgentPerformance.ts` relies on the Supabase realtime subscription to trigger a refetch after inserting a new entry. However, the realtime notification may be delayed or not received immediately, causing the UI to appear as if nothing was saved.
 
-Change the `calculateStats` function:
-```typescript
-// BEFORE (wrong):
-const netProfit = totals.revenue - totals.totalLeadCost;
-
-// AFTER (correct):
-const netProfit = totals.totalIssuePay - totals.totalLeadCost;
+**Current Flow:**
+```text
+User submits form → INSERT succeeds → Wait for realtime → (delay/miss) → UI doesn't update
 ```
 
-Also update ROI calculation to be based on Issue Pay:
-```typescript
-// BEFORE:
-const roi = totals.totalLeadCost > 0 
-  ? ((totals.revenue - totals.totalLeadCost) / totals.totalLeadCost) * 100 
-  : 0;
-
-// AFTER:
-const roi = totals.totalLeadCost > 0 
-  ? ((totals.totalIssuePay - totals.totalLeadCost) / totals.totalLeadCost) * 100 
-  : 0;
+**Fixed Flow:**
+```text
+User submits form → INSERT succeeds → Immediately refetch → UI updates instantly
 ```
 
-### 2. Add `totalLeadsPurchased` to PerformanceStats Interface
+---
 
-Add new field to track total leads purchased:
+## The Fix
+
+**File:** `src/hooks/useAgentPerformance.ts`
+
+In the `addEntry` function, add a call to `fetchEntries()` after the successful insert:
+
 ```typescript
-export interface PerformanceStats {
-  // ... existing fields
-  totalLeadsPurchased: number; // NEW
+// Line 296 - after the success toast
+toast({ title: "Success", description: "Performance entry logged" });
+await fetchEntries(); // ← ADD THIS LINE
+```
+
+This ensures the entries list is refreshed immediately after adding a new one, rather than waiting for the realtime subscription to trigger.
+
+---
+
+## Why This Happens
+
+Supabase Realtime has slight latency, and in some cases:
+- The subscription event may arrive after the component has already finished processing
+- The subscription channel might not be fully connected yet
+- Network conditions can delay the push notification
+
+By calling `fetchEntries()` directly, we guarantee the UI updates without relying on the push mechanism.
+
+---
+
+## Code Change
+
+**Before:**
+```typescript
+if (insertError) {
+  toast({ title: "Error", description: insertError.message, variant: "destructive" });
+  throw insertError;
 }
+
+toast({ title: "Success", description: "Performance entry logged" });
 ```
 
-Update `calculateStats` to sum leads purchased:
+**After:**
 ```typescript
-leadsPurchased: acc.leadsPurchased + entry.leadsPurchased,
+if (insertError) {
+  toast({ title: "Error", description: insertError.message, variant: "destructive" });
+  throw insertError;
+}
+
+toast({ title: "Success", description: "Performance entry logged" });
+await fetchEntries(); // Immediately refresh data
 ```
 
-### 3. Fix `FinancialSummary.tsx` - Line 18
-
-Same issue - change:
-```typescript
-// BEFORE:
-const netProfit = totalRevenue - totalLeadSpend;
-
-// AFTER:
-const netProfit = totalIssuePay - totalLeadSpend;
-```
-
-### 4. Update `PerformanceStats.tsx` Display
-
-Add a "Total Leads Purchased" KPI card showing the count of leads bought for the period.
-
-Update the description text to clarify the calculation:
-- "Net Profit = Issue Pay - Lead Cost"
-- Show breakdown: "$750 Issue Pay - $950 Lead Spend = -$200"
-
 ---
 
-## Example Scenario (Your Use Case)
+## Summary
 
-| Field | Value |
-|-------|-------|
-| Lead Type | Annuity Leads |
-| Leads Purchased | 10 |
-| Cost Per Lead | $95 |
-| Discount | 0% |
-| **Total Lead Cost** | **$950** |
-| | |
-| Revenue (Annual Premium) | $1,000 |
-| Comp Level | 100% |
-| Advancement | 75% |
-| **Issue Pay** | **$750** |
-| **Deferred Pay (9 mo)** | **$250** |
-| | |
-| **Net Profit (Issue Pay - Lead Cost)** | **-$200** |
-| Status | **In the hole $200** |
+| Change | Location | Description |
+|--------|----------|-------------|
+| Add `await fetchEntries()` | `useAgentPerformance.ts` line 297 | Refetch entries after successful insert |
 
----
-
-## Files to Modify
-
-| File | Change |
-|------|--------|
-| `src/hooks/useAgentPerformance.ts` | Fix netProfit and ROI calculations, add totalLeadsPurchased |
-| `src/components/performance/PerformanceStats.tsx` | Add Total Leads Purchased display, clarify profit calculation |
-| `src/components/performance/FinancialSummary.tsx` | Fix netProfit calculation |
-
----
-
-## Visual Enhancements
-
-1. **Profit/Loss Breakdown Card** - Show calculation step-by-step:
-   - Issue Pay: $750
-   - Lead Spend: -$950
-   - Net: -$200 (IN THE HOLE)
-
-2. **Color Coding**:
-   - Green when Issue Pay > Lead Cost (profitable)
-   - Red when Issue Pay < Lead Cost (in the hole)
-
-3. **Total Leads Purchased** - New stat showing count for the period
+This is a one-line fix that will ensure your performance analytics update immediately after logging an entry.
 
