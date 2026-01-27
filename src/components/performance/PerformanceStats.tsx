@@ -59,7 +59,7 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
   return (
     <div className="space-y-6">
       {/* KPI Grid */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
         <KPICard
           title="Revenue"
           value={formatCurrency(stats.revenue)}
@@ -67,10 +67,16 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
           icon={<DollarSign className="h-4 w-4 text-emerald-500" />}
         />
         <KPICard
-          title="Lead Spend"
-          value={formatCurrency(stats.totalLeadCost)}
-          subtitle="Investment"
+          title="Leads Purchased"
+          value={stats.totalLeadsPurchased}
+          subtitle={`${formatCurrency(stats.totalLeadCost)} spent`}
           icon={<Receipt className="h-4 w-4 text-amber-500" />}
+        />
+        <KPICard
+          title="Issue Pay"
+          value={formatCurrency(stats.totalIssuePay)}
+          subtitle="Due now"
+          icon={<Wallet className="h-4 w-4 text-green-500" />}
         />
         <KPICard
           title="Close Rate"
@@ -86,7 +92,7 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
         />
       </div>
 
-      {/* Net Profit/Loss Card */}
+      {/* Net Profit/Loss Card - Issue Pay vs Lead Cost */}
       <div className={cn(
         "p-4 rounded-lg border-2 transition-colors",
         isProfit 
@@ -102,7 +108,7 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
                 <TrendingDown className="h-4 w-4 text-red-600" />
               )}
               <span className={isProfit ? "text-green-700" : "text-red-700"}>
-                Net {isProfit ? "Profit" : "Loss"}
+                {isProfit ? "Net Profit" : "In the Hole"}
               </span>
             </div>
             <span className={cn(
@@ -111,6 +117,9 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
             )}>
               {isProfit ? "+" : "-"}${Math.abs(stats.netProfit).toFixed(2)}
             </span>
+            <p className="text-xs text-muted-foreground mt-1">
+              {formatCurrency(stats.totalIssuePay)} Issue Pay - {formatCurrency(stats.totalLeadCost)} Lead Spend
+            </p>
           </div>
           <div className="text-right">
             <p className="text-xs text-muted-foreground">Avg Comp Level</p>

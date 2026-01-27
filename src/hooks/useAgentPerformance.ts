@@ -47,6 +47,7 @@ export interface PerformanceStats {
   totalDeferredPay: number;
   netProfit: number;
   avgCompLevel: number;
+  totalLeadsPurchased: number;
 }
 
 interface UseAgentPerformanceReturn {
@@ -80,6 +81,7 @@ const emptyStats: PerformanceStats = {
   totalDeferredPay: 0,
   netProfit: 0,
   avgCompLevel: 0,
+  totalLeadsPurchased: 0,
 };
 
 function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
@@ -97,6 +99,7 @@ function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
       totalIssuePay: acc.totalIssuePay + entry.expectedIssuePay,
       totalDeferredPay: acc.totalDeferredPay + entry.expectedDeferredPay,
       compLevelSum: acc.compLevelSum + entry.compLevelPercent,
+      totalLeadsPurchased: acc.totalLeadsPurchased + entry.leadsPurchased,
     }),
     {
       leadsWorked: 0,
@@ -109,6 +112,7 @@ function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
       totalIssuePay: 0,
       totalDeferredPay: 0,
       compLevelSum: 0,
+      totalLeadsPurchased: 0,
     }
   );
 
@@ -121,13 +125,15 @@ function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
   const closeRate = totals.appointmentsHeld > 0 
     ? (totals.clientsClosed / totals.appointmentsHeld) * 100 
     : 0;
+  // ROI based on Issue Pay vs Lead Cost (what agent actually receives)
   const roi = totals.totalLeadCost > 0 
-    ? ((totals.revenue - totals.totalLeadCost) / totals.totalLeadCost) * 100 
+    ? ((totals.totalIssuePay - totals.totalLeadCost) / totals.totalLeadCost) * 100 
     : 0;
   const costPerAcquisition = totals.clientsClosed > 0 
     ? totals.totalLeadCost / totals.clientsClosed 
     : 0;
-  const netProfit = totals.revenue - totals.totalLeadCost;
+  // Net Profit = Issue Pay - Lead Cost (what agent receives minus what they spent)
+  const netProfit = totals.totalIssuePay - totals.totalLeadCost;
   const avgCompLevel = entries.length > 0 ? totals.compLevelSum / entries.length : 0;
 
   return {
@@ -139,6 +145,7 @@ function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
     costPerAcquisition,
     netProfit,
     avgCompLevel,
+    totalLeadsPurchased: totals.totalLeadsPurchased,
   };
 }
 
