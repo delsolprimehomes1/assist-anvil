@@ -13,11 +13,13 @@ export interface ZoneConfig {
 
 // Default fallback values if database is empty
 const defaultZoneConfigs: Omit<ZoneConfig, 'id'>[] = [
-  { zone_key: 'red', label: 'Critical', description: 'License expired or expiring within 7 days', color: '#EF4444', display_order: 1 },
-  { zone_key: 'blue', label: 'Onboarding', description: 'New agent, verification incomplete', color: '#3B82F6', display_order: 2 },
-  { zone_key: 'black', label: 'Inactive', description: 'No activity for 7+ days', color: '#64748B', display_order: 3 },
-  { zone_key: 'yellow', label: 'Warning', description: 'Pending contracts or license expiring soon', color: '#F59E0B', display_order: 4 },
-  { zone_key: 'green', label: 'Active', description: 'All systems operational', color: '#10B981', display_order: 5 },
+  { zone_key: 'producing', label: 'Producing', description: 'Business written this month', color: '#22C55E', display_order: 0 },
+  { zone_key: 'investing', label: 'Investing', description: 'Buying leads but no closed business yet', color: '#8B5CF6', display_order: 1 },
+  { zone_key: 'red', label: 'Critical', description: 'License expired or expiring within 7 days', color: '#EF4444', display_order: 2 },
+  { zone_key: 'blue', label: 'Onboarding', description: 'New agent, verification incomplete', color: '#3B82F6', display_order: 3 },
+  { zone_key: 'black', label: 'Inactive', description: 'No activity for 7+ days', color: '#64748B', display_order: 4 },
+  { zone_key: 'yellow', label: 'Warning', description: 'Pending contracts or license expiring soon', color: '#F59E0B', display_order: 5 },
+  { zone_key: 'green', label: 'Active', description: 'Active and ready to work', color: '#10B981', display_order: 6 },
 ];
 
 export function useZoneConfig() {
