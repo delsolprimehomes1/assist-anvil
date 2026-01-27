@@ -18,8 +18,8 @@ import { HeatmapNode, type HeatmapNodeData } from "./HeatmapNode";
 import { HierarchyAgent } from "@/hooks/useHierarchy";
 import { ViewMode } from "@/pages/Organization";
 import { zoneColors, determineAgentZone, EnhancedAgent } from "@/lib/licensing-logic";
+import { PremiumBackground } from "./PremiumBackground";
 
-// Define node types with proper typing
 const nodeTypes: NodeTypes = {
   agent: CircularAgentNode as any,
   flippable: FlippableAgentNode as any,
@@ -31,24 +31,17 @@ interface HierarchyTreeProps {
   viewMode: ViewMode;
 }
 
-// Zone colors for edges (imported from licensing-logic)
-
 export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
 
-  // Build tree layout from flat agent list
   const { nodes, edges } = useMemo(() => {
     const nodeList: Node[] = [];
     const edgeList: Edge[] = [];
 
-    // Create a map for quick parent lookup
     const agentMap = new Map(agents.map((a) => [a.id, a]));
+    const horizontalSpacing = viewMode === "heatmap" ? 120 : 240;
+    const verticalSpacing = viewMode === "heatmap" ? 120 : 260;
 
-    // Calculate positions based on hierarchy - larger spacing for circular nodes
-    const horizontalSpacing = viewMode === "heatmap" ? 120 : 220;
-    const verticalSpacing = viewMode === "heatmap" ? 120 : 220;
-
-    // Check if a node should be visible (not hidden by collapsed parent)
     const isNodeVisible = (agent: HierarchyAgent): boolean => {
       const pathParts = agent.path.split(".");
       for (let i = 0; i < pathParts.length - 1; i++) {
@@ -61,7 +54,6 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
       return true;
     };
 
-    // Calculate downline count for each agent
     const getDownlineCount = (agentId: string): number => {
       const agent = agentMap.get(agentId);
       if (!agent) return 0;
@@ -70,7 +62,6 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
       ).length;
     };
 
-    // Build parent-to-children map for visible nodes only
     const visibleAgents = agents.filter(isNodeVisible);
     const childrenMap = new Map<string | null, HierarchyAgent[]>();
     visibleAgents.forEach((agent) => {
@@ -79,16 +70,13 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
       childrenMap.set(agent.parentId, siblings);
     });
 
-    // Sort children by path for consistent ordering
     childrenMap.forEach((children, parentId) => {
       children.sort((a, b) => a.path.localeCompare(b.path));
       childrenMap.set(parentId, children);
     });
 
-    // Calculate subtree widths recursively
     const subtreeWidths = new Map<string, number>();
     const calculateSubtreeWidth = (agentId: string): number => {
-      // If node is collapsed, treat it as width 1 (no visible children)
       if (collapsedNodes.has(agentId)) {
         subtreeWidths.set(agentId, 1);
         return 1;
@@ -105,11 +93,9 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
       return width;
     };
 
-    // Calculate widths starting from root nodes
     const rootAgents = visibleAgents.filter((a) => !a.parentId || !agentMap.has(a.parentId));
     rootAgents.forEach((root) => calculateSubtreeWidth(root.id));
 
-    // Position nodes using subtree widths
     const nodePositions = new Map<string, { x: number; y: number }>();
 
     const positionSubtree = (agent: HierarchyAgent, startX: number) => {
@@ -119,7 +105,6 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
 
       nodePositions.set(agent.id, { x: centerX, y });
 
-      // Position children
       const children = childrenMap.get(agent.id) || [];
       let childStartX = startX;
       children.forEach((child) => {
@@ -129,15 +114,13 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
       });
     };
 
-    // Position all root nodes and their subtrees
     let globalStartX = 0;
     rootAgents.forEach((root) => {
       positionSubtree(root, globalStartX);
       const rootWidth = subtreeWidths.get(root.id) || 1;
-      globalStartX += rootWidth * horizontalSpacing + horizontalSpacing; // Extra gap between root trees
+      globalStartX += rootWidth * horizontalSpacing + horizontalSpacing;
     });
 
-    // Create nodes with calculated positions
     visibleAgents.forEach((agent) => {
       const position = nodePositions.get(agent.id) || { x: 0, y: 0 };
       const isCollapsed = collapsedNodes.has(agent.id);
@@ -169,10 +152,15 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
         },
       } as Node);
 
-      // Create edge to parent
+      // Create premium gradient edges
       if (agent.parentId && agentMap.has(agent.parentId)) {
         const parentAgent = agentMap.get(agent.parentId);
         if (parentAgent && isNodeVisible(parentAgent)) {
+          const parentZone = determineAgentZone(parentAgent as EnhancedAgent);
+          const childZone = determineAgentZone(agent as EnhancedAgent);
+          const parentColor = zoneColors[parentZone];
+          const childColor = zoneColors[childZone];
+          
           edgeList.push({
             id: `${agent.parentId}-${agent.id}`,
             source: agent.parentId,
@@ -180,9 +168,12 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
             type: "smoothstep",
             animated: agent.status === "active",
             style: {
-              stroke: zoneColors[determineAgentZone(agent as EnhancedAgent)] || "#64748b",
-              strokeWidth: 2,
+              stroke: `url(#gradient-${agent.parentId}-${agent.id})`,
+              strokeWidth: 3,
+              filter: `drop-shadow(0 0 6px ${childColor}60)`,
             },
+            // Store colors for SVG defs
+            data: { parentColor, childColor },
           });
         }
       }
@@ -194,7 +185,6 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
   const [nodesState, setNodes, onNodesChange] = useNodesState(nodes);
   const [edgesState, setEdges, onEdgesChange] = useEdgesState(edges);
 
-  // Update nodes when they change
   useEffect(() => {
     setNodes(nodes);
     setEdges(edges);
@@ -202,6 +192,9 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
 
   return (
     <div className="absolute inset-0">
+      {/* Premium ambient background */}
+      <PremiumBackground />
+      
       <ReactFlow
         nodes={nodesState}
         edges={edgesState}
@@ -211,18 +204,50 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
         connectionMode={ConnectionMode.Loose}
         fitView
         fitViewOptions={{
-          padding: 0.2,
+          padding: 0.3,
           minZoom: 0.1,
           maxZoom: 1.5,
         }}
         minZoom={0.1}
         maxZoom={2}
         attributionPosition="bottom-left"
-        className="bg-muted/30"
+        className="bg-transparent"
       >
-        <Controls className="bg-background border shadow-md" />
+        {/* SVG Gradient Definitions */}
+        <svg style={{ position: 'absolute', width: 0, height: 0 }}>
+          <defs>
+            {edgesState.map((edge) => {
+              const edgeData = edge.data as { parentColor?: string; childColor?: string } | undefined;
+              if (!edgeData?.parentColor || !edgeData?.childColor) return null;
+              return (
+                <linearGradient
+                  key={`gradient-${edge.id}`}
+                  id={`gradient-${edge.id}`}
+                  x1="0%"
+                  y1="0%"
+                  x2="0%"
+                  y2="100%"
+                >
+                  <stop offset="0%" stopColor={edgeData.parentColor} stopOpacity="0.9" />
+                  <stop offset="100%" stopColor={edgeData.childColor} stopOpacity="0.9" />
+                </linearGradient>
+              );
+            })}
+          </defs>
+        </svg>
+        
+        {/* Premium styled controls */}
+        <Controls 
+          className="glass-premium-strong !rounded-xl !border-0 overflow-hidden"
+          style={{ 
+            boxShadow: 'var(--shadow-premium)',
+          }}
+        />
         <MiniMap
-          className="bg-background border shadow-md"
+          className="glass-premium-strong !rounded-xl !border-0 overflow-hidden"
+          style={{
+            boxShadow: 'var(--shadow-premium)',
+          }}
           nodeColor={(node: Node) => {
             const data = node.data as any;
             const agent = data?.agent;
@@ -232,9 +257,9 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
             }
             return "#64748b";
           }}
-          maskColor="rgba(0, 0, 0, 0.1)"
+          maskColor="rgba(0, 0, 0, 0.15)"
         />
-        <Background color="hsl(var(--border))" gap={24} />
+        <Background color="hsl(var(--border) / 0.3)" gap={32} size={1} />
       </ReactFlow>
     </div>
   );

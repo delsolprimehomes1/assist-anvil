@@ -76,6 +76,27 @@
     /* Transitions */
     --transition-fast: 150ms cubic-bezier(0.4, 0, 0.2, 1);
     --transition-base: 200ms cubic-bezier(0.4, 0, 0.2, 1);
+    
+    /* Premium Glass Effects */
+    --glass-blur: 24px;
+    --glass-bg: 0 0% 100% / 0.08;
+    --glass-bg-strong: 0 0% 100% / 0.12;
+    --glass-border: 0 0% 100% / 0.15;
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.12);
+    
+    /* Premium Multi-Layer Shadows */
+    --shadow-premium: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.1),
+      0 2px 4px -2px rgba(0, 0, 0, 0.1),
+      0 0 0 1px rgba(255, 255, 255, 0.05);
+    --shadow-premium-lg: 
+      0 10px 40px -10px rgba(0, 0, 0, 0.2),
+      0 4px 12px -4px rgba(0, 0, 0, 0.1);
+    
+    /* Glow Effects - using brand colors */
+    --glow-teal: 0 0 40px rgba(139, 186, 196, 0.35);
+    --glow-gold: 0 0 40px rgba(201, 138, 58, 0.35);
+    --glow-soft: 0 0 20px rgba(139, 186, 196, 0.2);
   }
 
   .dark {
@@ -145,6 +166,22 @@
     --shadow-lg: 0 4px 6px -1px rgb(0 0 0 / 0.4);
     --shadow-teal: 0 4px 14px rgba(139, 186, 196, 0.25);
     --shadow-gold: 0 4px 14px rgba(201, 138, 58, 0.25);
+    
+    /* Premium Glass Effects (Dark Mode) */
+    --glass-bg: 0 0% 0% / 0.35;
+    --glass-bg-strong: 0 0% 0% / 0.5;
+    --glass-border: 0 0% 100% / 0.08;
+    --glass-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.4);
+    --shadow-premium: 
+      0 4px 6px -1px rgba(0, 0, 0, 0.3),
+      0 2px 4px -2px rgba(0, 0, 0, 0.2),
+      0 0 0 1px rgba(255, 255, 255, 0.03);
+    --shadow-premium-lg: 
+      0 10px 40px -10px rgba(0, 0, 0, 0.5),
+      0 4px 12px -4px rgba(0, 0, 0, 0.3);
+    --glow-teal: 0 0 50px rgba(139, 186, 196, 0.4);
+    --glow-gold: 0 0 50px rgba(201, 138, 58, 0.4);
+    --glow-soft: 0 0 25px rgba(139, 186, 196, 0.25);
   }
 }
 
@@ -312,6 +349,91 @@
     height: 1.5rem;
     width: 1.5rem;
   }
+}
+
+/* ===== Premium Glassmorphism Utilities ===== */
+.glass-premium {
+  background: hsl(var(--glass-bg));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid hsl(var(--glass-border));
+  border-radius: 1.5rem;
+}
+
+.glass-premium-strong {
+  background: hsl(var(--glass-bg-strong));
+  backdrop-filter: blur(32px);
+  -webkit-backdrop-filter: blur(32px);
+  border: 1px solid hsl(var(--glass-border));
+  border-radius: 1.5rem;
+}
+
+.gradient-border-premium {
+  position: relative;
+  background: hsl(var(--glass-bg));
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-radius: 1.5rem;
+}
+
+.gradient-border-premium::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  border-radius: inherit;
+  padding: 1px;
+  background: linear-gradient(
+    135deg,
+    rgba(255, 255, 255, 0.25) 0%,
+    rgba(255, 255, 255, 0.05) 50%,
+    rgba(255, 255, 255, 0.15) 100%
+  );
+  -webkit-mask: 
+    linear-gradient(#fff 0 0) content-box, 
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+}
+
+.premium-glow {
+  box-shadow: var(--glass-shadow), var(--glow-soft);
+}
+
+.premium-glow-strong {
+  box-shadow: var(--shadow-premium-lg), var(--glow-teal);
+}
+
+/* Premium ambient background */
+.premium-ambient-bg {
+  background: 
+    radial-gradient(ellipse at 15% 25%, rgba(139, 186, 196, 0.12) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 75%, rgba(201, 138, 58, 0.08) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(139, 186, 196, 0.04) 0%, transparent 60%),
+    hsl(var(--background));
+}
+
+.dark .premium-ambient-bg {
+  background: 
+    radial-gradient(ellipse at 15% 25%, rgba(139, 186, 196, 0.15) 0%, transparent 50%),
+    radial-gradient(ellipse at 85% 75%, rgba(201, 138, 58, 0.1) 0%, transparent 50%),
+    radial-gradient(ellipse at 50% 50%, rgba(139, 186, 196, 0.06) 0%, transparent 60%),
+    hsl(var(--background));
+}
+
+/* Floating orbs animation */
+@keyframes float-orb {
+  0%, 100% { transform: translate(0, 0) scale(1); opacity: 0.5; }
+  50% { transform: translate(20px, -30px) scale(1.1); opacity: 0.8; }
+}
+
+.floating-orb {
+  animation: float-orb 12s ease-in-out infinite;
+}
+
+.floating-orb-delayed {
+  animation: float-orb 15s ease-in-out infinite;
+  animation-delay: -5s;
 }
 
 /* ===== Accessibility ===== */

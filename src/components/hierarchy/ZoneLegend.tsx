@@ -11,6 +11,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { motion, AnimatePresence } from "framer-motion";
 
 export function ZoneLegend() {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -21,119 +22,154 @@ export function ZoneLegend() {
 
   if (loading) return null;
 
-  // On mobile, default to collapsed icon strip
   const showCollapsed = isMobile ? !isCollapsed : isCollapsed;
 
   return (
     <>
-      {/* Always-visible Legend Panel */}
-      <div className="absolute top-4 right-4 z-10">
-        <div
-          className={`
-            bg-card/95 backdrop-blur-md rounded-xl shadow-xl border-2 border-border/50
-            transition-all duration-300 ease-in-out overflow-hidden
-            ${showCollapsed ? "w-16" : "w-56"}
-          `}
+      {/* Premium Floating Legend Panel */}
+      <motion.div 
+        className="absolute top-4 right-4 z-10"
+        initial={{ opacity: 0, x: 20 }}
+        animate={{ opacity: 1, x: 0 }}
+        transition={{ duration: 0.4, ease: "easeOut" }}
+      >
+        <motion.div
+          className="glass-premium-strong overflow-hidden"
+          animate={{ width: showCollapsed ? 64 : 240 }}
+          transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+          style={{
+            boxShadow: 'var(--shadow-premium-lg), var(--glow-soft)',
+          }}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-3 border-b border-border/50 bg-muted/30">
-            {!showCollapsed && (
-              <h3 className="font-bold text-sm uppercase tracking-wider text-foreground">
-                Status Key
-              </h3>
-            )}
+          <div className="flex items-center justify-between p-3 border-b border-white/5">
+            <AnimatePresence>
+              {!showCollapsed && (
+                <motion.h3 
+                  initial={{ opacity: 0, x: -10 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  exit={{ opacity: 0, x: -10 }}
+                  className="font-bold text-xs uppercase tracking-[0.2em] text-foreground/80"
+                >
+                  Status Key
+                </motion.h3>
+              )}
+            </AnimatePresence>
             <div className="flex items-center gap-1 ml-auto">
               {isAdmin && !showCollapsed && (
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-7 w-7"
+                  className="h-7 w-7 hover:bg-white/10 rounded-lg"
                   onClick={() => setEditModalOpen(true)}
                 >
-                  <Settings className="h-4 w-4" />
+                  <Settings className="h-4 w-4 text-foreground/60" />
                 </Button>
               )}
               <Button
                 variant="ghost"
                 size="icon"
-                className="h-7 w-7"
+                className="h-7 w-7 hover:bg-white/10 rounded-lg"
                 onClick={() => setIsCollapsed(!isCollapsed)}
               >
                 {showCollapsed ? (
-                  <ChevronLeft className="h-4 w-4" />
+                  <ChevronLeft className="h-4 w-4 text-foreground/60" />
                 ) : (
-                  <ChevronRight className="h-4 w-4" />
+                  <ChevronRight className="h-4 w-4 text-foreground/60" />
                 )}
               </Button>
             </div>
           </div>
 
           {/* Zone List */}
-          <div className="p-2">
+          <div className="p-2 max-h-[60vh] overflow-y-auto scrollbar-hide">
             <TooltipProvider delayDuration={0}>
-              {zoneConfigs.map((config) => (
-                <div key={config.id}>
+              {zoneConfigs.map((config, index) => (
+                <motion.div 
+                  key={config.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: index * 0.05 }}
+                >
                   {showCollapsed ? (
                     <Tooltip>
                       <TooltipTrigger asChild>
-                        <div className="flex justify-center p-2 cursor-pointer hover:bg-muted/50 rounded-lg transition-colors">
+                        <motion.div 
+                          className="flex justify-center p-2 cursor-pointer rounded-xl transition-colors hover:bg-white/5"
+                          whileHover={{ scale: 1.1 }}
+                          whileTap={{ scale: 0.95 }}
+                        >
                           <div
-                            className="w-8 h-8 rounded-full flex-shrink-0 border-2 border-background shadow-lg"
+                            className="w-8 h-8 rounded-full flex-shrink-0"
                             style={{
                               backgroundColor: config.color,
-                              boxShadow: `0 0 12px ${config.color}60`,
+                              boxShadow: `0 0 20px ${config.color}60, inset 0 1px 1px rgba(255,255,255,0.2)`,
                             }}
                           />
-                        </div>
+                        </motion.div>
                       </TooltipTrigger>
-                      <TooltipContent side="left" className="max-w-[200px]">
-                        <p className="font-semibold">{config.label}</p>
+                      <TooltipContent 
+                        side="left" 
+                        className="glass-premium-strong border-0 max-w-[200px]"
+                        style={{ boxShadow: 'var(--shadow-premium)' }}
+                      >
+                        <p className="font-semibold text-foreground">{config.label}</p>
                         <p className="text-xs text-muted-foreground">
                           {config.description}
                         </p>
                       </TooltipContent>
                     </Tooltip>
                   ) : (
-                    <div className="flex items-start gap-3 p-2.5 rounded-lg hover:bg-muted/50 transition-colors">
-                      {/* Large color indicator with glow */}
+                    <motion.div 
+                      className="flex items-start gap-3 p-3 rounded-xl transition-colors hover:bg-white/5 cursor-default"
+                      whileHover={{ x: 2 }}
+                    >
+                      {/* Premium color orb with glow */}
                       <div
-                        className="w-8 h-8 rounded-full flex-shrink-0 mt-0.5 border-2 border-background shadow-lg"
+                        className="w-8 h-8 rounded-full flex-shrink-0 mt-0.5"
                         style={{
                           backgroundColor: config.color,
-                          boxShadow: `0 0 12px ${config.color}60`,
+                          boxShadow: `0 0 20px ${config.color}60, inset 0 1px 1px rgba(255,255,255,0.2)`,
                         }}
                       />
                       <div className="flex-1 min-w-0">
-                        <p className="font-bold text-sm text-foreground leading-tight">
+                        <p className="font-semibold text-sm text-foreground/95 leading-tight tracking-tight">
                           {config.label}
                         </p>
-                        <p className="text-xs text-muted-foreground leading-snug mt-0.5">
+                        <p className="text-[11px] text-muted-foreground leading-snug mt-0.5">
                           {config.description}
                         </p>
                       </div>
-                    </div>
+                    </motion.div>
                   )}
-                </div>
+                </motion.div>
               ))}
             </TooltipProvider>
           </div>
 
           {/* Admin Footer */}
-          {isAdmin && !showCollapsed && (
-            <div className="p-2 border-t border-border/50">
-              <Button
-                variant="outline"
-                size="sm"
-                className="w-full text-xs"
-                onClick={() => setEditModalOpen(true)}
+          <AnimatePresence>
+            {isAdmin && !showCollapsed && (
+              <motion.div 
+                initial={{ opacity: 0, height: 0 }}
+                animate={{ opacity: 1, height: 'auto' }}
+                exit={{ opacity: 0, height: 0 }}
+                className="p-2 border-t border-white/5"
               >
-                <Settings className="h-3 w-3 mr-1" />
-                Customize Meanings
-              </Button>
-            </div>
-          )}
-        </div>
-      </div>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  className="w-full text-xs hover:bg-white/10 rounded-xl h-9"
+                  onClick={() => setEditModalOpen(true)}
+                >
+                  <Settings className="h-3 w-3 mr-1.5" />
+                  Customize
+                </Button>
+              </motion.div>
+            )}
+          </AnimatePresence>
+        </motion.div>
+      </motion.div>
 
       {/* Edit Modal */}
       <ZoneConfigModal open={editModalOpen} onOpenChange={setEditModalOpen} />
