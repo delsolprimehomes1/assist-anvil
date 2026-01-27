@@ -1,4 +1,4 @@
-import { useMemo, useState, useEffect } from "react";
+import { useMemo, useState, useEffect, useCallback } from "react";
 import {
   ReactFlow,
   Controls,
@@ -18,6 +18,9 @@ import { HeatmapNode, type HeatmapNodeData } from "./HeatmapNode";
 import { HierarchyAgent } from "@/hooks/useHierarchy";
 import { ViewMode } from "@/pages/Organization";
 import { zoneColors, determineAgentZone, EnhancedAgent } from "@/lib/licensing-logic";
+import { Button } from "@/components/ui/button";
+import { Expand, Shrink, Users } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 // Define node types with proper typing
 const nodeTypes: NodeTypes = {
@@ -35,6 +38,34 @@ interface HierarchyTreeProps {
 
 export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
   const [collapsedNodes, setCollapsedNodes] = useState<Set<string>>(new Set());
+
+  // Get all agents that have children (can be collapsed)
+  const agentsWithChildren = useMemo(() => {
+    const parentIds = new Set<string>();
+    agents.forEach((agent) => {
+      if (agent.parentId) {
+        parentIds.add(agent.parentId);
+      }
+    });
+    return agents.filter((a) => parentIds.has(a.id));
+  }, [agents]);
+
+  // Expand All - clear all collapsed nodes
+  const handleExpandAll = useCallback(() => {
+    setCollapsedNodes(new Set());
+  }, []);
+
+  // Collapse All - collapse all nodes that have children
+  const handleCollapseAll = useCallback(() => {
+    const allParentIds = new Set(agentsWithChildren.map((a) => a.id));
+    setCollapsedNodes(allParentIds);
+  }, [agentsWithChildren]);
+
+  // Calculate stats for the control bar
+  const totalAgents = agents.length;
+  const expandedCount = agentsWithChildren.length - collapsedNodes.size;
+  const isAllExpanded = collapsedNodes.size === 0;
+  const isAllCollapsed = collapsedNodes.size === agentsWithChildren.length && agentsWithChildren.length > 0;
 
   // Build tree layout from flat agent list
   const { nodes, edges } = useMemo(() => {
@@ -204,6 +235,62 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
 
   return (
     <div className="absolute inset-0">
+      {/* Expand/Collapse Control Bar */}
+      <motion.div 
+        className="absolute top-4 left-4 z-10 flex items-center gap-2"
+        initial={{ opacity: 0, y: -10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.1 }}
+      >
+        <div
+          className="flex items-center gap-1 rounded-xl overflow-hidden"
+          style={{
+            background: "hsl(var(--background) / 0.9)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid hsl(var(--border) / 0.5)",
+            boxShadow: "0 4px 20px -4px rgba(0, 0, 0, 0.15)",
+          }}
+        >
+          {/* Expand All Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleExpandAll}
+            disabled={isAllExpanded}
+            className="gap-2 h-9 px-3 rounded-none hover:bg-primary/10 transition-all disabled:opacity-40"
+          >
+            <Expand className="h-4 w-4" />
+            <span className="hidden sm:inline text-xs font-medium">Expand All</span>
+          </Button>
+          
+          {/* Divider */}
+          <div className="w-px h-5 bg-border/50" />
+          
+          {/* Collapse All Button */}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleCollapseAll}
+            disabled={isAllCollapsed || agentsWithChildren.length === 0}
+            className="gap-2 h-9 px-3 rounded-none hover:bg-primary/10 transition-all disabled:opacity-40"
+          >
+            <Shrink className="h-4 w-4" />
+            <span className="hidden sm:inline text-xs font-medium">Collapse All</span>
+          </Button>
+          
+          {/* Divider */}
+          <div className="w-px h-5 bg-border/50" />
+          
+          {/* Agent Count Badge */}
+          <div className="flex items-center gap-1.5 px-3 h-9">
+            <Users className="h-3.5 w-3.5 text-muted-foreground" />
+            <span className="text-xs font-semibold text-foreground">{totalAgents}</span>
+            <span className="text-xs text-muted-foreground hidden sm:inline">agents</span>
+          </div>
+        </div>
+      </motion.div>
+
       <ReactFlow
         nodes={nodesState}
         edges={edgesState}
