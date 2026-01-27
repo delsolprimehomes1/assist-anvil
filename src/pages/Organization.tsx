@@ -2,7 +2,6 @@ import { useState } from "react";
 import { HierarchyTree } from "@/components/hierarchy/HierarchyTree";
 import { HierarchySearchBar } from "@/components/hierarchy/HierarchySearchBar";
 import { ViewToggle } from "@/components/hierarchy/ViewToggle";
-import { ProductionGalaxy } from "@/components/hierarchy/galaxy/ProductionGalaxy";
 import { LicensingCommandCenter } from "@/components/hierarchy/LicensingCommandCenter";
 import { AddAgentModal } from "@/components/hierarchy/AddAgentModal";
 import { HierarchyPlacementModal } from "@/components/hierarchy/HierarchyPlacementModal";
@@ -13,12 +12,12 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Network, Users, Sparkles, Shield, UserPlus, GitBranch, Mail } from "lucide-react";
+import { Network, Users, Shield, UserPlus, GitBranch, Mail } from "lucide-react";
 import { ZoneLegend } from "@/components/hierarchy/ZoneLegend";
 import { EnhancedAgent } from "@/lib/licensing-logic";
 import { useToast } from "@/hooks/use-toast";
 
-export type ViewMode = "standard" | "heatmap" | "galaxy";
+export type ViewMode = "standard" | "heatmap";
 
 const Organization = () => {
   const [viewMode, setViewMode] = useState<ViewMode>("standard");
@@ -79,14 +78,10 @@ const Organization = () => {
         {/* Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab}>
           <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-            <TabsList className="grid w-full sm:w-auto grid-cols-4">
+            <TabsList className="grid w-full sm:w-auto grid-cols-3">
               <TabsTrigger value="hierarchy" className="gap-2">
                 <Network className="h-4 w-4" />
                 <span className="hidden sm:inline">Hierarchy</span>
-              </TabsTrigger>
-              <TabsTrigger value="galaxy" className="gap-2">
-                <Sparkles className="h-4 w-4" />
-                <span className="hidden sm:inline">Galaxy</span>
               </TabsTrigger>
               <TabsTrigger value="licensing" className="gap-2">
                 <Shield className="h-4 w-4" />
@@ -148,15 +143,7 @@ const Organization = () => {
         ) : (
           <Tabs value={activeTab} className="absolute inset-0">
             <TabsContent value="hierarchy" className="absolute inset-0 m-0">
-              {viewMode === "galaxy" ? (
-                <ProductionGalaxy agents={filteredAgents as EnhancedAgent[]} />
-              ) : (
-                <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
-              )}
-              <ZoneLegend />
-            </TabsContent>
-            <TabsContent value="galaxy" className="absolute inset-0 m-0">
-              <ProductionGalaxy agents={filteredAgents as EnhancedAgent[]} />
+              <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
               <ZoneLegend />
             </TabsContent>
             <TabsContent value="licensing" className="absolute inset-0 m-0 overflow-auto">
