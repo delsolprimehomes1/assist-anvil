@@ -1,7 +1,7 @@
 // Zone-based color logic for Agent Command OS
 // Determines agent status based on licensing, activity, and compliance
 
-export type AgentZone = 'red' | 'blue' | 'black' | 'yellow' | 'green';
+export type AgentZone = 'red' | 'blue' | 'black' | 'yellow' | 'green' | 'active_business';
 
 export interface EnhancedAgent {
   id: string;
@@ -25,15 +25,20 @@ export interface EnhancedAgent {
   depth: number;
   parentId: string | null;
   path: string;
+  // New performance fields
+  compLevel?: number;
+  weeklyBusinessSubmitted?: number;
+  lastBusinessDate?: string | null;
 }
 
 // Zone color definitions matching the design spec
 export const zoneColors: Record<AgentZone, string> = {
-  red: '#EF4444',      // Critical - License expired/expiring <7 days
-  blue: '#3B82F6',     // Onboarding - Joined <30 days, not verified
-  black: '#64748B',    // Inactive - No activity 7+ days
-  yellow: '#F59E0B',   // Warning - Pending contracts, license 8-30 days
-  green: '#10B981',    // Active - All clear
+  red: '#EF4444',           // Critical - License expired/expiring <7 days
+  blue: '#3B82F6',          // Onboarding - Joined <30 days, not verified
+  black: '#64748B',         // Inactive - No activity 7+ days
+  yellow: '#F59E0B',        // Warning - Pending contracts, license 8-30 days
+  green: '#10B981',         // Active - All clear
+  active_business: '#22C55E', // Special - Has submitted business this week
 };
 
 // Tailwind class mappings for zone colors
@@ -79,6 +84,13 @@ export const zoneTailwindClasses: Record<AgentZone, {
     shadow: 'shadow-emerald-500/30',
     glow: 'ring-emerald-500/50',
   },
+  active_business: {
+    border: 'border-green-400',
+    bg: 'bg-green-400',
+    text: 'text-green-400',
+    shadow: 'shadow-green-400/30',
+    glow: 'ring-green-400/50',
+  },
 };
 
 // Zone descriptions for UI
@@ -88,6 +100,7 @@ export const zoneDescriptions: Record<AgentZone, { label: string; description: s
   black: { label: 'Inactive', description: 'No activity for 7+ days' },
   yellow: { label: 'Warning', description: 'Pending contracts or license expiring soon' },
   green: { label: 'Active', description: 'All systems operational' },
+  active_business: { label: 'Producing', description: 'Submitted business this week' },
 };
 
 // Helper functions

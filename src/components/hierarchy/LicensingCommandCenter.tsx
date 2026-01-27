@@ -48,6 +48,7 @@ export function LicensingCommandCenter({ agents }: LicensingCommandCenterProps) 
     blue: 3,
     black: 4,
     green: 5,
+    active_business: 6,
   };
 
   // Process and sort agents
@@ -99,6 +100,7 @@ export function LicensingCommandCenter({ agents }: LicensingCommandCenterProps) 
       black: 0,
       yellow: 0,
       green: 0,
+      active_business: 0,
     };
 
     agents.forEach((agent) => {

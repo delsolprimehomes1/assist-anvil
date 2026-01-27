@@ -21,6 +21,7 @@ export function GalaxyControls({ agents }: GalaxyControlsProps) {
       black: 0,
       yellow: 0,
       green: 0,
+      active_business: 0,
     };
 
     agents.forEach((agent) => {

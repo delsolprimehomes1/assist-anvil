@@ -13,6 +13,7 @@ import {
 } from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { CircularAgentNode, type CircularAgentNodeData } from "./CircularAgentNode";
+import { FlippableAgentNode, type FlippableAgentNodeData } from "./FlippableAgentNode";
 import { HeatmapNode, type HeatmapNodeData } from "./HeatmapNode";
 import { HierarchyAgent } from "@/hooks/useHierarchy";
 import { ViewMode } from "@/pages/Organization";
@@ -21,6 +22,7 @@ import { zoneColors, determineAgentZone, EnhancedAgent } from "@/lib/licensing-l
 // Define node types with proper typing
 const nodeTypes: NodeTypes = {
   agent: CircularAgentNode as any,
+  flippable: FlippableAgentNode as any,
   heatmap: HeatmapNode as any,
 };
 
@@ -143,10 +145,14 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
 
       nodeList.push({
         id: agent.id,
-        type: viewMode === "heatmap" ? "heatmap" : "agent",
+        type: viewMode === "heatmap" ? "heatmap" : "flippable",
         position,
         data: {
-          agent,
+          agent: {
+            ...agent,
+            compLevel: (agent as any).compLevel || 0,
+            weeklyBusinessSubmitted: (agent as any).weeklyBusinessSubmitted || 0,
+          },
           isCollapsed,
           downlineCount,
           onToggleCollapse: () => {

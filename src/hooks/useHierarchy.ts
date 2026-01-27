@@ -52,7 +52,10 @@ export const useHierarchy = (): UseHierarchyReturn => {
           contracts_pending,
           contracts_approved,
           resident_license_exp,
-          ce_due_date
+          ce_due_date,
+          comp_level,
+          weekly_business_submitted,
+          last_business_date
         `)
         .order("path");
 
@@ -101,6 +104,10 @@ export const useHierarchy = (): UseHierarchyReturn => {
           fullName: profile.full_name || "Unknown Agent",
           email: profile.email || "",
           avatarUrl: profile.avatar_url,
+          // New performance fields
+          compLevel: parseFloat(agent.comp_level) || 0,
+          weeklyBusinessSubmitted: parseFloat(agent.weekly_business_submitted) || 0,
+          lastBusinessDate: agent.last_business_date,
         };
       });
 
