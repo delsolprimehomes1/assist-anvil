@@ -1,128 +1,193 @@
 
-# Editable Performance Entries List
 
-This plan adds a new component to display all logged performance entries with full editing capabilities, allowing agents to adjust their numbers when applications decline or issue differently than expected.
+# Remove Pulsing Animation and Add Color Legend with Editable Zone Meanings
+
+This plan removes all pulsing animations from the hierarchy chart and adds a visible color legend (color map) that users can customize. Changes will be reflected in real-time across the UI.
 
 ---
 
 ## Current State
 
-**What exists:**
-- `useAgentPerformance` hook with `updateEntry()` and `deleteEntry()` functions (already implemented)
-- Performance form for creating new entries
-- Analytics dashboard showing aggregated stats
-- Database supports full CRUD on `agent_performance_entries`
+**Pulsing exists in:**
+1. `HeatmapNode.tsx` - Lines 68-69: CSS `pulse` animation on red/yellow zones
+2. `AgentStar.tsx` - Lines 30-36: 3D breathing pulse effect on all zones
+3. `FlippableAgentNode.tsx` - Lines 97-98: `animate-pulse` class on weekly business indicator
 
-**What's missing:**
-- A visible list of individual entries
-- UI to edit/delete existing entries
-- Ability to adjust numbers when declines happen
+**Current zone system:**
+- Colors are hardcoded in `licensing-logic.ts`
+- Descriptions are hardcoded: Red = Critical, Blue = Onboarding, etc.
+- No UI to view or edit zone meanings
 
 ---
 
 ## Implementation Plan
 
-### 1. Create Performance Entries List Component
+### 1. Create Database Table for Zone Configuration
 
-**New file:** `src/components/performance/PerformanceEntriesList.tsx`
+**New table:** `zone_config`
 
-A scrollable list/table showing all logged entries with:
-- Date
-- Lead Type
-- Clients Closed
-- Revenue (Annual Premium)
-- Issue Pay
-- Lead Cost
-- Net Profit/Loss
-- Edit and Delete buttons
+| Column | Type | Description |
+|--------|------|-------------|
+| id | uuid | Primary key |
+| zone_key | text | Unique key (red, blue, black, yellow, green) |
+| label | text | Display name ("Critical", "Onboarding", etc.) |
+| description | text | User-editable meaning |
+| color | text | Hex color code |
+| display_order | integer | Sort order in legend |
+| created_at | timestamp | Creation date |
+| updated_at | timestamp | Last modified |
 
-Each row will be expandable or have an edit modal to modify:
-- Clients Closed (reduce when decline happens)
-- Revenue (adjust based on what actually issued)
-- Issue Pay (recalculates automatically)
-- Notes (add decline reason)
+RLS: Everyone can read, only admins can update.
 
-### 2. Create Edit Entry Dialog
+### 2. Create Hook for Zone Configuration
 
-**New file:** `src/components/performance/EditEntryDialog.tsx`
+**New file:** `src/hooks/useZoneConfig.ts`
 
-A modal dialog that allows editing all fields of an entry:
-- Pre-populated with current values
-- Real-time recalculation of Issue Pay, Deferred Pay, and Net Profit
-- "Decline Adjustment" quick action that:
-  - Reduces clients closed by 1
-  - Prompts for new revenue amount
-  - Recalculates commission
-
-### 3. Update Performance Page Layout
-
-**File:** `src/pages/Performance.tsx`
-
-Restructure to include the entries list:
-
-```text
-+----------------------------------+
-|        Performance Tracker       |
-+----------------------------------+
-|  Log Form  |   Analytics Panel   |
-|  (1 col)   |    (2 cols)         |
-+----------------------------------+
-|        Entry History (full width)|
-|  [Date] [Type] [Closed] [Rev]... |
-|  [Edit] [Delete]                 |
-+----------------------------------+
+```typescript
+// Features:
+// - Fetch zone configs from database
+// - Update zone label/description
+// - Real-time subscription for instant updates
+// - Fallback to hardcoded defaults if DB empty
 ```
 
-### 4. Update useAgentPerformance Hook
+### 3. Create Color Legend Component
 
-**File:** `src/hooks/useAgentPerformance.ts`
+**New file:** `src/components/hierarchy/ZoneLegend.tsx`
 
-Add `await fetchEntries()` after `updateEntry` and `deleteEntry` to ensure immediate UI refresh (similar to the fix for `addEntry`).
+A floating panel that displays all zone colors with their meanings:
 
----
+```text
++---------------------------+
+|     📊 Agent Status       |
++---------------------------+
+| 🔴 Critical               |
+|    License expired/expiring|
+|    within 7 days          |
++---------------------------+
+| 🔵 Onboarding             |
+|    New agent, not verified|
++---------------------------+
+| ⚫ Inactive               |
+|    No activity 7+ days    |
++---------------------------+
+| 🟡 Warning                |
+|    Pending contracts or   |
+|    license expiring soon  |
++---------------------------+
+| 🟢 Active                 |
+|    All systems operational|
++---------------------------+
+| [Edit] (Admin only)       |
++---------------------------+
+```
 
-## Entry List UI Design
+Features:
+- Collapsible panel (toggle visibility)
+- Position: bottom-right of hierarchy view
+- Admin-only "Edit" button opens edit modal
 
-### Table Columns
+### 4. Create Zone Config Edit Modal (Admin Only)
 
-| Date | Lead Type | Closed | Revenue | Issue Pay | Lead Cost | Net | Actions |
-|------|-----------|--------|---------|-----------|-----------|-----|---------|
-| Jan 27 | Annuity | 1 | $1,000 | $750 | $950 | -$200 | Edit / Delete |
+**New file:** `src/components/hierarchy/ZoneConfigModal.tsx`
 
-### Edit Dialog Fields
+A modal for admins to edit zone meanings:
 
-**Results Section (Editable):**
-- Clients Closed (number input)
-- Revenue/Annual Premium (currency input)
+```text
++--------------------------------+
+|    Edit Zone Meanings          |
++--------------------------------+
+| Red Zone                       |
+| Label: [Critical        ]      |
+| Meaning: [License expired or   |
+|           expiring within 7... ]|
++--------------------------------+
+| Blue Zone                      |
+| Label: [Onboarding      ]      |
+| Meaning: [New agent, not...   ]|
++--------------------------------+
+| ... (all zones)                |
++--------------------------------+
+|        [Cancel]  [Save]        |
++--------------------------------+
+```
 
-**Commission Section (Editable):**
-- Comp Level % (dropdown: 70, 80, 90, 100, 115, 125, 140)
-- Advancement % (dropdown: 75, 80, 85, 90, 100)
+### 5. Remove Pulsing Animations
 
-**Calculated (Read-only, updates in real-time):**
-- Issue Pay = Revenue x Comp% x Advancement%
-- Deferred Pay = Revenue x Comp% x (1 - Advancement%)
+**File:** `src/components/hierarchy/HeatmapNode.tsx`
 
-**Notes:**
-- Text area for decline reasons or adjustments
+```typescript
+// BEFORE (line 68-69):
+animation: zone === 'red' || zone === 'yellow' 
+  ? `pulse ${animationDuration}s ease-in-out infinite`
+  : undefined,
 
----
+// AFTER:
+// Remove animation property entirely - just use color
+```
 
-## Decline Workflow Example
+**File:** `src/components/hierarchy/galaxy/AgentStar.tsx`
 
-**Scenario:** Agent logged 2 clients closed with $2,000 revenue, but 1 application declined.
+```typescript
+// BEFORE (lines 30-36):
+const pulse = 1 + Math.sin(state.clock.elapsedTime * pulseSpeed * Math.PI * 2) * 0.15;
+meshRef.current.scale.setScalar(pulse * hoverScale * selectedScale);
 
-1. Agent opens the Performance page
-2. Finds the entry in the history list
-3. Clicks "Edit" button
-4. Changes:
-   - Clients Closed: 2 → 1
-   - Revenue: $2,000 → $1,000
-   - Notes: "1 decline - health history issue"
-5. Issue Pay automatically recalculates: $1,500 → $750
-6. Net Profit updates: Shows new position (still in the hole or now profitable)
-7. Clicks "Save"
-8. Analytics dashboard immediately reflects the adjustment
+// AFTER:
+// Remove pulse calculation, keep only hover/selected scaling
+meshRef.current.scale.setScalar(hoverScale * selectedScale);
+```
+
+**File:** `src/components/hierarchy/FlippableAgentNode.tsx`
+
+```typescript
+// BEFORE (line 97-98):
+hasWeeklyBusiness && "animate-pulse"
+
+// AFTER:
+// Remove animate-pulse class - weekly business indicator uses solid ring instead
+```
+
+### 6. Update Organization Page
+
+**File:** `src/pages/Organization.tsx`
+
+Add the ZoneLegend component to hierarchy and galaxy views:
+
+```tsx
+<TabsContent value="hierarchy" className="absolute inset-0 m-0">
+  {viewMode === "galaxy" ? (
+    <ProductionGalaxy agents={filteredAgents as EnhancedAgent[]} />
+  ) : (
+    <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
+  )}
+  <ZoneLegend />  {/* Add color legend */}
+</TabsContent>
+```
+
+### 7. Real-Time Updates
+
+The `useZoneConfig` hook will include a Supabase realtime subscription:
+
+```typescript
+useEffect(() => {
+  const channel = supabase
+    .channel('zone-config-changes')
+    .on('postgres_changes', {
+      event: '*',
+      schema: 'public',
+      table: 'zone_config'
+    }, (payload) => {
+      // Refresh zone configs immediately
+      fetchZoneConfigs();
+    })
+    .subscribe();
+
+  return () => { supabase.removeChannel(channel); };
+}, []);
+```
+
+When an admin updates a zone description, all users viewing the hierarchy will see the change instantly.
 
 ---
 
@@ -130,65 +195,96 @@ Add `await fetchEntries()` after `updateEntry` and `deleteEntry` to ensure immed
 
 | File | Purpose |
 |------|---------|
-| `src/components/performance/PerformanceEntriesList.tsx` | Displays all entries in a scrollable table |
-| `src/components/performance/EditEntryDialog.tsx` | Modal for editing entry values with recalculation |
+| `src/hooks/useZoneConfig.ts` | Fetch/update zone configs with realtime sync |
+| `src/components/hierarchy/ZoneLegend.tsx` | Floating color map panel |
+| `src/components/hierarchy/ZoneConfigModal.tsx` | Admin edit modal for zone meanings |
 
 ## Files to Modify
 
-| File | Changes |
-|------|---------|
-| `src/pages/Performance.tsx` | Add entries list below the current layout |
-| `src/hooks/useAgentPerformance.ts` | Add `fetchEntries()` after update/delete for immediate refresh |
+| File | Change |
+|------|--------|
+| `src/components/hierarchy/HeatmapNode.tsx` | Remove pulse animation |
+| `src/components/hierarchy/galaxy/AgentStar.tsx` | Remove breathing pulse effect |
+| `src/components/hierarchy/FlippableAgentNode.tsx` | Remove animate-pulse class |
+| `src/pages/Organization.tsx` | Add ZoneLegend component |
+| `src/lib/licensing-logic.ts` | Update to use dynamic colors from config (with fallbacks) |
+
+## Database Migration
+
+```sql
+-- Create zone_config table
+CREATE TABLE public.zone_config (
+  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+  zone_key text NOT NULL UNIQUE,
+  label text NOT NULL,
+  description text NOT NULL,
+  color text NOT NULL,
+  display_order integer NOT NULL DEFAULT 0,
+  created_at timestamp with time zone DEFAULT now(),
+  updated_at timestamp with time zone DEFAULT now()
+);
+
+-- Enable RLS
+ALTER TABLE public.zone_config ENABLE ROW LEVEL SECURITY;
+
+-- Anyone can view zone configs
+CREATE POLICY "Anyone can view zone configs"
+  ON public.zone_config FOR SELECT
+  USING (true);
+
+-- Only admins can update zone configs
+CREATE POLICY "Admins can manage zone configs"
+  ON public.zone_config FOR ALL
+  USING (has_role(auth.uid(), 'admin'));
+
+-- Insert default values
+INSERT INTO public.zone_config (zone_key, label, description, color, display_order) VALUES
+  ('red', 'Critical', 'License expired or expiring within 7 days', '#EF4444', 1),
+  ('blue', 'Onboarding', 'New agent, verification incomplete', '#3B82F6', 2),
+  ('black', 'Inactive', 'No activity for 7+ days', '#64748B', 3),
+  ('yellow', 'Warning', 'Pending contracts or license expiring soon', '#F59E0B', 4),
+  ('green', 'Active', 'All systems operational', '#10B981', 5);
+
+-- Enable realtime
+ALTER PUBLICATION supabase_realtime ADD TABLE public.zone_config;
+```
 
 ---
 
-## Technical Details
+## UI/UX Details
 
-### PerformanceEntriesList Component
+### Color Legend Appearance
 
-```typescript
-// Props
-interface PerformanceEntriesListProps {
-  entries: PerformanceEntry[];
-  onEdit: (entry: PerformanceEntry) => void;
-  onDelete: (id: string) => void;
-  loading: boolean;
-}
+- **Position:** Fixed bottom-right corner of hierarchy container
+- **Style:** Semi-transparent card with blur backdrop
+- **Toggle:** Small "?" icon button to show/hide legend
+- **Width:** 220px collapsed to icon, expands on click
 
-// Features
-- Sorted by date (newest first)
-- Color-coded net profit (green = profit, red = loss)
-- Responsive: table on desktop, cards on mobile
-- Confirmation dialog before delete
-```
+### Zone Color Display
 
-### EditEntryDialog Component
+Each zone row shows:
+- Color circle indicator (24px)
+- Label in bold (e.g., "Critical")
+- Description in smaller text below
+- No pulsing - solid colors only
 
-```typescript
-// Props
-interface EditEntryDialogProps {
-  entry: PerformanceEntry | null;
-  open: boolean;
-  onClose: () => void;
-  onSave: (id: string, updates: Partial<PerformanceEntry>) => Promise<void>;
-}
+### Admin Edit Mode
 
-// Features
-- Real-time calculation as values change
-- Preserves lead purchase data (cost per lead, leads purchased)
-- Only allows editing relevant fields (closed, revenue, comp, advancement, notes)
-```
+- "Edit" button only visible to admins
+- Opens modal with all zones listed
+- Each zone has editable Label and Description fields
+- Color is displayed but not editable (to maintain consistency)
+- Save button updates database and triggers realtime sync
 
 ---
 
 ## Summary
 
-This implementation adds full visibility into logged performance data with the ability to adjust numbers when applications decline. The workflow is:
+| Change | Impact |
+|--------|--------|
+| Remove pulsing from all node types | Cleaner, less distracting visuals |
+| Add ZoneLegend component | Users understand what colors mean |
+| Add ZoneConfigModal (admin) | Admins can customize zone descriptions |
+| Database-backed config | Settings persist and sync across sessions |
+| Realtime subscription | Changes appear instantly for all users |
 
-1. View all entries in the history list
-2. Click Edit to modify an entry
-3. Adjust clients closed and revenue based on actual issued business
-4. System recalculates Issue Pay, Deferred Pay, and Net Profit
-5. Analytics dashboard updates in real-time
-
-This ensures agents always have accurate tracking of their "in the hole" or profitable status based on what actually issues, not just what was submitted.
