@@ -27,14 +27,12 @@ export const PerformanceForm = () => {
     revenue: 0,
     costPerLead: 0,
     notes: "",
-    // New fields
     leadsPurchased: 0,
     discountPercent: 0,
     compLevelPercent: 100,
     advancementPercent: 75,
   });
 
-  // Real-time calculations
   const calculations = useMemo(() => {
     const discountMultiplier = 1 - (formData.discountPercent / 100);
     const totalLeadCost = formData.leadsPurchased * formData.costPerLead * discountMultiplier;
@@ -73,7 +71,6 @@ export const PerformanceForm = () => {
         expectedIssuePay: calculations.expectedIssuePay,
         expectedDeferredPay: calculations.expectedDeferredPay,
       });
-      // Reset form
       setFormData({
         entryDate: format(new Date(), "yyyy-MM-dd"),
         leadType: "",
@@ -97,31 +94,35 @@ export const PerformanceForm = () => {
 
   return (
     <Card className="h-full">
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Plus className="h-5 w-5 text-primary" />
+      <CardHeader className="pb-3 sm:pb-6 px-4 sm:px-6">
+        <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+          <Plus className="h-4 w-4 sm:h-5 sm:w-5 text-primary" />
           Log Performance
         </CardTitle>
-        <CardDescription>Track your daily activity and results</CardDescription>
+        <CardDescription className="text-xs sm:text-sm">
+          Track your daily activity
+        </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="px-4 sm:px-6 pb-4 sm:pb-6">
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label htmlFor="entryDate">Date</Label>
+          {/* Date & Lead Type - Stack on mobile */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="entryDate" className="text-xs sm:text-sm">Date</Label>
               <Input
                 id="entryDate"
                 type="date"
+                className="h-10 sm:h-11 text-sm"
                 value={formData.entryDate}
                 onChange={(e) => setFormData((prev) => ({ ...prev, entryDate: e.target.value }))}
               />
             </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="leadType">Lead Type</Label>
+            <div className="space-y-1.5 sm:space-y-2">
+              <Label htmlFor="leadType" className="text-xs sm:text-sm">Lead Type</Label>
               <Select value={formData.leadType} onValueChange={handleLeadTypeChange}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select lead type" />
+                <SelectTrigger className="h-10 sm:h-11 text-sm">
+                  <SelectValue placeholder="Select type" />
                 </SelectTrigger>
                 <SelectContent>
                   {productsLoading ? (
@@ -129,11 +130,11 @@ export const PerformanceForm = () => {
                       <Loader2 className="h-4 w-4 animate-spin mx-auto" />
                     </div>
                   ) : activeProducts.length === 0 ? (
-                    <SelectItem value="manual" disabled>No lead types configured</SelectItem>
+                    <SelectItem value="manual" disabled>No types configured</SelectItem>
                   ) : (
                     activeProducts.map((product) => (
                       <SelectItem key={product.id} value={product.name}>
-                        {product.name} (${product.price}/lead)
+                        {product.name} (${product.price})
                       </SelectItem>
                     ))
                   )}
@@ -154,28 +155,32 @@ export const PerformanceForm = () => {
           />
 
           {/* Activity Section */}
-          <div className="pt-2 border-t">
-            <div className="flex items-center gap-2 mb-3 text-sm font-medium text-muted-foreground">
-              <Phone className="h-4 w-4" />
+          <div className="pt-3 border-t">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 text-xs sm:text-sm font-medium text-muted-foreground">
+              <Phone className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Activity
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="leadsWorked">Leads Worked</Label>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="leadsWorked" className="text-xs sm:text-sm">Leads Worked</Label>
                 <Input
                   id="leadsWorked"
                   type="number"
+                  inputMode="numeric"
                   min="0"
+                  className="h-10 sm:h-11 text-sm"
                   value={formData.leadsWorked}
                   onChange={(e) => setFormData((prev) => ({ ...prev, leadsWorked: parseInt(e.target.value) || 0 }))}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="dialsMade">Dials Made</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="dialsMade" className="text-xs sm:text-sm">Dials Made</Label>
                 <Input
                   id="dialsMade"
                   type="number"
+                  inputMode="numeric"
                   min="0"
+                  className="h-10 sm:h-11 text-sm"
                   value={formData.dialsMade}
                   onChange={(e) => setFormData((prev) => ({ ...prev, dialsMade: parseInt(e.target.value) || 0 }))}
                 />
@@ -184,28 +189,32 @@ export const PerformanceForm = () => {
           </div>
 
           {/* Appointments Section */}
-          <div className="pt-2 border-t">
-            <div className="flex items-center gap-2 mb-3 text-sm font-medium text-muted-foreground">
-              <Users className="h-4 w-4" />
+          <div className="pt-3 border-t">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 text-xs sm:text-sm font-medium text-muted-foreground">
+              <Users className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Appointments
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="appointmentsSet">Appts Set</Label>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="appointmentsSet" className="text-xs sm:text-sm">Appts Set</Label>
                 <Input
                   id="appointmentsSet"
                   type="number"
+                  inputMode="numeric"
                   min="0"
+                  className="h-10 sm:h-11 text-sm"
                   value={formData.appointmentsSet}
                   onChange={(e) => setFormData((prev) => ({ ...prev, appointmentsSet: parseInt(e.target.value) || 0 }))}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="appointmentsHeld">Appts Held</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="appointmentsHeld" className="text-xs sm:text-sm">Appts Held</Label>
                 <Input
                   id="appointmentsHeld"
                   type="number"
+                  inputMode="numeric"
                   min="0"
+                  className="h-10 sm:h-11 text-sm"
                   value={formData.appointmentsHeld}
                   onChange={(e) => setFormData((prev) => ({ ...prev, appointmentsHeld: parseInt(e.target.value) || 0 }))}
                 />
@@ -214,29 +223,33 @@ export const PerformanceForm = () => {
           </div>
 
           {/* Results Section */}
-          <div className="pt-2 border-t">
-            <div className="flex items-center gap-2 mb-3 text-sm font-medium text-muted-foreground">
-              <Target className="h-4 w-4" />
+          <div className="pt-3 border-t">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 text-xs sm:text-sm font-medium text-muted-foreground">
+              <Target className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Results
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label htmlFor="clientsClosed">Clients Closed</Label>
+            <div className="grid grid-cols-2 gap-3 sm:gap-4">
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="clientsClosed" className="text-xs sm:text-sm">Clients Closed</Label>
                 <Input
                   id="clientsClosed"
                   type="number"
+                  inputMode="numeric"
                   min="0"
+                  className="h-10 sm:h-11 text-sm"
                   value={formData.clientsClosed}
                   onChange={(e) => setFormData((prev) => ({ ...prev, clientsClosed: parseInt(e.target.value) || 0 }))}
                 />
               </div>
-              <div className="space-y-2">
-                <Label htmlFor="revenue">Revenue ($)</Label>
+              <div className="space-y-1.5 sm:space-y-2">
+                <Label htmlFor="revenue" className="text-xs sm:text-sm">Revenue ($)</Label>
                 <Input
                   id="revenue"
                   type="number"
+                  inputMode="decimal"
                   min="0"
                   step="0.01"
+                  className="h-10 sm:h-11 text-sm"
                   value={formData.revenue}
                   onChange={(e) => setFormData((prev) => ({ ...prev, revenue: parseFloat(e.target.value) || 0 }))}
                 />
@@ -256,36 +269,42 @@ export const PerformanceForm = () => {
           />
 
           {/* Cost Section */}
-          <div className="pt-2 border-t">
-            <div className="flex items-center gap-2 mb-3 text-sm font-medium text-muted-foreground">
-              <DollarSign className="h-4 w-4" />
+          <div className="pt-3 border-t">
+            <div className="flex items-center gap-2 mb-2 sm:mb-3 text-xs sm:text-sm font-medium text-muted-foreground">
+              <DollarSign className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
               Cost Per Lead
             </div>
-            <div className="space-y-2">
-              <Input
-                id="costPerLead"
-                type="number"
-                min="0"
-                step="0.01"
-                value={formData.costPerLead}
-                onChange={(e) => setFormData((prev) => ({ ...prev, costPerLead: parseFloat(e.target.value) || 0 }))}
-              />
-            </div>
+            <Input
+              id="costPerLead"
+              type="number"
+              inputMode="decimal"
+              min="0"
+              step="0.01"
+              className="h-10 sm:h-11 text-sm"
+              value={formData.costPerLead}
+              onChange={(e) => setFormData((prev) => ({ ...prev, costPerLead: parseFloat(e.target.value) || 0 }))}
+            />
           </div>
 
           {/* Notes */}
-          <div className="space-y-2">
-            <Label htmlFor="notes">Notes</Label>
+          <div className="space-y-1.5 sm:space-y-2">
+            <Label htmlFor="notes" className="text-xs sm:text-sm">Notes</Label>
             <Textarea
               id="notes"
-              placeholder="Any additional notes about today's activity..."
+              placeholder="Additional notes..."
+              className="text-sm min-h-[60px] resize-none"
               value={formData.notes}
               onChange={(e) => setFormData((prev) => ({ ...prev, notes: e.target.value }))}
               rows={2}
             />
           </div>
 
-          <Button type="submit" className="w-full" disabled={submitting || !formData.leadType}>
+          {/* Submit Button - Larger touch target on mobile */}
+          <Button 
+            type="submit" 
+            className="w-full h-11 sm:h-12 text-sm sm:text-base font-semibold" 
+            disabled={submitting || !formData.leadType}
+          >
             {submitting ? (
               <>
                 <Loader2 className="mr-2 h-4 w-4 animate-spin" />
