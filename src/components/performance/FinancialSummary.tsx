@@ -15,7 +15,8 @@ export const FinancialSummary = ({
   totalIssuePay,
   totalDeferredPay,
 }: FinancialSummaryProps) => {
-  const netProfit = totalRevenue - totalLeadSpend;
+  // Net Profit = Issue Pay - Lead Cost (what agent receives minus what they spent)
+  const netProfit = totalIssuePay - totalLeadSpend;
   const isProfit = netProfit >= 0;
   const roi = totalLeadSpend > 0 ? ((netProfit / totalLeadSpend) * 100) : 0;
 
