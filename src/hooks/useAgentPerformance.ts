@@ -294,6 +294,7 @@ export const useAgentPerformance = (agentId?: string): UseAgentPerformanceReturn
     }
 
     toast({ title: "Success", description: "Performance entry logged" });
+    await fetchEntries(); // Immediately refresh data
   };
 
   const updateEntry = async (id: string, entry: Partial<PerformanceEntry>) => {
