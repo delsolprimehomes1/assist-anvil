@@ -173,6 +173,7 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
       if (agent.parentId && agentMap.has(agent.parentId)) {
         const parentAgent = agentMap.get(agent.parentId);
         if (parentAgent && isNodeVisible(parentAgent)) {
+          const edgeColor = zoneColors[determineAgentZone(agent as EnhancedAgent)] || "#64748b";
           edgeList.push({
             id: `${agent.parentId}-${agent.id}`,
             source: agent.parentId,
@@ -180,8 +181,9 @@ export const HierarchyTree = ({ agents, viewMode }: HierarchyTreeProps) => {
             type: "smoothstep",
             animated: agent.status === "active",
             style: {
-              stroke: zoneColors[determineAgentZone(agent as EnhancedAgent)] || "#64748b",
+              stroke: edgeColor,
               strokeWidth: 2,
+              transition: "stroke 0.3s ease, opacity 0.3s ease",
             },
           });
         }
