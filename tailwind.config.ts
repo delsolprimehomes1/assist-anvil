@@ -109,13 +109,28 @@ const config = {
         "shimmer": {
           "0%": { backgroundPosition: "200% 0" },
           "100%": { backgroundPosition: "-200% 0" }
-        }
+        },
+        "node-enter": {
+          "0%": { opacity: "0", transform: "scale(0.85)" },
+          "100%": { opacity: "1", transform: "scale(1)" },
+        },
+        "node-exit": {
+          "0%": { opacity: "1", transform: "scale(1)" },
+          "100%": { opacity: "0", transform: "scale(0.85)" },
+        },
+        "glow-pulse": {
+          "0%, 100%": { opacity: "0.6" },
+          "50%": { opacity: "1" },
+        },
       },
       animation: {
         "accordion-down": "accordion-down 0.2s ease-out",
         "accordion-up": "accordion-up 0.2s ease-out",
         "fade-in": "fade-in 0.3s ease-out",
-        "shimmer": "shimmer 1.5s infinite"
+        "shimmer": "shimmer 1.5s infinite",
+        "node-enter": "node-enter 0.35s ease-out",
+        "node-exit": "node-exit 0.25s ease-in",
+        "glow-pulse": "glow-pulse 2s ease-in-out infinite",
       },
     },
   },

@@ -55,22 +55,39 @@ export const CircularAgentNode = memo(({ data }: CircularAgentNodeProps) => {
       />
 
       <div className="flex flex-col items-center">
-        {/* Circular avatar with glow */}
+      {/* 3D Orb with glassmorphic effect */}
+      <div 
+        className="relative w-28 h-28 rounded-full flex items-center justify-center transition-all duration-500 group-hover:scale-105"
+        style={{
+          background: `
+            radial-gradient(ellipse 60% 40% at 50% 15%, rgba(255,255,255,0.35) 0%, transparent 50%),
+            radial-gradient(ellipse 80% 50% at 50% 90%, rgba(0,0,0,0.2) 0%, transparent 50%),
+            linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)
+          `,
+          boxShadow: `
+            0 0 0 2px ${zoneColor}90,
+            0 0 35px 8px ${zoneColor}35,
+            0 12px 40px -8px ${zoneColor}50,
+            inset 0 3px 12px rgba(255,255,255,0.25),
+            inset 0 -4px 12px rgba(0,0,0,0.15)
+          `,
+          border: `3px solid transparent`,
+        }}
+      >
+        {/* Glass reflection overlay */}
         <div 
-          className="relative w-28 h-28 rounded-full flex items-center justify-center transition-all duration-300"
+          className="absolute inset-0 rounded-full overflow-hidden pointer-events-none"
           style={{
-            background: `linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)`,
-            boxShadow: `0 0 20px 4px ${zoneColor}40, 0 0 40px 8px ${zoneColor}20, inset 0 2px 4px rgba(255,255,255,0.1)`,
-            border: `3px solid ${zoneColor}`,
+            background: `linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%, rgba(0,0,0,0.05) 100%)`,
           }}
-        >
-          {/* Inner glow ring */}
-          <div 
-            className="absolute inset-1 rounded-full opacity-30"
-            style={{
-              background: `radial-gradient(circle at 50% 30%, ${zoneColor}40 0%, transparent 70%)`,
-            }}
-          />
+        />
+        {/* Subtle inner ring */}
+        <div 
+          className="absolute inset-2 rounded-full opacity-40"
+          style={{
+            background: `radial-gradient(circle at 50% 25%, ${zoneColor}30 0%, transparent 60%)`,
+          }}
+        />
           
           <Avatar className="h-20 w-20 border-2 border-background/50">
             <AvatarImage src={agent.avatarUrl || undefined} alt={agent.fullName} />

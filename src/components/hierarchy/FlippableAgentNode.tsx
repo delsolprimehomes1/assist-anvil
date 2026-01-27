@@ -74,36 +74,71 @@ export const FlippableAgentNode = memo(({ data }: FlippableAgentNodeProps) => {
     <>
       <Handle type="target" position={Position.Top} className="!bg-transparent !border-0 !w-0 !h-0" />
 
-      <div 
+      <motion.div 
         className="relative cursor-pointer"
-        style={{ perspective: "1000px" }}
+        style={{ perspective: "1200px" }}
         onClick={handleFlip}
+        initial={{ opacity: 0, scale: 0.85 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ type: "spring", stiffness: 400, damping: 25 }}
       >
         <motion.div
           className="relative w-32 h-48"
           style={{ transformStyle: "preserve-3d" }}
-          animate={{ rotateY: isFlipped ? 180 : 0 }}
-          transition={{ duration: 0.6, ease: "easeInOut" }}
+          animate={{ 
+            rotateY: isFlipped ? 180 : 0,
+            scale: isFlipped ? 1.02 : 1,
+          }}
+          transition={{ 
+            type: "spring",
+            stiffness: 300,
+            damping: 25,
+            mass: 0.8,
+          }}
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.97 }}
         >
           {/* Front Side */}
           <div
             className="absolute inset-0 flex flex-col items-center backface-hidden"
             style={{ backfaceVisibility: "hidden" }}
           >
-            {/* Activity Ring for Weekly Business */}
+            {/* 3D Orb with glassmorphic effect */}
             <div 
-              className="relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-300"
+              className="relative w-24 h-24 rounded-full flex items-center justify-center transition-all duration-500"
               style={{
-                background: `linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)`,
-                boxShadow: `0 0 20px 4px ${zoneColor}40, 0 0 40px 8px ${zoneColor}20`,
-                border: `3px solid ${zoneColor}`,
+                background: `
+                  radial-gradient(ellipse 60% 40% at 50% 15%, rgba(255,255,255,0.35) 0%, transparent 50%),
+                  radial-gradient(ellipse 80% 50% at 50% 90%, rgba(0,0,0,0.2) 0%, transparent 50%),
+                  linear-gradient(180deg, hsl(var(--card)) 0%, hsl(var(--muted)) 100%)
+                `,
+                boxShadow: `
+                  0 0 0 2px ${zoneColor}90,
+                  0 0 30px 6px ${zoneColor}35,
+                  0 10px 35px -6px ${zoneColor}50,
+                  inset 0 3px 10px rgba(255,255,255,0.25),
+                  inset 0 -3px 10px rgba(0,0,0,0.15)
+                `,
+                border: `3px solid transparent`,
               }}
             >
-              {/* Weekly business indicator ring - solid ring, no animation */}
+              {/* Glass reflection overlay */}
+              <div 
+                className="absolute inset-0 rounded-full overflow-hidden pointer-events-none"
+                style={{
+                  background: `linear-gradient(135deg, rgba(255,255,255,0.15) 0%, transparent 50%, rgba(0,0,0,0.05) 100%)`,
+                }}
+              />
+              {/* Weekly business indicator ring */}
               {hasWeeklyBusiness && (
                 <div 
-                  className="absolute -inset-1 rounded-full opacity-60"
-                  style={{ borderColor: "#10B981", borderWidth: "3px", borderStyle: "solid" }}
+                  className="absolute -inset-1 rounded-full"
+                  style={{ 
+                    borderColor: "#10B981", 
+                    borderWidth: "3px", 
+                    borderStyle: "solid",
+                    boxShadow: "0 0 12px rgba(16, 185, 129, 0.4)",
+                  }}
                 />
               )}
               
@@ -152,13 +187,20 @@ export const FlippableAgentNode = memo(({ data }: FlippableAgentNodeProps) => {
             )}
           </div>
 
-          {/* Back Side */}
+          {/* Back Side - Frosted Glass */}
           <div
-            className="absolute inset-0 flex flex-col items-center backface-hidden p-2 rounded-xl border bg-card"
+            className="absolute inset-0 flex flex-col items-center backface-hidden p-2 rounded-2xl overflow-hidden"
             style={{ 
               backfaceVisibility: "hidden",
               transform: "rotateY(180deg)",
-              borderColor: zoneColor,
+              background: `linear-gradient(145deg, hsl(var(--card) / 0.95) 0%, hsl(var(--muted) / 0.9) 100%)`,
+              backdropFilter: "blur(12px)",
+              boxShadow: `
+                0 0 0 2px ${zoneColor}80,
+                0 8px 32px -8px ${zoneColor}40,
+                inset 0 1px 0 rgba(255,255,255,0.1)
+              `,
+              border: `1px solid ${zoneColor}40`,
             }}
           >
             <div className="w-full h-full flex flex-col gap-1.5 text-[10px]">
@@ -239,7 +281,7 @@ export const FlippableAgentNode = memo(({ data }: FlippableAgentNodeProps) => {
             </div>
           </div>
         </motion.div>
-      </div>
+      </motion.div>
 
       <Handle type="source" position={Position.Bottom} className="!bg-transparent !border-0 !w-0 !h-0" />
     </>
