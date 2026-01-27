@@ -19,6 +19,14 @@ export interface PerformanceEntry {
   notes: string | null;
   createdAt: string;
   updatedAt: string;
+  // New fields
+  leadsPurchased: number;
+  discountPercent: number;
+  totalLeadCost: number;
+  compLevelPercent: number;
+  advancementPercent: number;
+  expectedIssuePay: number;
+  expectedDeferredPay: number;
 }
 
 export interface PerformanceStats {
@@ -34,6 +42,11 @@ export interface PerformanceStats {
   closeRate: number;
   roi: number;
   costPerAcquisition: number;
+  // New aggregations
+  totalIssuePay: number;
+  totalDeferredPay: number;
+  netProfit: number;
+  avgCompLevel: number;
 }
 
 interface UseAgentPerformanceReturn {
@@ -63,6 +76,10 @@ const emptyStats: PerformanceStats = {
   closeRate: 0,
   roi: 0,
   costPerAcquisition: 0,
+  totalIssuePay: 0,
+  totalDeferredPay: 0,
+  netProfit: 0,
+  avgCompLevel: 0,
 };
 
 function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
@@ -76,7 +93,10 @@ function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
       appointmentsHeld: acc.appointmentsHeld + entry.appointmentsHeld,
       clientsClosed: acc.clientsClosed + entry.clientsClosed,
       revenue: acc.revenue + entry.revenue,
-      totalLeadCost: acc.totalLeadCost + (entry.costPerLead * entry.leadsWorked),
+      totalLeadCost: acc.totalLeadCost + entry.totalLeadCost,
+      totalIssuePay: acc.totalIssuePay + entry.expectedIssuePay,
+      totalDeferredPay: acc.totalDeferredPay + entry.expectedDeferredPay,
+      compLevelSum: acc.compLevelSum + entry.compLevelPercent,
     }),
     {
       leadsWorked: 0,
@@ -86,6 +106,9 @@ function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
       clientsClosed: 0,
       revenue: 0,
       totalLeadCost: 0,
+      totalIssuePay: 0,
+      totalDeferredPay: 0,
+      compLevelSum: 0,
     }
   );
 
@@ -104,6 +127,8 @@ function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
   const costPerAcquisition = totals.clientsClosed > 0 
     ? totals.totalLeadCost / totals.clientsClosed 
     : 0;
+  const netProfit = totals.revenue - totals.totalLeadCost;
+  const avgCompLevel = entries.length > 0 ? totals.compLevelSum / entries.length : 0;
 
   return {
     ...totals,
@@ -112,6 +137,8 @@ function calculateStats(entries: PerformanceEntry[]): PerformanceStats {
     closeRate,
     roi,
     costPerAcquisition,
+    netProfit,
+    avgCompLevel,
   };
 }
 
@@ -157,6 +184,14 @@ export const useAgentPerformance = (agentId?: string): UseAgentPerformanceReturn
         notes: row.notes,
         createdAt: row.created_at,
         updatedAt: row.updated_at,
+        // New fields
+        leadsPurchased: row.leads_purchased || 0,
+        discountPercent: parseFloat(row.discount_percent) || 0,
+        totalLeadCost: parseFloat(row.total_lead_cost) || 0,
+        compLevelPercent: parseFloat(row.comp_level_percent) || 100,
+        advancementPercent: parseFloat(row.advancement_percent) || 75,
+        expectedIssuePay: parseFloat(row.expected_issue_pay) || 0,
+        expectedDeferredPay: parseFloat(row.expected_deferred_pay) || 0,
       }));
 
       setEntries(transformedEntries);
@@ -236,6 +271,14 @@ export const useAgentPerformance = (agentId?: string): UseAgentPerformanceReturn
       revenue: entry.revenue || 0,
       cost_per_lead: entry.costPerLead || 0,
       notes: entry.notes || null,
+      // New fields
+      leads_purchased: entry.leadsPurchased || 0,
+      discount_percent: entry.discountPercent || 0,
+      total_lead_cost: entry.totalLeadCost || 0,
+      comp_level_percent: entry.compLevelPercent || 100,
+      advancement_percent: entry.advancementPercent || 75,
+      expected_issue_pay: entry.expectedIssuePay || 0,
+      expected_deferred_pay: entry.expectedDeferredPay || 0,
     });
 
     if (insertError) {
@@ -259,6 +302,13 @@ export const useAgentPerformance = (agentId?: string): UseAgentPerformanceReturn
         revenue: entry.revenue,
         cost_per_lead: entry.costPerLead,
         notes: entry.notes,
+        leads_purchased: entry.leadsPurchased,
+        discount_percent: entry.discountPercent,
+        total_lead_cost: entry.totalLeadCost,
+        comp_level_percent: entry.compLevelPercent,
+        advancement_percent: entry.advancementPercent,
+        expected_issue_pay: entry.expectedIssuePay,
+        expected_deferred_pay: entry.expectedDeferredPay,
       })
       .eq("id", id);
 
@@ -308,6 +358,13 @@ export const useAgentPerformance = (agentId?: string): UseAgentPerformanceReturn
       notes: row.notes,
       createdAt: row.created_at,
       updatedAt: row.updated_at,
+      leadsPurchased: row.leads_purchased || 0,
+      discountPercent: parseFloat(row.discount_percent) || 0,
+      totalLeadCost: parseFloat(row.total_lead_cost) || 0,
+      compLevelPercent: parseFloat(row.comp_level_percent) || 100,
+      advancementPercent: parseFloat(row.advancement_percent) || 75,
+      expectedIssuePay: parseFloat(row.expected_issue_pay) || 0,
+      expectedDeferredPay: parseFloat(row.expected_deferred_pay) || 0,
     }));
   };
 

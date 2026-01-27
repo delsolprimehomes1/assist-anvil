@@ -3,7 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAgentPerformance, PerformanceStats as Stats } from "@/hooks/useAgentPerformance";
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts";
-import { TrendingUp, DollarSign, Target, Phone, Users, Percent, Loader2 } from "lucide-react";
+import { TrendingUp, TrendingDown, DollarSign, Target, Phone, Users, Loader2, Receipt, Wallet, Clock } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 interface KPICardProps {
@@ -54,6 +54,8 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
     { name: "Closed", value: stats.clientsClosed, color: "#EF4444" },
   ];
 
+  const isProfit = stats.netProfit >= 0;
+
   return (
     <div className="space-y-6">
       {/* KPI Grid */}
@@ -65,16 +67,16 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
           icon={<DollarSign className="h-4 w-4 text-emerald-500" />}
         />
         <KPICard
+          title="Lead Spend"
+          value={formatCurrency(stats.totalLeadCost)}
+          subtitle="Investment"
+          icon={<Receipt className="h-4 w-4 text-amber-500" />}
+        />
+        <KPICard
           title="Close Rate"
           value={formatPercent(stats.closeRate)}
           subtitle="Held → Closed"
           icon={<Target className="h-4 w-4 text-primary" />}
-        />
-        <KPICard
-          title="Contact Rate"
-          value={formatPercent(stats.contactRate)}
-          subtitle="Dials → Appts"
-          icon={<Phone className="h-4 w-4 text-amber-500" />}
         />
         <KPICard
           title="ROI"
@@ -82,6 +84,62 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
           subtitle={`CPA: ${formatCurrency(stats.costPerAcquisition)}`}
           icon={<TrendingUp className="h-4 w-4 text-violet-500" />}
         />
+      </div>
+
+      {/* Net Profit/Loss Card */}
+      <div className={cn(
+        "p-4 rounded-lg border-2 transition-colors",
+        isProfit 
+          ? "bg-green-500/10 border-green-500/30" 
+          : "bg-red-500/10 border-red-500/30"
+      )}>
+        <div className="flex items-center justify-between">
+          <div>
+            <div className="flex items-center gap-1 text-sm font-medium mb-1">
+              {isProfit ? (
+                <TrendingUp className="h-4 w-4 text-green-600" />
+              ) : (
+                <TrendingDown className="h-4 w-4 text-red-600" />
+              )}
+              <span className={isProfit ? "text-green-700" : "text-red-700"}>
+                Net {isProfit ? "Profit" : "Loss"}
+              </span>
+            </div>
+            <span className={cn(
+              "text-2xl font-bold",
+              isProfit ? "text-green-600" : "text-red-600"
+            )}>
+              {isProfit ? "+" : "-"}${Math.abs(stats.netProfit).toFixed(2)}
+            </span>
+          </div>
+          <div className="text-right">
+            <p className="text-xs text-muted-foreground">Avg Comp Level</p>
+            <p className="text-lg font-bold">{stats.avgCompLevel.toFixed(0)}%</p>
+          </div>
+        </div>
+      </div>
+
+      {/* Commission Breakdown */}
+      <div className="grid grid-cols-2 gap-4">
+        <div className="p-4 rounded-lg bg-green-500/10 border border-green-500/20">
+          <div className="flex items-center gap-2 text-sm text-green-700 mb-2">
+            <Wallet className="h-4 w-4" />
+            <span className="font-medium">Issue Pay Due</span>
+          </div>
+          <span className="text-2xl font-bold text-green-600">
+            ${stats.totalIssuePay.toFixed(2)}
+          </span>
+        </div>
+        
+        <div className="p-4 rounded-lg bg-blue-500/10 border border-blue-500/20">
+          <div className="flex items-center gap-2 text-sm text-blue-700 mb-2">
+            <Clock className="h-4 w-4" />
+            <span className="font-medium">Deferred (9 mo)</span>
+          </div>
+          <span className="text-2xl font-bold text-blue-600">
+            ${stats.totalDeferredPay.toFixed(2)}
+          </span>
+        </div>
       </div>
 
       {/* Secondary Stats */}
@@ -130,16 +188,16 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
         </CardContent>
       </Card>
 
-      {/* Show Rate */}
+      {/* Show Rate & Contact Rate */}
       <div className="flex items-center gap-4 p-4 bg-accent/30 rounded-lg">
         <Users className="h-8 w-8 text-primary" />
         <div>
-          <p className="text-sm text-muted-foreground">Show Rate (Appts Set → Held)</p>
+          <p className="text-sm text-muted-foreground">Show Rate</p>
           <p className="text-xl font-bold">{formatPercent(stats.showRate)}</p>
         </div>
         <div className="ml-auto text-right">
-          <p className="text-sm text-muted-foreground">Total Lead Cost</p>
-          <p className="text-xl font-bold">{formatCurrency(stats.totalLeadCost)}</p>
+          <p className="text-sm text-muted-foreground">Contact Rate</p>
+          <p className="text-xl font-bold">{formatPercent(stats.contactRate)}</p>
         </div>
       </div>
     </div>
@@ -167,7 +225,7 @@ export const PerformanceStatsPanel = () => {
           <TrendingUp className="h-5 w-5 text-primary" />
           Performance Analytics
         </CardTitle>
-        <CardDescription>Track your conversion metrics and ROI</CardDescription>
+        <CardDescription>Track your conversion metrics, ROI, and commissions</CardDescription>
       </CardHeader>
       <CardContent>
         <Tabs value={period} onValueChange={setPeriod} className="w-full">

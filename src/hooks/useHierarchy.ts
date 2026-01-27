@@ -55,7 +55,9 @@ export const useHierarchy = (): UseHierarchyReturn => {
           ce_due_date,
           comp_level,
           weekly_business_submitted,
-          last_business_date
+          last_business_date,
+          total_lead_spend,
+          net_profit
         `)
         .order("path");
 
@@ -108,6 +110,8 @@ export const useHierarchy = (): UseHierarchyReturn => {
           compLevel: parseFloat(agent.comp_level) || 0,
           weeklyBusinessSubmitted: parseFloat(agent.weekly_business_submitted) || 0,
           lastBusinessDate: agent.last_business_date,
+          totalLeadSpend: parseFloat(agent.total_lead_spend) || 0,
+          netProfit: parseFloat(agent.net_profit) || 0,
         };
       });
 

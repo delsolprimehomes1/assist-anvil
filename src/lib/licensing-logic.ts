@@ -29,6 +29,8 @@ export interface EnhancedAgent {
   compLevel?: number;
   weeklyBusinessSubmitted?: number;
   lastBusinessDate?: string | null;
+  totalLeadSpend?: number;
+  netProfit?: number;
 }
 
 // Zone color definitions matching the design spec
