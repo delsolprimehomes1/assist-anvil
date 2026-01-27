@@ -1,290 +1,238 @@
 
+# Enhanced Color Legend with Business Activity Tracking
 
-# Remove Pulsing Animation and Add Color Legend with Editable Zone Meanings
-
-This plan removes all pulsing animations from the hierarchy chart and adds a visible color legend (color map) that users can customize. Changes will be reflected in real-time across the UI.
+This plan makes the zone color legend more prominent and visible, and updates the zone logic to properly track business-related statuses like "business written this month," "buying leads but no business," and other activity states.
 
 ---
 
-## Current State
+## Current State Analysis
 
-**Pulsing exists in:**
-1. `HeatmapNode.tsx` - Lines 68-69: CSS `pulse` animation on red/yellow zones
-2. `AgentStar.tsx` - Lines 30-36: 3D breathing pulse effect on all zones
-3. `FlippableAgentNode.tsx` - Lines 97-98: `animate-pulse` class on weekly business indicator
+**What exists:**
+- `ZoneLegend` component - a small collapsible panel in bottom-right corner
+- 5 zones defined: Red (Critical), Blue (Onboarding), Black (Inactive), Yellow (Warning), Green (Active)
+- Zone logic in `licensing-logic.ts` checks license status and login activity
+- Database table `zone_config` stores editable zone meanings
+- Performance data tracked: `weeklyBusinessSubmitted`, `lastBusinessDate`, `totalLeadSpend`, `netProfit`
 
-**Current zone system:**
-- Colors are hardcoded in `licensing-logic.ts`
-- Descriptions are hardcoded: Red = Critical, Blue = Onboarding, etc.
-- No UI to view or edit zone meanings
+**What's missing:**
+- Legend is too small and hidden behind a button - not "dominant"
+- No zone specifically for "business written this month"
+- No tracking for "buying leads but hasn't written business"
+- Current Green zone just means "all systems operational" - not business-specific
 
 ---
 
 ## Implementation Plan
 
-### 1. Create Database Table for Zone Configuration
+### 1. Add New Zones to Database
 
-**New table:** `zone_config`
+Add 2 new zones to track business activity:
 
-| Column | Type | Description |
-|--------|------|-------------|
-| id | uuid | Primary key |
-| zone_key | text | Unique key (red, blue, black, yellow, green) |
-| label | text | Display name ("Critical", "Onboarding", etc.) |
-| description | text | User-editable meaning |
-| color | text | Hex color code |
-| display_order | integer | Sort order in legend |
-| created_at | timestamp | Creation date |
-| updated_at | timestamp | Last modified |
+| Zone Key | Label | Description | Color |
+|----------|-------|-------------|-------|
+| `producing` | Producing | Business written this month | `#22C55E` (Bright Green) |
+| `investing` | Investing | Buying leads but no closed business yet | `#8B5CF6` (Purple) |
 
-RLS: Everyone can read, only admins can update.
+Update existing zones with clearer business-focused descriptions:
+- **Green** → "Active & Ready" - Logged in recently, ready to produce
+- **Red** → Keep as license critical (override all business states)
 
-### 2. Create Hook for Zone Configuration
+### 2. Update Zone Logic Priority
 
-**New file:** `src/hooks/useZoneConfig.ts`
-
-```typescript
-// Features:
-// - Fetch zone configs from database
-// - Update zone label/description
-// - Real-time subscription for instant updates
-// - Fallback to hardcoded defaults if DB empty
-```
-
-### 3. Create Color Legend Component
-
-**New file:** `src/components/hierarchy/ZoneLegend.tsx`
-
-A floating panel that displays all zone colors with their meanings:
+New logic flow in `determineAgentZone()`:
 
 ```text
-+---------------------------+
-|     📊 Agent Status       |
-+---------------------------+
-| 🔴 Critical               |
-|    License expired/expiring|
-|    within 7 days          |
-+---------------------------+
-| 🔵 Onboarding             |
-|    New agent, not verified|
-+---------------------------+
-| ⚫ Inactive               |
-|    No activity 7+ days    |
-+---------------------------+
-| 🟡 Warning                |
-|    Pending contracts or   |
-|    license expiring soon  |
-+---------------------------+
-| 🟢 Active                 |
-|    All systems operational|
-+---------------------------+
-| [Edit] (Admin only)       |
-+---------------------------+
+Priority Order (highest to lowest):
+1. RED - License expired/expiring (critical override)
+2. PRODUCING - Has business written this month ($$)
+3. INVESTING - Has lead spend but no closed business yet
+4. BLUE - New agent, not verified
+5. BLACK - No activity 7+ days
+6. YELLOW - Pending contracts or license warning
+7. GREEN - Active and ready (logged in, no issues)
 ```
 
-Features:
-- Collapsible panel (toggle visibility)
-- Position: bottom-right of hierarchy view
-- Admin-only "Edit" button opens edit modal
+### 3. Make Legend Dominant and Always Visible
 
-### 4. Create Zone Config Edit Modal (Admin Only)
-
-**New file:** `src/components/hierarchy/ZoneConfigModal.tsx`
-
-A modal for admins to edit zone meanings:
+Replace the collapsible hidden legend with a prominent fixed sidebar:
 
 ```text
-+--------------------------------+
-|    Edit Zone Meanings          |
-+--------------------------------+
-| Red Zone                       |
-| Label: [Critical        ]      |
-| Meaning: [License expired or   |
-|           expiring within 7... ]|
-+--------------------------------+
-| Blue Zone                      |
-| Label: [Onboarding      ]      |
-| Meaning: [New agent, not...   ]|
-+--------------------------------+
-| ... (all zones)                |
-+--------------------------------+
-|        [Cancel]  [Save]        |
-+--------------------------------+
++------------------------------------------+
+|                                          |
+|  [HIERARCHY CHART]                       |
+|                                          |
+|                         +---------------+|
+|                         | 📊 STATUS KEY ||
+|                         |               ||
+|                         | 🟢 Producing  ||
+|                         | Business this ||
+|                         | month         ||
+|                         |               ||
+|                         | 🟣 Investing  ||
+|                         | Buying leads, ||
+|                         | no close yet  ||
+|                         |               ||
+|                         | 🔴 Critical   ||
+|                         | License issue ||
+|                         |               ||
+|                         | ⚫ Inactive   ||
+|                         | 7+ days quiet ||
+|                         |               ||
+|                         | 🟡 Warning    ||
+|                         | Pending items ||
+|                         |               ||
+|                         | 🔵 Onboarding ||
+|                         | New, unverified|
+|                         |               ||
+|                         | 🟢 Active     ||
+|                         | Ready to work ||
+|                         +---------------+|
++------------------------------------------+
 ```
 
-### 5. Remove Pulsing Animations
+**Key visibility improvements:**
+- Always visible (no toggle to hide)
+- Larger color circles (32px instead of 20px)
+- More prominent typography
+- Fixed position with slight transparency
+- Responsive: collapses to smaller on mobile
 
-**File:** `src/components/hierarchy/HeatmapNode.tsx`
+### 4. Update Zone Tracking Logic
+
+**New helper functions in `licensing-logic.ts`:**
 
 ```typescript
-// BEFORE (line 68-69):
-animation: zone === 'red' || zone === 'yellow' 
-  ? `pulse ${animationDuration}s ease-in-out infinite`
-  : undefined,
+// Check if agent has written business this month
+function hasBusinessThisMonth(agent: EnhancedAgent): boolean {
+  if (!agent.lastBusinessDate) return false;
+  const businessDate = new Date(agent.lastBusinessDate);
+  const now = new Date();
+  return (
+    businessDate.getMonth() === now.getMonth() &&
+    businessDate.getFullYear() === now.getFullYear()
+  );
+}
 
-// AFTER:
-// Remove animation property entirely - just use color
+// Check if agent is investing in leads but hasn't closed
+function isInvestingNoClose(agent: EnhancedAgent): boolean {
+  const hasLeadSpend = (agent.totalLeadSpend || 0) > 0;
+  const hasNoBusiness = (agent.weeklyBusinessSubmitted || 0) === 0;
+  const noClosesRecorded = !agent.lastBusinessDate;
+  return hasLeadSpend && (hasNoBusiness || noClosesRecorded);
+}
 ```
 
-**File:** `src/components/hierarchy/galaxy/AgentStar.tsx`
+**Updated zone determination:**
 
 ```typescript
-// BEFORE (lines 30-36):
-const pulse = 1 + Math.sin(state.clock.elapsedTime * pulseSpeed * Math.PI * 2) * 0.15;
-meshRef.current.scale.setScalar(pulse * hoverScale * selectedScale);
+export function determineAgentZone(agent: EnhancedAgent): AgentZone {
+  // RED: License critical (always first)
+  if (isLicenseExpired(agent) || isLicenseExpiringWithin(agent, 7)) {
+    return 'red';
+  }
 
-// AFTER:
-// Remove pulse calculation, keep only hover/selected scaling
-meshRef.current.scale.setScalar(hoverScale * selectedScale);
+  // PRODUCING: Business written this month
+  if (hasBusinessThisMonth(agent)) {
+    return 'producing';
+  }
+
+  // INVESTING: Buying leads but no closed business
+  if (isInvestingNoClose(agent)) {
+    return 'investing';
+  }
+
+  // BLUE: New agent not verified
+  if (isNewAgent(agent, 30) && !agent.verificationComplete) {
+    return 'blue';
+  }
+
+  // BLACK: No activity for 7+ days
+  if (daysSinceLastActivity(agent) >= 7) {
+    return 'black';
+  }
+
+  // YELLOW: Pending contracts or license warning
+  if (agent.contractsPending > 0 || isLicenseExpiringWithin(agent, 30)) {
+    return 'yellow';
+  }
+
+  // GREEN: Active and ready
+  return 'green';
+}
 ```
-
-**File:** `src/components/hierarchy/FlippableAgentNode.tsx`
-
-```typescript
-// BEFORE (line 97-98):
-hasWeeklyBusiness && "animate-pulse"
-
-// AFTER:
-// Remove animate-pulse class - weekly business indicator uses solid ring instead
-```
-
-### 6. Update Organization Page
-
-**File:** `src/pages/Organization.tsx`
-
-Add the ZoneLegend component to hierarchy and galaxy views:
-
-```tsx
-<TabsContent value="hierarchy" className="absolute inset-0 m-0">
-  {viewMode === "galaxy" ? (
-    <ProductionGalaxy agents={filteredAgents as EnhancedAgent[]} />
-  ) : (
-    <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
-  )}
-  <ZoneLegend />  {/* Add color legend */}
-</TabsContent>
-```
-
-### 7. Real-Time Updates
-
-The `useZoneConfig` hook will include a Supabase realtime subscription:
-
-```typescript
-useEffect(() => {
-  const channel = supabase
-    .channel('zone-config-changes')
-    .on('postgres_changes', {
-      event: '*',
-      schema: 'public',
-      table: 'zone_config'
-    }, (payload) => {
-      // Refresh zone configs immediately
-      fetchZoneConfigs();
-    })
-    .subscribe();
-
-  return () => { supabase.removeChannel(channel); };
-}, []);
-```
-
-When an admin updates a zone description, all users viewing the hierarchy will see the change instantly.
 
 ---
 
-## Files to Create
-
-| File | Purpose |
-|------|---------|
-| `src/hooks/useZoneConfig.ts` | Fetch/update zone configs with realtime sync |
-| `src/components/hierarchy/ZoneLegend.tsx` | Floating color map panel |
-| `src/components/hierarchy/ZoneConfigModal.tsx` | Admin edit modal for zone meanings |
-
 ## Files to Modify
 
-| File | Change |
-|------|--------|
-| `src/components/hierarchy/HeatmapNode.tsx` | Remove pulse animation |
-| `src/components/hierarchy/galaxy/AgentStar.tsx` | Remove breathing pulse effect |
-| `src/components/hierarchy/FlippableAgentNode.tsx` | Remove animate-pulse class |
-| `src/pages/Organization.tsx` | Add ZoneLegend component |
-| `src/lib/licensing-logic.ts` | Update to use dynamic colors from config (with fallbacks) |
+| File | Changes |
+|------|---------|
+| `src/components/hierarchy/ZoneLegend.tsx` | Make always visible, larger, more prominent |
+| `src/lib/licensing-logic.ts` | Add `producing` and `investing` zones with business tracking logic |
+| `src/hooks/useZoneConfig.ts` | Add new default zones for fallback |
 
-## Database Migration
+## Database Changes
+
+Insert 2 new rows into `zone_config`:
 
 ```sql
--- Create zone_config table
-CREATE TABLE public.zone_config (
-  id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
-  zone_key text NOT NULL UNIQUE,
-  label text NOT NULL,
-  description text NOT NULL,
-  color text NOT NULL,
-  display_order integer NOT NULL DEFAULT 0,
-  created_at timestamp with time zone DEFAULT now(),
-  updated_at timestamp with time zone DEFAULT now()
-);
-
--- Enable RLS
-ALTER TABLE public.zone_config ENABLE ROW LEVEL SECURITY;
-
--- Anyone can view zone configs
-CREATE POLICY "Anyone can view zone configs"
-  ON public.zone_config FOR SELECT
-  USING (true);
-
--- Only admins can update zone configs
-CREATE POLICY "Admins can manage zone configs"
-  ON public.zone_config FOR ALL
-  USING (has_role(auth.uid(), 'admin'));
-
--- Insert default values
 INSERT INTO public.zone_config (zone_key, label, description, color, display_order) VALUES
-  ('red', 'Critical', 'License expired or expiring within 7 days', '#EF4444', 1),
-  ('blue', 'Onboarding', 'New agent, verification incomplete', '#3B82F6', 2),
-  ('black', 'Inactive', 'No activity for 7+ days', '#64748B', 3),
-  ('yellow', 'Warning', 'Pending contracts or license expiring soon', '#F59E0B', 4),
-  ('green', 'Active', 'All systems operational', '#10B981', 5);
+  ('producing', 'Producing', 'Business written this month', '#22C55E', 0),
+  ('investing', 'Investing', 'Buying leads but no closed business yet', '#8B5CF6', 1);
 
--- Enable realtime
-ALTER PUBLICATION supabase_realtime ADD TABLE public.zone_config;
+-- Update existing display orders to accommodate new zones
+UPDATE public.zone_config SET display_order = display_order + 2 WHERE zone_key NOT IN ('producing', 'investing');
 ```
 
 ---
 
 ## UI/UX Details
 
-### Color Legend Appearance
+### Always-Visible Legend Panel
 
-- **Position:** Fixed bottom-right corner of hierarchy container
-- **Style:** Semi-transparent card with blur backdrop
-- **Toggle:** Small "?" icon button to show/hide legend
-- **Width:** 220px collapsed to icon, expands on click
+- **Position:** Fixed right side of hierarchy container
+- **Width:** 200px on desktop, 160px on tablet, 48px (icon only) on mobile
+- **Background:** Semi-transparent with blur (`bg-card/95 backdrop-blur-sm`)
+- **Border:** Left border accent with primary color
+- **Shadow:** Subtle drop shadow for depth
 
-### Zone Color Display
+### Zone Display Elements
 
 Each zone row shows:
-- Color circle indicator (24px)
-- Label in bold (e.g., "Critical")
-- Description in smaller text below
-- No pulsing - solid colors only
+- **Color circle:** 32px diameter with border and glow effect
+- **Label:** Bold 14px font
+- **Description:** 12px muted text, 2 lines max
+- **Spacing:** 12px between zones
 
-### Admin Edit Mode
+### Mobile Responsive Behavior
 
-- "Edit" button only visible to admins
-- Opens modal with all zones listed
-- Each zone has editable Label and Description fields
-- Color is displayed but not editable (to maintain consistency)
-- Save button updates database and triggers realtime sync
+On mobile (< 640px):
+- Legend collapses to vertical icon strip
+- Tap to expand full legend as overlay
+- Quick glance still shows all 7 colors
+
+### Admin Edit Access
+
+- Settings gear icon in legend header (admin only)
+- Opens `ZoneConfigModal` to customize labels/descriptions
+- Real-time updates still work
 
 ---
 
-## Summary
+## Summary of Changes
 
-| Change | Impact |
-|--------|--------|
-| Remove pulsing from all node types | Cleaner, less distracting visuals |
-| Add ZoneLegend component | Users understand what colors mean |
-| Add ZoneConfigModal (admin) | Admins can customize zone descriptions |
-| Database-backed config | Settings persist and sync across sessions |
-| Realtime subscription | Changes appear instantly for all users |
+| Change | User Benefit |
+|--------|--------------|
+| Always-visible legend | Users instantly see what colors mean |
+| Larger color indicators | Colors are prominent and easy to identify |
+| "Producing" zone (bright green) | Immediately spot agents writing business |
+| "Investing" zone (purple) | Identify agents spending on leads but not closing |
+| Business-based tracking | Zone colors reflect actual production activity |
+| Real-time sync | Admin changes update immediately for everyone |
 
+This ensures managers can glance at the hierarchy and instantly understand:
+- Who is writing business (bright green)
+- Who is investing but needs help closing (purple)
+- Who has license issues (red)
+- Who has gone quiet (black)
+- Who is new and needs onboarding (blue)
