@@ -1,4 +1,4 @@
-import { Building2, Phone, Globe, MapPin, Calendar, Users, ExternalLink, Star, Award } from "lucide-react";
+ import { Building2, Phone, Globe, MapPin, Calendar, Users, ExternalLink, Star, Award, Mail } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -10,6 +10,15 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+ import { cn } from "@/lib/utils";
+ import ReparentingTabContent from "@/components/carrier/ReparentingTabContent";
+ 
+ interface ReparentingInstructions {
+   email: string;
+   subject: string;
+   template: string;
+   notes?: string;
+ }
 
 interface Carrier {
   id: number;
@@ -32,6 +41,7 @@ interface Carrier {
   specialProducts: string[];
   underwritingStrengths: string[];
   companyHistory: string;
+   reparentingInstructions?: ReparentingInstructions | null;
 }
 
 interface CarrierDetailsModalProps {
@@ -43,6 +53,10 @@ interface CarrierDetailsModalProps {
 const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalProps) => {
   if (!carrier) return null;
 
+   const hasReparenting = carrier.reparentingInstructions && 
+     carrier.reparentingInstructions.email && 
+     carrier.reparentingInstructions.template;
+ 
   const getTurnaroundColor = (turnaround: string) => {
     switch (turnaround) {
       case "fast": return "bg-success text-success-foreground";
@@ -70,11 +84,20 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
         </DialogHeader>
 
         <Tabs defaultValue="overview" className="w-full">
-          <TabsList className="grid w-full grid-cols-2 md:grid-cols-4 gap-2 h-auto p-2 bg-muted/50">
-            <TabsTrigger value="overview" className="h-12 md:h-10 px-4 py-2 text-sm md:text-base">Overview</TabsTrigger>
-            <TabsTrigger value="contact" className="h-12 md:h-10 px-4 py-2 text-sm md:text-base">Contact</TabsTrigger>
-            <TabsTrigger value="products" className="h-12 md:h-10 px-4 py-2 text-sm md:text-base">Products</TabsTrigger>
-            <TabsTrigger value="underwriting" className="h-12 md:h-10 px-4 py-2 text-sm md:text-base">Underwriting</TabsTrigger>
+           <TabsList className={cn(
+             "grid w-full gap-2 h-auto p-2 bg-muted/50",
+             hasReparenting ? "grid-cols-2 md:grid-cols-5" : "grid-cols-2 md:grid-cols-4"
+           )}>
+             <TabsTrigger value="overview" className="h-12 md:h-10 px-3 py-2 text-sm">Overview</TabsTrigger>
+             <TabsTrigger value="contact" className="h-12 md:h-10 px-3 py-2 text-sm">Contact</TabsTrigger>
+             <TabsTrigger value="products" className="h-12 md:h-10 px-3 py-2 text-sm">Products</TabsTrigger>
+             <TabsTrigger value="underwriting" className="h-12 md:h-10 px-3 py-2 text-sm">UW</TabsTrigger>
+             {hasReparenting && (
+               <TabsTrigger value="reparenting" className="h-12 md:h-10 px-3 py-2 text-sm flex items-center gap-1">
+                 <Mail className="h-4 w-4 hidden md:block" />
+                 Reparent
+               </TabsTrigger>
+             )}
           </TabsList>
 
           <TabsContent value="overview" className="space-y-6 mt-8 px-1 md:px-0">
@@ -268,6 +291,12 @@ const CarrierDetailsModal = ({ carrier, isOpen, onClose }: CarrierDetailsModalPr
               </div>
             </div>
           </TabsContent>
+
+           {hasReparenting && carrier.reparentingInstructions && (
+             <TabsContent value="reparenting">
+               <ReparentingTabContent reparenting={carrier.reparentingInstructions} />
+             </TabsContent>
+           )}
         </Tabs>
       </DialogContent>
     </Dialog>

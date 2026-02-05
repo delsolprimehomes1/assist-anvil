@@ -511,6 +511,27 @@ const Carriers = () => {
       specialProducts: carrier.special_products || [],
       underwritingStrengths: carrier.underwriting_strengths || [],
       companyHistory: carrier.company_history || ''
+     };
+   };
+ 
+   const transformCarrierForModalWithReparenting = (carrier: any) => {
+     const base = transformCarrierForModal(carrier);
+     
+     // Parse reparenting instructions if they exist
+     let reparentingInstructions = null;
+     if (carrier.reparenting_instructions) {
+       try {
+         reparentingInstructions = typeof carrier.reparenting_instructions === 'string' 
+           ? JSON.parse(carrier.reparenting_instructions) 
+           : carrier.reparenting_instructions;
+       } catch (e) {
+         console.error('Error parsing reparenting instructions:', e);
+       }
+     }
+     
+     return {
+       ...base,
+       reparentingInstructions
     };
   };
 
@@ -695,13 +716,13 @@ const Carriers = () => {
                     onClick={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setSelectedCarrier(transformCarrierForModal(carrier));
+                       setSelectedCarrier(transformCarrierForModalWithReparenting(carrier));
                       setIsModalOpen(true);
                     }}
                     onTouchEnd={(e) => {
                       e.preventDefault();
                       e.stopPropagation();
-                      setSelectedCarrier(transformCarrierForModal(carrier));
+                       setSelectedCarrier(transformCarrierForModalWithReparenting(carrier));
                       setIsModalOpen(true);
                     }}
                   >

@@ -48,6 +48,17 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
     special_products: carrier?.special_products || [""],
     underwriting_strengths: carrier?.underwriting_strengths || [""],
   });
+ 
+   // Reparenting instructions state
+   const [reparentingEnabled, setReparentingEnabled] = useState(
+     carrier?.reparenting_instructions?.email ? true : false
+   );
+   const [reparentingData, setReparentingData] = useState({
+     email: carrier?.reparenting_instructions?.email || "",
+     subject: carrier?.reparenting_instructions?.subject || "",
+     template: carrier?.reparenting_instructions?.template || "",
+     notes: carrier?.reparenting_instructions?.notes || "",
+   });
 
   const [logoFile, setLogoFile] = useState<File | null>(null);
   const [pdfFiles, setPdfFiles] = useState<Array<{ 
@@ -104,12 +115,25 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
       
       // Reset to first step
       setStep(1);
+       
+       // Reset reparenting state
+       setReparentingEnabled(carrier?.reparenting_instructions?.email ? true : false);
+       setReparentingData({
+         email: carrier?.reparenting_instructions?.email || "",
+         subject: carrier?.reparenting_instructions?.subject || "",
+         template: carrier?.reparenting_instructions?.template || "",
+         notes: carrier?.reparenting_instructions?.notes || "",
+       });
     }
   }, [carrier, open]);
 
   const handleInputChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
   };
+ 
+   const handleReparentingChange = (field: string, value: string) => {
+     setReparentingData(prev => ({ ...prev, [field]: value }));
+   };
 
   const handleProductToggle = (product: string) => {
     setFormData(prev => ({
@@ -253,6 +277,12 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
         special_products: formData.special_products.filter((p: string) => p.trim()),
         underwriting_strengths: formData.underwriting_strengths.filter((s: string) => s.trim()),
         created_by: carrier ? undefined : user.id,
+         reparenting_instructions: reparentingEnabled && reparentingData.email && reparentingData.template ? {
+           email: reparentingData.email.trim(),
+           subject: reparentingData.subject.trim(),
+           template: reparentingData.template.trim(),
+           notes: reparentingData.notes.trim() || undefined,
+         } : null,
       };
 
       if (carrier) {
@@ -697,6 +727,67 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
         return null;
     }
   };
+   
+   const renderStep8 = () => (
+     <div className="space-y-4">
+       <div className="flex items-center space-x-2">
+         <Checkbox
+           id="reparenting-enabled"
+           checked={reparentingEnabled}
+           onCheckedChange={(checked) => setReparentingEnabled(checked as boolean)}
+         />
+         <label htmlFor="reparenting-enabled" className="text-sm font-medium cursor-pointer">
+           Enable Reparenting Instructions
+         </label>
+       </div>
+       
+       {reparentingEnabled && (
+         <div className="space-y-4 mt-4 p-4 border rounded-lg bg-muted/30">
+           <div>
+             <Label htmlFor="rep-email">Email Address *</Label>
+             <Input
+               id="rep-email"
+               type="email"
+               value={reparentingData.email}
+               onChange={(e) => handleReparentingChange('email', e.target.value)}
+               placeholder="agents@carrier.com"
+             />
+           </div>
+           <div>
+             <Label htmlFor="rep-subject">Subject Line *</Label>
+             <Input
+               id="rep-subject"
+               value={reparentingData.subject}
+               onChange={(e) => handleReparentingChange('subject', e.target.value)}
+               placeholder="Reparenting Request"
+             />
+           </div>
+           <div>
+             <Label htmlFor="rep-template">Email Template *</Label>
+             <Textarea
+               id="rep-template"
+               value={reparentingData.template}
+               onChange={(e) => handleReparentingChange('template', e.target.value)}
+               placeholder="Hi [Carrier Name]&#10;&#10;I am requesting to reparent under LifeCo Insurance Network..."
+               rows={8}
+             />
+             <p className="text-xs text-muted-foreground mt-1">
+               Include placeholders for: Agent Name, NPN, and any other required fields
+             </p>
+           </div>
+           <div>
+             <Label htmlFor="rep-notes">Note (Optional)</Label>
+             <Input
+               id="rep-notes"
+               value={reparentingData.notes}
+               onChange={(e) => handleReparentingChange('notes', e.target.value)}
+               placeholder="Fill in all required fields before sending your request."
+             />
+           </div>
+         </div>
+       )}
+     </div>
+   );
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -704,7 +795,7 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
         <DialogHeader>
           <DialogTitle>{carrier ? 'Edit' : 'Add New'} Carrier</DialogTitle>
           <div className="flex gap-2 mt-4">
-            {[1, 2, 3, 4, 5, 6, 7].map((s) => (
+             {[1, 2, 3, 4, 5, 6, 7, 8].map((s) => (
               <div
                 key={s}
                 className={`h-1 flex-1 rounded ${s <= step ? 'bg-primary' : 'bg-muted'}`}
@@ -712,20 +803,21 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
             ))}
           </div>
           <p className="text-sm text-muted-foreground mt-2">
-            Step {step} of 7: {
+             Step {step} of 8: {
               step === 1 ? "Basic Information" :
               step === 2 ? "Products & Niches" :
               step === 3 ? "Portal URLs" :
               step === 4 ? "Special Features" :
               step === 5 ? "Descriptions" :
               step === 6 ? "Logo" :
-              "PDF Documents"
+               step === 7 ? "PDF Documents" :
+               "Reparenting"
             }
           </p>
         </DialogHeader>
 
         <div className="py-4">
-          {renderStep()}
+           {step === 8 ? renderStep8() : renderStep()}
         </div>
 
         <DialogFooter>
@@ -734,7 +826,7 @@ export function CarrierFormDialog({ open, onOpenChange, carrier, onSuccess }: Ca
               Previous
             </Button>
           )}
-          {step < 7 ? (
+           {step < 8 ? (
             <Button onClick={() => setStep(step + 1)}>
               Next
             </Button>
