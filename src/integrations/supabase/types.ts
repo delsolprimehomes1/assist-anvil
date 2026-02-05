@@ -523,6 +523,7 @@ export type Database = {
           portal_url: string | null
           products: string[] | null
           quotes_url: string | null
+          reparenting_instructions: Json | null
           short_code: string
           special_products: string[] | null
           turnaround: string | null
@@ -549,6 +550,7 @@ export type Database = {
           portal_url?: string | null
           products?: string[] | null
           quotes_url?: string | null
+          reparenting_instructions?: Json | null
           short_code: string
           special_products?: string[] | null
           turnaround?: string | null
@@ -575,6 +577,7 @@ export type Database = {
           portal_url?: string | null
           products?: string[] | null
           quotes_url?: string | null
+          reparenting_instructions?: Json | null
           short_code?: string
           special_products?: string[] | null
           turnaround?: string | null
