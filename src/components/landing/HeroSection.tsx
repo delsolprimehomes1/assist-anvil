@@ -1,13 +1,9 @@
-import { ArrowDown } from "lucide-react";
+import { ArrowRight } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 
 export const HeroSection = () => {
-  const scrollToForm = () => {
-    const element = document.getElementById("contact");
-    if (element) {
-      element.scrollIntoView({ behavior: "smooth" });
-    }
-  };
+  const navigate = useNavigate();
 
   return (
     <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-background overflow-hidden">
@@ -31,11 +27,11 @@ export const HeroSection = () => {
         <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
           <Button
             size="lg"
-            onClick={scrollToForm}
+            onClick={() => navigate("/auth")}
             className="bg-[hsl(var(--accent-gold))] hover:bg-[hsl(var(--accent-gold-dark))] text-white min-w-[200px] text-lg h-14"
           >
             Get Started
-            <ArrowDown className="ml-2 h-5 w-5" />
+            <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>
 
