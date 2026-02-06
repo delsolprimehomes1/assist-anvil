@@ -1,7 +1,6 @@
 import { LandingNav } from "@/components/landing/LandingNav";
 import { HeroSection } from "@/components/landing/HeroSection";
 import { FeaturesSection } from "@/components/landing/FeaturesSection";
-import { LeadCaptureForm } from "@/components/landing/LeadCaptureForm";
 import { LandingFooter } from "@/components/landing/LandingFooter";
 
 const LandingPage = () => {
@@ -11,7 +10,6 @@ const LandingPage = () => {
       <main className="pt-16">
         <HeroSection />
         <FeaturesSection />
-        <LeadCaptureForm />
       </main>
       <LandingFooter />
     </div>
