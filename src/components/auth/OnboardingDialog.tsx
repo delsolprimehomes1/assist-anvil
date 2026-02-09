@@ -166,39 +166,39 @@ const steps = [
   },
   {
     id: 2,
-    question: "What's your email address?",
-    icon: Mail,
-    fields: ["email"] as const,
+    question: "Who referred you?",
+    icon: Users,
+    fields: ["referredBy"] as const,
   },
   {
     id: 3,
-    question: "What's your phone number?",
-    icon: Phone,
-    fields: ["phone"] as const,
-  },
-  {
-    id: 4,
-    question: "Are you licensed?",
-    icon: Award,
-    fields: ["isLicensed"] as const,
-  },
-  {
-    id: 5,
     question: "Select your agency code",
     icon: Building2,
     fields: ["agencyCode"] as const,
   },
   {
-    id: 6,
+    id: 4,
     question: "Select your manager",
     icon: UserCheck,
     fields: ["assignedManager"] as const,
   },
   {
+    id: 5,
+    question: "What's your email address?",
+    icon: Mail,
+    fields: ["email"] as const,
+  },
+  {
+    id: 6,
+    question: "What's your phone number?",
+    icon: Phone,
+    fields: ["phone"] as const,
+  },
+  {
     id: 7,
-    question: "Who referred you?",
-    icon: Users,
-    fields: ["referredBy"] as const,
+    question: "Are you licensed?",
+    icon: Award,
+    fields: ["isLicensed"] as const,
   },
   {
     id: 8,
@@ -454,6 +454,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
 
                     {/* Fields */}
                     <div className="space-y-6">
+                      {/* Step 1: Name */}
                       {currentStep === 1 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <FormField
@@ -494,7 +495,96 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                         </div>
                       )}
 
+                      {/* Step 2: Who referred you? */}
                       {currentStep === 2 && (
+                        <FormField
+                          control={form.control}
+                          name="referredBy"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input
+                                  {...field}
+                                  placeholder="Name of person who referred you"
+                                  disabled={loading}
+                                  className="h-14 text-lg"
+                                  autoFocus
+                                />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {/* Step 3: Agency code */}
+                      {currentStep === 3 && (
+                        <FormField
+                          control={form.control}
+                          name="agencyCode"
+                          render={({ field }) => (
+                            <FormItem>
+                              <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                                <FormControl>
+                                  <SelectTrigger className="h-14 text-lg bg-background">
+                                    <SelectValue placeholder="Choose your agency code" />
+                                  </SelectTrigger>
+                                </FormControl>
+                                <SelectContent className="bg-background z-50">
+                                  {["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1500"].map((code) => (
+                                    <SelectItem key={code} value={code} className="text-lg">
+                                      {code}
+                                    </SelectItem>
+                                  ))}
+                                </SelectContent>
+                              </Select>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {/* Step 4: Select manager */}
+                      {currentStep === 4 && (
+                        <FormField
+                          control={form.control}
+                          name="assignedManager"
+                          render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={field.onChange}
+                                  value={field.value}
+                                  className={cn(
+                                    "grid gap-4",
+                                    availableManagers.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
+                                  )}
+                                  disabled={loading}
+                                >
+                                  {availableManagers.map((manager) => (
+                                    <label
+                                      key={manager}
+                                      className={cn(
+                                        "flex items-center justify-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                        field.value === manager
+                                          ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10"
+                                          : "border-border hover:border-muted-foreground"
+                                      )}
+                                    >
+                                      <RadioGroupItem value={manager} className="sr-only" />
+                                      <span className="text-xl font-semibold">{manager}</span>
+                                    </label>
+                                  ))}
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      )}
+
+                      {/* Step 5: Email */}
+                      {currentStep === 5 && (
                         <FormField
                           control={form.control}
                           name="email"
@@ -516,7 +606,8 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                         />
                       )}
 
-                      {currentStep === 3 && (
+                      {/* Step 6: Phone */}
+                      {currentStep === 6 && (
                         <FormField
                           control={form.control}
                           name="phone"
@@ -538,7 +629,8 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                         />
                       )}
 
-                      {currentStep === 4 && (
+                      {/* Step 7: Licensed? */}
+                      {currentStep === 7 && (
                         <FormField
                           control={form.control}
                           name="isLicensed"
@@ -583,91 +675,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                         />
                       )}
 
-                      {currentStep === 5 && (
-                        <FormField
-                          control={form.control}
-                          name="agencyCode"
-                          render={({ field }) => (
-                            <FormItem>
-                              <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
-                                <FormControl>
-                                  <SelectTrigger className="h-14 text-lg bg-background">
-                                    <SelectValue placeholder="Choose your agency code" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent className="bg-background z-50">
-                                  {["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1500"].map((code) => (
-                                    <SelectItem key={code} value={code} className="text-lg">
-                                      {code}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {currentStep === 6 && (
-                        <FormField
-                          control={form.control}
-                          name="assignedManager"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <RadioGroup
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                  className={cn(
-                                    "grid gap-4",
-                                    availableManagers.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
-                                  )}
-                                  disabled={loading}
-                                >
-                                  {availableManagers.map((manager) => (
-                                    <label
-                                      key={manager}
-                                      className={cn(
-                                        "flex items-center justify-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-200",
-                                        field.value === manager
-                                          ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10"
-                                          : "border-border hover:border-muted-foreground"
-                                      )}
-                                    >
-                                      <RadioGroupItem value={manager} className="sr-only" />
-                                      <span className="text-xl font-semibold">{manager}</span>
-                                    </label>
-                                  ))}
-                                </RadioGroup>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {currentStep === 7 && (
-                        <FormField
-                          control={form.control}
-                          name="referredBy"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Name of person who referred you"
-                                  disabled={loading}
-                                  className="h-14 text-lg"
-                                  autoFocus
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
-                      )}
-
+                      {/* Step 8: Password */}
                       {currentStep === 8 && (
                         <div className="space-y-4">
                           <FormField
