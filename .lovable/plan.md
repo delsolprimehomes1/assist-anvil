@@ -1,48 +1,39 @@
 
-# Update Agency Code & Manager Selection System
+# Reorder Onboarding Steps
 
-Updates the onboarding form's agency codes and manager names in `src/components/auth/OnboardingDialog.tsx`.
-
----
-
-## Changes (Single File)
-
-**File:** `src/components/auth/OnboardingDialog.tsx`
-
-### 1. Update AGENCY_MANAGER_MAP (lines 123-130)
-
-Replace the current map with updated names and new codes:
-
-```typescript
-const AGENCY_MANAGER_MAP: Record<string, string[]> = {
-  "100": ["K. Jenson", "E. Young Smith"],       // unchanged
-  "200": ["Chepe G."],                           // was "C. Gutierrez"
-  "300": ["Leah G."],                            // was "L. Gause"
-  "400": ["J. Meletia"],                         // unchanged
-  "500": ["Aaron C."],                           // was "A. Coleman"
-  "600": ["Tara H."],                            // was "T. Hunt"
-  "700": ["Eric H."],                            // new
-  "800": ["Adrian E."],                          // new
-  "900": ["M. Jaramillo"],                       // new
-  "1000": ["R. Pitterman"],                      // new
-  "1500": ["Jason L."],                          // new
-};
-```
-
-### 2. Update Agency Code Dropdown Options (line 594)
-
-Change the array from `["100", "200", "300", "400", "500", "600"]` to include all codes:
-
-```typescript
-["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1500"]
-```
+Rearranges the onboarding form steps in `src/components/auth/OnboardingDialog.tsx`.
 
 ---
 
-## Summary
+## New Step Order
 
-- Agency codes 100 and 400 keep their current format (First Initial. Last Name)
-- Codes 200, 300, 500, 600 switch to "Full First Name Last Initial." format
-- Five new agency codes added: 700, 800, 900, 1000, 1500
-- No database migration needed -- the agency code is stored as a free-text string
-- No other files need changes
+| Step | Content | Was Step |
+|------|---------|----------|
+| 1 | Name (first + last) | 1 (unchanged) |
+| 2 | Who referred you? | 7 |
+| 3 | Select your agency code | 5 |
+| 4 | Select your manager | 6 |
+| 5 | What's your email address? | 2 |
+| 6 | What's your phone number? | 3 |
+| 7 | Are you licensed? | 4 |
+| 8 | Create a secure password | 8 (unchanged) |
+
+---
+
+## Technical Details
+
+**Single file change:** `src/components/auth/OnboardingDialog.tsx`
+
+### 1. Reorder the `steps` array (lines 160-209)
+
+Move the step objects into the new order. The `id` values will be renumbered 1-8 sequentially.
+
+### 2. Reorder the `currentStep ===` render blocks (lines ~457-700)
+
+Match the conditional render blocks to the new step numbers so each step renders the correct form fields.
+
+### 3. No other changes needed
+
+- Form validation, field names, and submission logic remain the same
+- The agency code / manager reset logic continues to work since it watches the field value, not step numbers
+- No database changes required
