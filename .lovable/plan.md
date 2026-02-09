@@ -1,87 +1,48 @@
 
-# Remove Lead Capture Form and Redirect to Auth
+# Update Agency Code & Manager Selection System
 
-This plan simplifies the landing page by removing the lead capture form and making the "Get Started" button redirect directly to the authentication page.
-
----
-
-## Changes Overview
-
-| File | Action |
-|------|--------|
-| `src/pages/LandingPage.tsx` | Remove the `LeadCaptureForm` import and component |
-| `src/components/landing/HeroSection.tsx` | Change "Get Started" button to navigate to `/auth` |
+Updates the onboarding form's agency codes and manager names in `src/components/auth/OnboardingDialog.tsx`.
 
 ---
 
-## Implementation Details
+## Changes (Single File)
 
-### 1. Update HeroSection.tsx
+**File:** `src/components/auth/OnboardingDialog.tsx`
 
-Replace the scroll-to-form behavior with navigation to the auth page:
+### 1. Update AGENCY_MANAGER_MAP (lines 123-130)
 
-**Before:**
-- Uses `scrollToForm()` function to scroll to `#contact` section
-- ArrowDown icon implies scrolling down
+Replace the current map with updated names and new codes:
 
-**After:**
-- Uses `useNavigate()` from react-router-dom to redirect to `/auth`
-- Change icon to ArrowRight to imply navigation forward
-
-```tsx
-import { useNavigate } from "react-router-dom";
-import { ArrowRight } from "lucide-react";
-
-export const HeroSection = () => {
-  const navigate = useNavigate();
-
-  return (
-    // ...
-    <Button
-      size="lg"
-      onClick={() => navigate("/auth")}
-      className="..."
-    >
-      Get Started
-      <ArrowRight className="ml-2 h-5 w-5" />
-    </Button>
-    // ...
-  );
+```typescript
+const AGENCY_MANAGER_MAP: Record<string, string[]> = {
+  "100": ["K. Jenson", "E. Young Smith"],       // unchanged
+  "200": ["Chepe G."],                           // was "C. Gutierrez"
+  "300": ["Leah G."],                            // was "L. Gause"
+  "400": ["J. Meletia"],                         // unchanged
+  "500": ["Aaron C."],                           // was "A. Coleman"
+  "600": ["Tara H."],                            // was "T. Hunt"
+  "700": ["Eric H."],                            // new
+  "800": ["Adrian E."],                          // new
+  "900": ["M. Jaramillo"],                       // new
+  "1000": ["R. Pitterman"],                      // new
+  "1500": ["Jason L."],                          // new
 };
 ```
 
-### 2. Update LandingPage.tsx
+### 2. Update Agency Code Dropdown Options (line 594)
 
-Remove the LeadCaptureForm component entirely:
+Change the array from `["100", "200", "300", "400", "500", "600"]` to include all codes:
 
-**Before:**
-```tsx
-import { LeadCaptureForm } from "@/components/landing/LeadCaptureForm";
-
-// In render:
-<LeadCaptureForm />
+```typescript
+["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1500"]
 ```
-
-**After:**
-```tsx
-// Remove the import
-// Remove the component from render
-```
-
----
-
-## Note on LeadCaptureForm.tsx
-
-The `LeadCaptureForm.tsx` file and `lead_captures` database table will remain in place but unused. This is intentional:
-
-- The file can be deleted later if you're sure you won't need it
-- The database table preserves any existing lead data
-- If you want to re-enable lead capture in the future, it's ready to go
 
 ---
 
 ## Summary
 
-- The landing page will no longer have the "Connect With BattersBox" form section
-- Clicking "Get Started" will take users directly to the sign-in/sign-up page
-- This creates a cleaner, more direct user flow for agents ready to authenticate
+- Agency codes 100 and 400 keep their current format (First Initial. Last Name)
+- Codes 200, 300, 500, 600 switch to "Full First Name Last Initial." format
+- Five new agency codes added: 700, 800, 900, 1000, 1500
+- No database migration needed -- the agency code is stored as a free-text string
+- No other files need changes
