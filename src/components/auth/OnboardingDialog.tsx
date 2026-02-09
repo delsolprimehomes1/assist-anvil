@@ -122,11 +122,16 @@ const fireBrandConfetti = () => {
 // Private mapping - never displayed to user
 const AGENCY_MANAGER_MAP: Record<string, string[]> = {
   "100": ["K. Jenson", "E. Young Smith"],
-  "200": ["C. Gutierrez"],
-  "300": ["L. Gause"],
+  "200": ["Chepe G."],
+  "300": ["Leah G."],
   "400": ["J. Meletia"],
-  "500": ["A. Coleman"],
-  "600": ["T. Hunt"]
+  "500": ["Aaron C."],
+  "600": ["Tara H."],
+  "700": ["Eric H."],
+  "800": ["Adrian E."],
+  "900": ["M. Jaramillo"],
+  "1000": ["R. Pitterman"],
+  "1500": ["Jason L."],
 };
 
 const formSchema = z.object({
@@ -591,7 +596,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                                   </SelectTrigger>
                                 </FormControl>
                                 <SelectContent className="bg-background z-50">
-                                  {["100", "200", "300", "400", "500", "600"].map((code) => (
+                                  {["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1500"].map((code) => (
                                     <SelectItem key={code} value={code} className="text-lg">
                                       {code}
                                     </SelectItem>
