@@ -1,87 +1,43 @@
 
-# Add BattersBox CRM Subscription Button to Sidebar
+# Add BattersBox CRM Button to Mobile
 
-Add a prominent CTA button at the bottom of the sidebar that links to the Stripe payment page for CRM subscription sign-up.
+## Current State
 
----
+On mobile, there are two navigation surfaces:
+1. **Sidebar** (`Sidebar.tsx`) — a slide-out drawer triggered by the hamburger menu. The CRM button already exists here at the bottom, but it's only visible when the drawer is open.
+2. **BottomNav** (`BottomNav.tsx`) — the fixed bottom tab bar always visible on mobile. The CRM button is **not** here, so most mobile users never see it.
 
-## Change Overview
-
-**Single file:** `src/components/layout/Sidebar.tsx`
-
----
-
-## What Changes
-
-### Sidebar Layout
-
-The sidebar `<div>` currently uses a simple `<nav>` block filling its height. We need to restructure it into a flex column so the nav items fill the top and the CRM subscription button is pinned to the bottom.
-
-**Before:**
-```
-[sidebar container]
-  └── [nav items]
-```
-
-**After:**
-```
-[sidebar container - flex col, full height]
-  ├── [mobile header]
-  ├── [nav items - flex-1, scrollable]
-  └── [CRM Subscription button - pinned bottom]
-```
-
-### CRM Subscription Button Design
-
-- Placed inside a padded `div` at the bottom of the sidebar
-- Styled with a **gold/premium** look to stand out as a CTA
-- Uses the `CreditCard` icon from lucide-react
-- Label: **"BattersBox CRM"** with subtext **"Subscribe for Access"**
-- Opens `https://buy.stripe.com/4gM7sK95m9Ha77s7Itgw00q` in a new tab
-- Includes a small `ExternalLink` indicator
+## What Changes (2 files)
 
 ---
 
-## Visual Layout
+### 1. `src/components/layout/BottomNav.tsx` — Add CRM button
 
+The bottom nav currently shows 5 items (Dashboard, Order Leads, CRM, Performance, Carriers). We'll replace the existing **CRM** tab (which goes to an external CRM app) with a dedicated gold-styled **BattersBox CRM** subscribe button so it stands out from the regular nav items.
+
+The new item will be styled differently from the plain nav tabs — a gold accent color to make it clearly a CTA. It links to `https://buy.stripe.com/4gM7sK95m9Ha77s7Itgw00q` and opens in a new tab.
+
+Updated bottom nav layout:
 ```text
-┌─────────────────────────┐
-│  Menu             [X]   │  ← mobile header
-├─────────────────────────┤
-│  Dashboard              │
-│  Order Leads    ↗       │
-│  CRM            ↗       │
-│  Carriers               │
-│  News                   │
-│  Quoting Tools          │
-│  Training               │
-│  Marketing              │
-│  Compliance             │
-│  AI Assist              │
-│  Performance            │
-│  Organization           │
-│  Admin                  │
-│                         │
-├─────────────────────────┤
-│  ┌─────────────────┐    │
-│  │ 💳 BattersBox   │    │  ← gold CTA button
-│  │    CRM          │    │
-│  │ Subscribe ↗     │    │
-│  └─────────────────┘    │
-└─────────────────────────┘
+[ Dashboard ] [ Order Leads ] [ 💳 CRM ] [ Performance ] [ Carriers ]
+                                  ↑ gold color, CreditCard icon
 ```
 
 ---
 
-## Implementation Details
+### 2. `src/components/layout/Sidebar.tsx` — Polish mobile CRM button
 
-1. Add `CreditCard` to the lucide-react imports
-2. Change the sidebar inner `<div>` to `flex flex-col h-full`
-3. Add `flex-1 overflow-y-auto` to the `<nav>` so it scrolls if needed
-4. Add a bottom section with a styled anchor tag linking to the Stripe URL
+The existing CRM button at the bottom of the sidebar is already functional, but we'll improve it for mobile:
+- Add `min-h-[52px]` for a proper touch target (44px+ minimum per mobile-first guidelines)
+- Make the text slightly larger and more legible on small screens
+- Add a subtle pulsing glow animation to draw attention to it as a CTA
 
-The button will have:
-- Gold border and gold text color to differentiate it from nav items
-- Background: subtle gold/amber tint (`bg-gold/10 hover:bg-gold/20`)
-- Two-line layout: bold name + smaller "Subscribe for Access" subtext
-- `CreditCard` icon on left, `ExternalLink` icon on right
+---
+
+## Technical Details
+
+- No database changes needed
+- No new dependencies needed
+- `CreditCard` icon already imported in `Sidebar.tsx`; will be imported in `BottomNav.tsx`
+- The gold color (`text-gold`) is already used in both files so the design token is available
+- The bottom nav currently has 5 items which fits all mobile screen widths. Replacing the existing CRM external link with the styled subscribe button keeps the count at 5.
