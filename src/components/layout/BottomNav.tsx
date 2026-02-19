@@ -2,17 +2,15 @@ import { NavLink } from "react-router-dom";
 import { 
   BarChart3, 
   Building2, 
-  Calculator, 
   TrendingUp,
   ShoppingBag,
-  Users
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
   { name: "Order Leads", href: "https://leads.lifecoimo.com/leads", icon: ShoppingBag, external: true },
-  { name: "CRM", href: "https://lead.lifecoinsurancenetwork.com/", icon: Users, external: true },
   { name: "Performance", href: "/dashboard/performance", icon: TrendingUp },
   { name: "Carriers", href: "/dashboard/carriers", icon: Building2 },
 ];
@@ -69,6 +67,19 @@ export const BottomNav = () => {
             </NavLink>
           );
         })}
+
+        {/* BattersBox CRM Subscribe CTA */}
+        <a
+          href="https://buy.stripe.com/4gM7sK95m9Ha77s7Itgw00q"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="flex flex-col items-center px-2 py-1.5 min-h-[52px] justify-center group"
+        >
+          <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gold/15 border border-gold/40 mb-0.5 transition-all group-active:scale-95 group-hover:bg-gold/25">
+            <CreditCard className="h-4 w-4 text-gold" />
+          </div>
+          <span className="text-[10px] font-semibold text-gold leading-tight text-center">CRM</span>
+        </a>
       </nav>
     </div>
   );
