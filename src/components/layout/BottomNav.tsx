@@ -10,7 +10,7 @@ import { cn } from "@/lib/utils";
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: BarChart3 },
-  { name: "Order Leads", href: "https://leads.lifecoimo.com/leads", icon: ShoppingBag, external: true },
+  { name: "Leads", href: "https://leads.lifecoimo.com/leads", icon: ShoppingBag, external: true },
   { name: "Performance", href: "/dashboard/performance", icon: TrendingUp },
   { name: "Carriers", href: "/dashboard/carriers", icon: Building2 },
 ];
@@ -78,7 +78,7 @@ export const BottomNav = () => {
           <div className="flex items-center justify-center w-8 h-8 rounded-full bg-gold/15 border border-gold/40 mb-0.5 transition-all group-active:scale-95 group-hover:bg-gold/25">
             <CreditCard className="h-4 w-4 text-gold" />
           </div>
-          <span className="text-[10px] font-semibold text-gold leading-tight text-center">CRM</span>
+          <span className="text-[10px] font-semibold text-gold leading-tight text-center">CRM Signup</span>
         </a>
       </nav>
     </div>
