@@ -1,39 +1,87 @@
 
-# Reorder Onboarding Steps
+# Add BattersBox CRM Subscription Button to Sidebar
 
-Rearranges the onboarding form steps in `src/components/auth/OnboardingDialog.tsx`.
-
----
-
-## New Step Order
-
-| Step | Content | Was Step |
-|------|---------|----------|
-| 1 | Name (first + last) | 1 (unchanged) |
-| 2 | Who referred you? | 7 |
-| 3 | Select your agency code | 5 |
-| 4 | Select your manager | 6 |
-| 5 | What's your email address? | 2 |
-| 6 | What's your phone number? | 3 |
-| 7 | Are you licensed? | 4 |
-| 8 | Create a secure password | 8 (unchanged) |
+Add a prominent CTA button at the bottom of the sidebar that links to the Stripe payment page for CRM subscription sign-up.
 
 ---
 
-## Technical Details
+## Change Overview
 
-**Single file change:** `src/components/auth/OnboardingDialog.tsx`
+**Single file:** `src/components/layout/Sidebar.tsx`
 
-### 1. Reorder the `steps` array (lines 160-209)
+---
 
-Move the step objects into the new order. The `id` values will be renumbered 1-8 sequentially.
+## What Changes
 
-### 2. Reorder the `currentStep ===` render blocks (lines ~457-700)
+### Sidebar Layout
 
-Match the conditional render blocks to the new step numbers so each step renders the correct form fields.
+The sidebar `<div>` currently uses a simple `<nav>` block filling its height. We need to restructure it into a flex column so the nav items fill the top and the CRM subscription button is pinned to the bottom.
 
-### 3. No other changes needed
+**Before:**
+```
+[sidebar container]
+  └── [nav items]
+```
 
-- Form validation, field names, and submission logic remain the same
-- The agency code / manager reset logic continues to work since it watches the field value, not step numbers
-- No database changes required
+**After:**
+```
+[sidebar container - flex col, full height]
+  ├── [mobile header]
+  ├── [nav items - flex-1, scrollable]
+  └── [CRM Subscription button - pinned bottom]
+```
+
+### CRM Subscription Button Design
+
+- Placed inside a padded `div` at the bottom of the sidebar
+- Styled with a **gold/premium** look to stand out as a CTA
+- Uses the `CreditCard` icon from lucide-react
+- Label: **"BattersBox CRM"** with subtext **"Subscribe for Access"**
+- Opens `https://buy.stripe.com/4gM7sK95m9Ha77s7Itgw00q` in a new tab
+- Includes a small `ExternalLink` indicator
+
+---
+
+## Visual Layout
+
+```text
+┌─────────────────────────┐
+│  Menu             [X]   │  ← mobile header
+├─────────────────────────┤
+│  Dashboard              │
+│  Order Leads    ↗       │
+│  CRM            ↗       │
+│  Carriers               │
+│  News                   │
+│  Quoting Tools          │
+│  Training               │
+│  Marketing              │
+│  Compliance             │
+│  AI Assist              │
+│  Performance            │
+│  Organization           │
+│  Admin                  │
+│                         │
+├─────────────────────────┤
+│  ┌─────────────────┐    │
+│  │ 💳 BattersBox   │    │  ← gold CTA button
+│  │    CRM          │    │
+│  │ Subscribe ↗     │    │
+│  └─────────────────┘    │
+└─────────────────────────┘
+```
+
+---
+
+## Implementation Details
+
+1. Add `CreditCard` to the lucide-react imports
+2. Change the sidebar inner `<div>` to `flex flex-col h-full`
+3. Add `flex-1 overflow-y-auto` to the `<nav>` so it scrolls if needed
+4. Add a bottom section with a styled anchor tag linking to the Stripe URL
+
+The button will have:
+- Gold border and gold text color to differentiate it from nav items
+- Background: subtle gold/amber tint (`bg-gold/10 hover:bg-gold/20`)
+- Two-line layout: bold name + smaller "Subscribe for Access" subtext
+- `CreditCard` icon on left, `ExternalLink` icon on right
