@@ -1,43 +1,27 @@
 
-# Add BattersBox CRM Button to Mobile
+# Optimize BottomNav Labels
 
-## Current State
+## Problem
+The mobile bottom nav has two issues visible in the screenshot:
+1. "Order Leads" is too long and wraps awkwardly on small screens
+2. The gold "CRM" button looks identical in name to the "CRM" link in the sidebar drawer, causing confusion about what each one does
 
-On mobile, there are two navigation surfaces:
-1. **Sidebar** (`Sidebar.tsx`) — a slide-out drawer triggered by the hamburger menu. The CRM button already exists here at the bottom, but it's only visible when the drawer is open.
-2. **BottomNav** (`BottomNav.tsx`) — the fixed bottom tab bar always visible on mobile. The CRM button is **not** here, so most mobile users never see it.
+## Changes — 1 file only: `src/components/layout/BottomNav.tsx`
 
-## What Changes (2 files)
+### 1. Rename "Order Leads" → "Leads"
+Line 13: Change the `name` property from `"Order Leads"` to `"Leads"` in the navigation array.
 
----
+### 2. Rename bottom CRM button label "CRM" → "CRM Signup"
+Line 81: Change the `<span>` text from `"CRM"` to `"CRM Signup"` so it clearly signals its purpose — subscribing/signing up — rather than navigating to the CRM app.
 
-### 1. `src/components/layout/BottomNav.tsx` — Add CRM button
+## Result
 
-The bottom nav currently shows 5 items (Dashboard, Order Leads, CRM, Performance, Carriers). We'll replace the existing **CRM** tab (which goes to an external CRM app) with a dedicated gold-styled **BattersBox CRM** subscribe button so it stands out from the regular nav items.
-
-The new item will be styled differently from the plain nav tabs — a gold accent color to make it clearly a CTA. It links to `https://buy.stripe.com/4gM7sK95m9Ha77s7Itgw00q` and opens in a new tab.
-
-Updated bottom nav layout:
 ```text
-[ Dashboard ] [ Order Leads ] [ 💳 CRM ] [ Performance ] [ Carriers ]
-                                  ↑ gold color, CreditCard icon
+Before:                          After:
+[ Dashboard ] [ Order Leads ]   [ Dashboard ] [ Leads ]
+[ Performance ] [ Carriers ]    [ Performance ] [ Carriers ]
+[ CRM ]                         [ CRM Signup ]
+     ↑ ambiguous                      ↑ clearly a sign-up action
 ```
 
----
-
-### 2. `src/components/layout/Sidebar.tsx` — Polish mobile CRM button
-
-The existing CRM button at the bottom of the sidebar is already functional, but we'll improve it for mobile:
-- Add `min-h-[52px]` for a proper touch target (44px+ minimum per mobile-first guidelines)
-- Make the text slightly larger and more legible on small screens
-- Add a subtle pulsing glow animation to draw attention to it as a CTA
-
----
-
-## Technical Details
-
-- No database changes needed
-- No new dependencies needed
-- `CreditCard` icon already imported in `Sidebar.tsx`; will be imported in `BottomNav.tsx`
-- The gold color (`text-gold`) is already used in both files so the design token is available
-- The bottom nav currently has 5 items which fits all mobile screen widths. Replacing the existing CRM external link with the styled subscribe button keeps the count at 5.
+No other files need to change. The sidebar CRM link (which goes to `app.battersbox.ai`) keeps its label in the drawer nav and is separate from this subscription CTA.
