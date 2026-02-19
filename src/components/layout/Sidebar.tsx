@@ -132,14 +132,16 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             target="_blank"
             rel="noopener noreferrer"
             onClick={onClose}
-            className="flex items-center gap-3 px-3 py-3 rounded-md border border-gold/40 bg-gold/10 hover:bg-gold/20 transition-all group w-full"
+            className="flex items-center gap-3 px-3 py-3 rounded-lg border border-gold/50 bg-gold/10 hover:bg-gold/20 active:scale-[0.98] transition-all group w-full min-h-[52px] shadow-sm hover:shadow-[0_0_12px_hsl(var(--gold)/0.3)]"
           >
-            <CreditCard className="h-5 w-5 flex-shrink-0 text-gold" />
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gold leading-tight">BattersBox CRM</p>
-              <p className="text-xs text-gold/70 leading-tight">Subscribe for Access</p>
+            <div className="flex-shrink-0 w-9 h-9 rounded-full bg-gold/20 flex items-center justify-center border border-gold/40">
+              <CreditCard className="h-4.5 w-4.5 text-gold" />
             </div>
-            <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-gold/60" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-bold text-gold leading-tight">BattersBox CRM</p>
+              <p className="text-xs text-gold/70 leading-tight mt-0.5">Subscribe for Access</p>
+            </div>
+            <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-gold/60 group-hover:text-gold transition-colors" />
           </a>
         </div>
       </div>
