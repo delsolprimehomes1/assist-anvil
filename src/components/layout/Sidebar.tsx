@@ -14,7 +14,8 @@ import {
   Newspaper,
   ExternalLink,
   Network,
-  TrendingUp
+  TrendingUp,
+  CreditCard
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -59,7 +60,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
       {/* Sidebar */}
       <div
         className={cn(
-          "fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-64 border-r bg-background transition-transform duration-300 md:relative md:top-0 md:translate-x-0",
+          "fixed left-0 top-16 z-50 h-[calc(100vh-4rem)] w-64 border-r bg-background transition-transform duration-300 md:relative md:top-0 md:translate-x-0 flex flex-col",
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
@@ -74,7 +75,7 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
           </Button>
         </div>
         
-        <nav className="space-y-1 p-3">
+        <nav className="space-y-1 p-3 flex-1 overflow-y-auto">
           {navigation.map((item) => {
             if (item.external) {
               return (
@@ -123,6 +124,24 @@ export const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             );
           })}
         </nav>
+
+        {/* CRM Subscription CTA */}
+        <div className="p-3 border-t">
+          <a
+            href="https://buy.stripe.com/4gM7sK95m9Ha77s7Itgw00q"
+            target="_blank"
+            rel="noopener noreferrer"
+            onClick={onClose}
+            className="flex items-center gap-3 px-3 py-3 rounded-md border border-gold/40 bg-gold/10 hover:bg-gold/20 transition-all group w-full"
+          >
+            <CreditCard className="h-5 w-5 flex-shrink-0 text-gold" />
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gold leading-tight">BattersBox CRM</p>
+              <p className="text-xs text-gold/70 leading-tight">Subscribe for Access</p>
+            </div>
+            <ExternalLink className="h-3.5 w-3.5 flex-shrink-0 text-gold/60" />
+          </a>
+        </div>
       </div>
     </>
   );
