@@ -24,7 +24,6 @@ const BRAND_GOLD = "#C98A3A";
 // Trigger haptic feedback on mobile devices
 const triggerHapticFeedback = () => {
   if (typeof navigator !== "undefined" && "vibrate" in navigator) {
-    // Pattern: short burst, pause, longer celebration burst
     navigator.vibrate([50, 30, 100, 30, 50]);
   }
 };
@@ -32,10 +31,8 @@ const triggerHapticFeedback = () => {
 // Play a subtle celebration sound
 const playCelebrationSound = () => {
   try {
-    // Create a simple celebration tone using Web Audio API
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     
-    // Create two quick ascending tones for a "success" feel
     const playTone = (frequency: number, startTime: number, duration: number) => {
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -46,7 +43,6 @@ const playCelebrationSound = () => {
       oscillator.frequency.value = frequency;
       oscillator.type = "sine";
       
-      // Gentle volume envelope
       gainNode.gain.setValueAtTime(0, startTime);
       gainNode.gain.linearRampToValueAtTime(0.1, startTime + 0.02);
       gainNode.gain.linearRampToValueAtTime(0, startTime + duration);
@@ -56,18 +52,15 @@ const playCelebrationSound = () => {
     };
     
     const now = audioContext.currentTime;
-    // Quick ascending "ding-ding" celebration sound
-    playTone(523.25, now, 0.15); // C5
-    playTone(659.25, now + 0.1, 0.2); // E5
-    playTone(783.99, now + 0.2, 0.25); // G5
+    playTone(523.25, now, 0.15);
+    playTone(659.25, now + 0.1, 0.2);
+    playTone(783.99, now + 0.2, 0.25);
   } catch (error) {
-    // Silently fail if audio isn't available
     console.log("Audio not available:", error);
   }
 };
 
 const fireBrandConfetti = () => {
-  // Trigger haptic feedback and sound
   triggerHapticFeedback();
   playCelebrationSound();
   const count = 200;
@@ -84,39 +77,12 @@ const fireBrandConfetti = () => {
     });
   }
 
-  // Left side burst
-  fire(0.25, {
-    spread: 26,
-    startVelocity: 55,
-    origin: { x: 0, y: 0.7 },
-  });
-  fire(0.2, {
-    spread: 60,
-    origin: { x: 0, y: 0.7 },
-  });
-  fire(0.35, {
-    spread: 100,
-    decay: 0.91,
-    scalar: 0.8,
-    origin: { x: 0.1, y: 0.7 },
-  });
-
-  // Right side burst
-  fire(0.25, {
-    spread: 26,
-    startVelocity: 55,
-    origin: { x: 1, y: 0.7 },
-  });
-  fire(0.2, {
-    spread: 60,
-    origin: { x: 1, y: 0.7 },
-  });
-  fire(0.35, {
-    spread: 100,
-    decay: 0.91,
-    scalar: 0.8,
-    origin: { x: 0.9, y: 0.7 },
-  });
+  fire(0.25, { spread: 26, startVelocity: 55, origin: { x: 0, y: 0.7 } });
+  fire(0.2, { spread: 60, origin: { x: 0, y: 0.7 } });
+  fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: 0.1, y: 0.7 } });
+  fire(0.25, { spread: 26, startVelocity: 55, origin: { x: 1, y: 0.7 } });
+  fire(0.2, { spread: 60, origin: { x: 1, y: 0.7 } });
+  fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: 0.9, y: 0.7 } });
 };
 
 // Private mapping - never displayed to user
@@ -134,7 +100,8 @@ const AGENCY_MANAGER_MAP: Record<string, string[]> = {
   "1500": ["Jason L."],
 };
 
-const formSchema = z.object({
+// Full schema for new users (includes password)
+const fullFormSchema = z.object({
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
@@ -150,72 +117,54 @@ const formSchema = z.object({
   path: ["confirmPassword"],
 });
 
-type FormValues = z.infer<typeof formSchema>;
+// Reduced schema for existing users (no password)
+const existingUserFormSchema = z.object({
+  firstName: z.string().min(2, "First name must be at least 2 characters"),
+  lastName: z.string().min(2, "Last name must be at least 2 characters"),
+  email: z.string().email("Invalid email address"),
+  phone: z.string().min(10, "Phone number must be at least 10 digits"),
+  isLicensed: z.enum(["yes", "no"], { required_error: "Please select an option" }),
+  agencyCode: z.string().min(1, "Please select an agency code"),
+  assignedManager: z.string().min(1, "Please select your manager"),
+  referredBy: z.string().min(2, "Please enter who referred you"),
+  password: z.string().optional(),
+  confirmPassword: z.string().optional(),
+});
+
+type FormValues = z.infer<typeof fullFormSchema>;
 
 interface OnboardingDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }
 
-const steps = [
-  {
-    id: 1,
-    question: "Let's start with your name",
-    icon: User,
-    fields: ["firstName", "lastName"] as const,
-  },
-  {
-    id: 2,
-    question: "Who referred you?",
-    icon: Users,
-    fields: ["referredBy"] as const,
-  },
-  {
-    id: 3,
-    question: "Select your agency code",
-    icon: Building2,
-    fields: ["agencyCode"] as const,
-  },
-  {
-    id: 4,
-    question: "Select your manager",
-    icon: UserCheck,
-    fields: ["assignedManager"] as const,
-  },
-  {
-    id: 5,
-    question: "What's your email address?",
-    icon: Mail,
-    fields: ["email"] as const,
-  },
-  {
-    id: 6,
-    question: "What's your phone number?",
-    icon: Phone,
-    fields: ["phone"] as const,
-  },
-  {
-    id: 7,
-    question: "Are you licensed?",
-    icon: Award,
-    fields: ["isLicensed"] as const,
-  },
-  {
-    id: 8,
-    question: "Create a secure password",
-    icon: Lock,
-    fields: ["password", "confirmPassword"] as const,
-  },
+const allSteps = [
+  { id: 1, question: "Let's start with your name", icon: User, fields: ["firstName", "lastName"] as const },
+  { id: 2, question: "Who referred you?", icon: Users, fields: ["referredBy"] as const },
+  { id: 3, question: "Select your agency code", icon: Building2, fields: ["agencyCode"] as const },
+  { id: 4, question: "Select your manager", icon: UserCheck, fields: ["assignedManager"] as const },
+  { id: 5, question: "What's your email address?", icon: Mail, fields: ["email"] as const },
+  { id: 6, question: "What's your phone number?", icon: Phone, fields: ["phone"] as const },
+  { id: 7, question: "Are you licensed?", icon: Award, fields: ["isLicensed"] as const },
+  { id: 8, question: "Create a secure password", icon: Lock, fields: ["password", "confirmPassword"] as const },
 ];
+
+const passwordStepId = 8;
 
 export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) => {
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+  const [isExistingUser, setIsExistingUser] = useState(false);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
 
+  // Dynamically compute steps based on existing user status
+  const steps = isExistingUser
+    ? allSteps.filter((s) => s.id !== passwordStepId)
+    : allSteps;
+
   const form = useForm<FormValues>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(isExistingUser ? existingUserFormSchema : fullFormSchema),
     defaultValues: {
       firstName: "",
       lastName: "",
@@ -234,11 +183,12 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   const selectedAgencyCode = form.watch("agencyCode");
   
   useEffect(() => {
-    // Reset manager selection when agency code changes
     form.setValue("assignedManager", "");
   }, [selectedAgencyCode, form]);
 
-  const currentStepConfig = steps[currentStep - 1];
+  // Find the current step config by matching the step index
+  const currentStepIndex = currentStep - 1;
+  const currentStepConfig = steps[currentStepIndex];
   const progress = (currentStep / steps.length) * 100;
 
   const validateCurrentStep = async () => {
@@ -247,9 +197,41 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
     return result;
   };
 
+  const checkEmailExists = async (email: string): Promise<boolean> => {
+    try {
+      const { data, error } = await supabase.rpc('check_email_exists', {
+        check_email: email,
+      });
+      if (error) {
+        console.error("Error checking email:", error);
+        return false;
+      }
+      return data === true;
+    } catch (err) {
+      console.error("Error checking email:", err);
+      return false;
+    }
+  };
+
   const nextStep = async () => {
     const isValid = await validateCurrentStep();
-    if (isValid && currentStep < steps.length) {
+    if (!isValid) return;
+
+    // Check email after the email step (step id 5)
+    if (currentStepConfig.id === 5) {
+      const email = form.getValues("email");
+      const exists = await checkEmailExists(email);
+      if (exists) {
+        setIsExistingUser(true);
+        // Clear password fields since they won't be needed
+        form.setValue("password", "");
+        form.setValue("confirmPassword", "");
+      } else {
+        setIsExistingUser(false);
+      }
+    }
+
+    if (currentStep < steps.length) {
       setCurrentStep(currentStep + 1);
     }
   };
@@ -263,62 +245,88 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
-      const { data: authData, error: authError } = await supabase.auth.signUp({
-        email: values.email,
-        password: values.password,
-        options: {
-          data: {
-            full_name: `${values.firstName} ${values.lastName}`,
-          },
-          emailRedirectTo: `${window.location.origin}/`,
-        },
-      });
+      if (isExistingUser) {
+        // Existing user: skip signup, just send webhook
+        const { error: webhookError } = await supabase.functions.invoke(
+          "send-onboarding-webhook",
+          {
+            body: {
+              firstName: values.firstName,
+              lastName: values.lastName,
+              email: values.email,
+              phone: values.phone,
+              isLicensed: values.isLicensed === "yes",
+              agencyCode: values.agencyCode,
+              assignedManager: values.assignedManager,
+              referredBy: values.referredBy,
+            },
+          }
+        );
 
-      if (authError) throw authError;
-      if (!authData.user) throw new Error("Failed to create account");
+        if (webhookError) {
+          console.error("Webhook error:", webhookError);
+        }
 
-      const { error: dbError } = await supabase
-        .from("onboarding_requests")
-        .insert({
-          user_id: authData.user.id,
-          first_name: values.firstName,
-          last_name: values.lastName,
+        fireBrandConfetti();
+        toast.success("Your information has been submitted!");
+        onOpenChange(false);
+      } else {
+        // New user: full signup flow
+        const { data: authData, error: authError } = await supabase.auth.signUp({
           email: values.email,
-          phone: values.phone,
-          is_licensed: values.isLicensed === "yes",
-          agency_code: values.agencyCode || null,
-          assigned_manager: values.assignedManager || null,
-          referred_by: values.referredBy || null,
+          password: values.password!,
+          options: {
+            data: {
+              full_name: `${values.firstName} ${values.lastName}`,
+            },
+            emailRedirectTo: `${window.location.origin}/`,
+          },
         });
 
-      if (dbError) throw dbError;
+        if (authError) throw authError;
+        if (!authData.user) throw new Error("Failed to create account");
 
-      const { error: webhookError } = await supabase.functions.invoke(
-        "send-onboarding-webhook",
-        {
-          body: {
-            firstName: values.firstName,
-            lastName: values.lastName,
+        const { error: dbError } = await supabase
+          .from("onboarding_requests")
+          .insert({
+            user_id: authData.user.id,
+            first_name: values.firstName,
+            last_name: values.lastName,
             email: values.email,
             phone: values.phone,
-            isLicensed: values.isLicensed === "yes",
-            agencyCode: values.agencyCode,
-            assignedManager: values.assignedManager,
-            referredBy: values.referredBy,
-          },
+            is_licensed: values.isLicensed === "yes",
+            agency_code: values.agencyCode || null,
+            assigned_manager: values.assignedManager || null,
+            referred_by: values.referredBy || null,
+          });
+
+        if (dbError) throw dbError;
+
+        const { error: webhookError } = await supabase.functions.invoke(
+          "send-onboarding-webhook",
+          {
+            body: {
+              firstName: values.firstName,
+              lastName: values.lastName,
+              email: values.email,
+              phone: values.phone,
+              isLicensed: values.isLicensed === "yes",
+              agencyCode: values.agencyCode,
+              assignedManager: values.assignedManager,
+              referredBy: values.referredBy,
+            },
+          }
+        );
+
+        if (webhookError) {
+          console.error("Webhook error:", webhookError);
         }
-      );
 
-      if (webhookError) {
-        console.error("Webhook error:", webhookError);
+        fireBrandConfetti();
+        toast.success("Request submitted successfully!");
+        onOpenChange(false);
+        navigate("/pending-approval");
       }
-
-      // Fire branded confetti celebration
-      fireBrandConfetti();
-
-      toast.success("Request submitted successfully!");
-      onOpenChange(false);
-      navigate("/pending-approval");
     } catch (error: any) {
       console.error("Onboarding error:", error);
       toast.error(error.message || "Failed to submit request");
@@ -344,12 +352,13 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
       window.addEventListener("keypress", handleKeyPress);
       return () => window.removeEventListener("keypress", handleKeyPress);
     }
-  }, [open, currentStep, loading]);
+  }, [open, currentStep, loading, steps.length, isExistingUser]);
 
   // Reset to step 1 when dialog opens
   useEffect(() => {
     if (open) {
       setCurrentStep(1);
+      setIsExistingUser(false);
     }
   }, [open]);
 
@@ -380,10 +389,11 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
     prevStep();
   };
 
-  const Icon = currentStepConfig.icon;
+  if (!currentStepConfig) return null;
 
-  // Get available managers for the selected agency code
+  const Icon = currentStepConfig.icon;
   const availableManagers = AGENCY_MANAGER_MAP[selectedAgencyCode] || [];
+  const isLastStep = currentStep === steps.length;
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -404,17 +414,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
           className="absolute top-6 right-6 text-muted-foreground hover:text-foreground transition-colors z-50"
           aria-label="Close"
         >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>
             <line x1="6" y1="6" x2="18" y2="18"></line>
           </svg>
@@ -433,7 +433,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
 
                 <AnimatePresence mode="wait" custom={direction}>
                   <motion.div
-                    key={currentStep}
+                    key={currentStepConfig.id}
                     custom={direction}
                     variants={slideVariants}
                     initial="enter"
@@ -455,266 +455,164 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                     {/* Fields */}
                     <div className="space-y-6">
                       {/* Step 1: Name */}
-                      {currentStep === 1 && (
+                      {currentStepConfig.id === 1 && (
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                          <FormField
-                            control={form.control}
-                            name="firstName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="First name"
-                                    disabled={loading}
-                                    className="h-14 text-lg"
-                                    autoFocus
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="lastName"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    placeholder="Last name"
-                                    disabled={loading}
-                                    className="h-14 text-lg"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          <FormField control={form.control} name="firstName" render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} placeholder="First name" disabled={loading} className="h-14 text-lg" autoFocus />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+                          <FormField control={form.control} name="lastName" render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} placeholder="Last name" disabled={loading} className="h-14 text-lg" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
                         </div>
                       )}
 
                       {/* Step 2: Who referred you? */}
-                      {currentStep === 2 && (
-                        <FormField
-                          control={form.control}
-                          name="referredBy"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  placeholder="Name of person who referred you"
-                                  disabled={loading}
-                                  className="h-14 text-lg"
-                                  autoFocus
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      {currentStepConfig.id === 2 && (
+                        <FormField control={form.control} name="referredBy" render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input {...field} placeholder="Name of person who referred you" disabled={loading} className="h-14 text-lg" autoFocus />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
                       )}
 
                       {/* Step 3: Agency code */}
-                      {currentStep === 3 && (
-                        <FormField
-                          control={form.control}
-                          name="agencyCode"
-                          render={({ field }) => (
-                            <FormItem>
-                              <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
-                                <FormControl>
-                                  <SelectTrigger className="h-14 text-lg bg-background">
-                                    <SelectValue placeholder="Choose your agency code" />
-                                  </SelectTrigger>
-                                </FormControl>
-                                <SelectContent className="bg-background z-50">
-                                  {["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1500"].map((code) => (
-                                    <SelectItem key={code} value={code} className="text-lg">
-                                      {code}
-                                    </SelectItem>
-                                  ))}
-                                </SelectContent>
-                              </Select>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      {currentStepConfig.id === 3 && (
+                        <FormField control={form.control} name="agencyCode" render={({ field }) => (
+                          <FormItem>
+                            <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                              <FormControl>
+                                <SelectTrigger className="h-14 text-lg bg-background">
+                                  <SelectValue placeholder="Choose your agency code" />
+                                </SelectTrigger>
+                              </FormControl>
+                              <SelectContent className="bg-background z-50">
+                                {["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1500"].map((code) => (
+                                  <SelectItem key={code} value={code} className="text-lg">{code}</SelectItem>
+                                ))}
+                              </SelectContent>
+                            </Select>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
                       )}
 
                       {/* Step 4: Select manager */}
-                      {currentStep === 4 && (
-                        <FormField
-                          control={form.control}
-                          name="assignedManager"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <RadioGroup
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                  className={cn(
-                                    "grid gap-4",
-                                    availableManagers.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2"
-                                  )}
-                                  disabled={loading}
-                                >
-                                  {availableManagers.map((manager) => (
-                                    <label
-                                      key={manager}
-                                      className={cn(
-                                        "flex items-center justify-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-200",
-                                        field.value === manager
-                                          ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10"
-                                          : "border-border hover:border-muted-foreground"
-                                      )}
-                                    >
-                                      <RadioGroupItem value={manager} className="sr-only" />
-                                      <span className="text-xl font-semibold">{manager}</span>
-                                    </label>
-                                  ))}
-                                </RadioGroup>
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      {currentStepConfig.id === 4 && (
+                        <FormField control={form.control} name="assignedManager" render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <RadioGroup
+                                onValueChange={field.onChange}
+                                value={field.value}
+                                className={cn("grid gap-4", availableManagers.length === 1 ? "grid-cols-1" : "grid-cols-1 md:grid-cols-2")}
+                                disabled={loading}
+                              >
+                                {availableManagers.map((manager) => (
+                                  <label
+                                    key={manager}
+                                    className={cn(
+                                      "flex items-center justify-center p-6 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                      field.value === manager
+                                        ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10"
+                                        : "border-border hover:border-muted-foreground"
+                                    )}
+                                  >
+                                    <RadioGroupItem value={manager} className="sr-only" />
+                                    <span className="text-xl font-semibold">{manager}</span>
+                                  </label>
+                                ))}
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
                       )}
 
                       {/* Step 5: Email */}
-                      {currentStep === 5 && (
-                        <FormField
-                          control={form.control}
-                          name="email"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="email"
-                                  placeholder="yourname@example.com"
-                                  disabled={loading}
-                                  className="h-14 text-lg"
-                                  autoFocus
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      {currentStepConfig.id === 5 && (
+                        <FormField control={form.control} name="email" render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input {...field} type="email" placeholder="yourname@example.com" disabled={loading} className="h-14 text-lg" autoFocus />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
                       )}
 
                       {/* Step 6: Phone */}
-                      {currentStep === 6 && (
-                        <FormField
-                          control={form.control}
-                          name="phone"
-                          render={({ field }) => (
-                            <FormItem>
-                              <FormControl>
-                                <Input
-                                  {...field}
-                                  type="tel"
-                                  placeholder="(555) 123-4567"
-                                  disabled={loading}
-                                  className="h-14 text-lg"
-                                  autoFocus
-                                />
-                              </FormControl>
-                              <FormMessage />
-                            </FormItem>
-                          )}
-                        />
+                      {currentStepConfig.id === 6 && (
+                        <FormField control={form.control} name="phone" render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <Input {...field} type="tel" placeholder="(555) 123-4567" disabled={loading} className="h-14 text-lg" autoFocus />
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
                       )}
 
                       {/* Step 7: Licensed? */}
-                      {currentStep === 7 && (
-                        <FormField
-                          control={form.control}
-                          name="isLicensed"
-                          render={({ field }) => (
+                      {currentStepConfig.id === 7 && (
+                        <FormField control={form.control} name="isLicensed" render={({ field }) => (
+                          <FormItem>
+                            <FormControl>
+                              <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4" disabled={loading}>
+                                <label className={cn(
+                                  "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                  field.value === "yes" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
+                                )}>
+                                  <RadioGroupItem value="yes" className="sr-only" />
+                                  <Award className="w-12 h-12 mb-3 text-green-500" />
+                                  <span className="text-xl font-semibold">Yes</span>
+                                </label>
+                                <label className={cn(
+                                  "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                  field.value === "no" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
+                                )}>
+                                  <RadioGroupItem value="no" className="sr-only" />
+                                  <XCircle className="w-12 h-12 mb-3 text-red-400" />
+                                  <span className="text-xl font-semibold">No</span>
+                                </label>
+                              </RadioGroup>
+                            </FormControl>
+                            <FormMessage />
+                          </FormItem>
+                        )} />
+                      )}
+
+                      {/* Step 8: Password (only for new users) */}
+                      {currentStepConfig.id === 8 && (
+                        <div className="space-y-4">
+                          <FormField control={form.control} name="password" render={({ field }) => (
                             <FormItem>
                               <FormControl>
-                                <RadioGroup
-                                  onValueChange={field.onChange}
-                                  value={field.value}
-                                  className="grid grid-cols-2 gap-4"
-                                  disabled={loading}
-                                >
-                                  <label
-                                    className={cn(
-                                      "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
-                                      field.value === "yes"
-                                        ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10"
-                                        : "border-border hover:border-muted-foreground"
-                                    )}
-                                  >
-                                    <RadioGroupItem value="yes" className="sr-only" />
-                                    <Award className="w-12 h-12 mb-3 text-green-500" />
-                                    <span className="text-xl font-semibold">Yes</span>
-                                  </label>
-                                  <label
-                                    className={cn(
-                                      "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
-                                      field.value === "no"
-                                        ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10"
-                                        : "border-border hover:border-muted-foreground"
-                                    )}
-                                  >
-                                    <RadioGroupItem value="no" className="sr-only" />
-                                    <XCircle className="w-12 h-12 mb-3 text-red-400" />
-                                    <span className="text-xl font-semibold">No</span>
-                                  </label>
-                                </RadioGroup>
+                                <Input {...field} type="password" placeholder="Enter password (min. 8 characters)" disabled={loading} className="h-14 text-lg" autoFocus />
                               </FormControl>
                               <FormMessage />
                             </FormItem>
-                          )}
-                        />
-                      )}
-
-                      {/* Step 8: Password */}
-                      {currentStep === 8 && (
-                        <div className="space-y-4">
-                          <FormField
-                            control={form.control}
-                            name="password"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    type="password"
-                                    placeholder="Enter password (min. 8 characters)"
-                                    disabled={loading}
-                                    className="h-14 text-lg"
-                                    autoFocus
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
-                          <FormField
-                            control={form.control}
-                            name="confirmPassword"
-                            render={({ field }) => (
-                              <FormItem>
-                                <FormControl>
-                                  <Input
-                                    {...field}
-                                    type="password"
-                                    placeholder="Confirm password"
-                                    disabled={loading}
-                                    className="h-14 text-lg"
-                                  />
-                                </FormControl>
-                                <FormMessage />
-                              </FormItem>
-                            )}
-                          />
+                          )} />
+                          <FormField control={form.control} name="confirmPassword" render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <Input {...field} type="password" placeholder="Confirm password" disabled={loading} className="h-14 text-lg" />
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
                         </div>
                       )}
                     </div>
@@ -726,13 +624,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                   <>
                     <div className="flex items-center justify-between pt-8">
                       {currentStep > 1 ? (
-                        <Button
-                          type="button"
-                          variant="ghost"
-                          onClick={goToPrev}
-                          disabled={loading}
-                          className="text-muted-foreground hover:text-foreground"
-                        >
+                        <Button type="button" variant="ghost" onClick={goToPrev} disabled={loading} className="text-muted-foreground hover:text-foreground">
                           <ArrowLeft className="mr-2 h-4 w-4" />
                           Back
                         </Button>
@@ -740,24 +632,13 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                         <div />
                       )}
 
-                      {currentStep < steps.length ? (
-                        <Button
-                          type="button"
-                          onClick={goToNext}
-                          disabled={loading}
-                          className="h-12 px-8 text-lg"
-                          style={{ backgroundColor: "hsl(var(--brand-teal))", color: "white" }}
-                        >
+                      {!isLastStep ? (
+                        <Button type="button" onClick={goToNext} disabled={loading} className="h-12 px-8 text-lg" style={{ backgroundColor: "hsl(var(--brand-teal))", color: "white" }}>
                           Continue
                           <ArrowRight className="ml-2 h-4 w-4" />
                         </Button>
                       ) : (
-                        <Button
-                          type="submit"
-                          disabled={loading}
-                          className="h-12 px-8 text-lg"
-                          style={{ backgroundColor: "hsl(var(--brand-teal))", color: "white" }}
-                        >
+                        <Button type="submit" disabled={loading} className="h-12 px-8 text-lg" style={{ backgroundColor: "hsl(var(--brand-teal))", color: "white" }}>
                           {loading ? (
                             <>
                               <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -770,7 +651,6 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                       )}
                     </div>
 
-                    {/* Keyboard Hint - Desktop only */}
                     <div className="text-center pt-4">
                       <p className="text-sm text-muted-foreground">
                         Press <kbd className="px-2 py-1 text-xs font-semibold text-foreground bg-muted rounded">Enter ↵</kbd> to continue
@@ -779,7 +659,6 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                   </>
                 )}
 
-                {/* Mobile: Add bottom padding to prevent overlap with fixed footer */}
                 {isMobile && <div className="h-32" />}
               </form>
             </Form>
@@ -789,7 +668,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
         {/* Mobile Fixed Bottom Navigation */}
         {isMobile && (
           <div className="fixed bottom-0 left-0 right-0 p-4 pb-6 bg-background/95 backdrop-blur-xl border-t border-border/50 z-50">
-            {currentStep < steps.length ? (
+            {!isLastStep ? (
               <Button
                 type="button"
                 onClick={goToNext}
