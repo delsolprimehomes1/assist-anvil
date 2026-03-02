@@ -1739,6 +1739,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_email_exists: { Args: { check_email: string }; Returns: boolean }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
