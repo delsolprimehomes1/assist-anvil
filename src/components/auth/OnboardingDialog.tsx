@@ -85,20 +85,8 @@ const fireBrandConfetti = () => {
   fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: 0.9, y: 0.7 } });
 };
 
-// Private mapping - never displayed to user
-const AGENCY_MANAGER_MAP: Record<string, string[]> = {
-  "100": ["K. Jenson", "E. Young Smith"],
-  "200": ["Chepe G."],
-  "300": ["Leah G."],
-  "400": ["J. Meletia"],
-  "500": ["Aaron C."],
-  "600": ["Tara H."],
-  "700": ["Eric H."],
-  "800": ["Adrian E."],
-  "900": ["M. Jaramillo"],
-  "1000": ["R. Pitterman"],
-  "1500": ["Jason L."],
-};
+type AgencyCodeRow = { id: string; code: string; label: string | null; display_order: number };
+type AgencyManagerRow = { id: string; manager_name: string; display_order: number };
 
 // Full schema for new users (includes password)
 const fullFormSchema = z.object({
