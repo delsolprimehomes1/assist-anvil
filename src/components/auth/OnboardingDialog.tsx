@@ -516,8 +516,10 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-background z-50">
-                                {["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1500"].map((code) => (
-                                  <SelectItem key={code} value={code} className="text-lg">{code}</SelectItem>
+                                {agencyCodes.map((ac) => (
+                                  <SelectItem key={ac.code} value={ac.code} className="text-lg">
+                                    {ac.code}{ac.label ? ` — ${ac.label}` : ""}
+                                  </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
