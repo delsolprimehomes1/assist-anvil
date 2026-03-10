@@ -143,8 +143,23 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
+  const [agencyCodes, setAgencyCodes] = useState<AgencyCodeRow[]>([]);
+  const [agencyManagers, setAgencyManagers] = useState<AgencyManagerRow[]>([]);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Fetch agency codes on mount
+  useEffect(() => {
+    const fetchCodes = async () => {
+      const { data } = await supabase
+        .from("agency_codes")
+        .select("id, code, label, display_order")
+        .eq("is_active", true)
+        .order("display_order");
+      if (data) setAgencyCodes(data);
+    };
+    if (open) fetchCodes();
+  }, [open]);
 
   // Dynamically compute steps based on existing user status
   const steps = isExistingUser
