@@ -14,6 +14,71 @@ export type Database = {
   }
   public: {
     Tables: {
+      agency_codes: {
+        Row: {
+          code: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          label: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          label?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      agency_managers: {
+        Row: {
+          agency_code_id: string
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          manager_name: string
+        }
+        Insert: {
+          agency_code_id: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          manager_name: string
+        }
+        Update: {
+          agency_code_id?: string
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          manager_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "agency_managers_agency_code_id_fkey"
+            columns: ["agency_code_id"]
+            isOneToOne: false
+            referencedRelation: "agency_codes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       agent_notes: {
         Row: {
           agent_id: string
