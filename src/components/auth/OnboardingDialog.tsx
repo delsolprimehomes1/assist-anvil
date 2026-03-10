@@ -409,7 +409,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   if (!currentStepConfig) return null;
 
   const Icon = currentStepConfig.icon;
-  const availableManagers = AGENCY_MANAGER_MAP[selectedAgencyCode] || [];
+  const availableManagers = agencyManagers.map(m => m.manager_name);
   const isLastStep = currentStep === steps.length;
 
   return (
