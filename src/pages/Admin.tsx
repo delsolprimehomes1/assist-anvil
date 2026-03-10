@@ -249,6 +249,7 @@ const Admin = () => {
           <TabsTrigger value="guidelines" className="whitespace-nowrap px-4 py-2">Carrier Guidelines</TabsTrigger>
           <TabsTrigger value="hierarchy" className="whitespace-nowrap px-4 py-2">Hierarchy</TabsTrigger>
           <TabsTrigger value="lead-products" className="whitespace-nowrap px-4 py-2">Lead Products</TabsTrigger>
+          <TabsTrigger value="agency-codes" className="whitespace-nowrap px-4 py-2">Agency Codes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="training" className="space-y-6">
