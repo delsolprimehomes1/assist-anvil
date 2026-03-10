@@ -29,6 +29,7 @@ import { GuidelineManagement } from "@/components/admin/guidelines/GuidelineMana
 import { PasswordResetRequestsList } from "@/components/admin/PasswordResetRequestsList";
 import { HierarchyPlacementModal } from "@/components/hierarchy/HierarchyPlacementModal";
 import { LeadProductsManagement } from "@/components/admin/performance/LeadProductsManagement";
+import { AgencyCodesManagement } from "@/components/admin/agency/AgencyCodesManagement";
 
 type ApprovedEmail = {
   id: string;
