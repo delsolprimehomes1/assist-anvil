@@ -323,6 +323,11 @@ const Admin = () => {
           <LeadProductsManagement />
         </TabsContent>
 
+        <TabsContent value="agency-codes" className="space-y-6">
+          <AgencyCodesManagement />
+        </TabsContent>
+        </TabsContent>
+
         <TabsContent value="approvals" className="space-y-6">
           <Card className="stat-card">
             <CardHeader>
