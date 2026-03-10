@@ -182,12 +182,26 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
     },
   });
 
-  // Watch agency code to reset manager when it changes
+  // Watch agency code to reset manager and fetch managers when it changes
   const selectedAgencyCode = form.watch("agencyCode");
   
   useEffect(() => {
     form.setValue("assignedManager", "");
-  }, [selectedAgencyCode, form]);
+    // Fetch managers for the selected agency code
+    const fetchManagers = async () => {
+      if (!selectedAgencyCode) { setAgencyManagers([]); return; }
+      const selectedCodeRow = agencyCodes.find(ac => ac.code === selectedAgencyCode);
+      if (!selectedCodeRow) { setAgencyManagers([]); return; }
+      const { data } = await supabase
+        .from("agency_managers")
+        .select("id, manager_name, display_order")
+        .eq("agency_code_id", selectedCodeRow.id)
+        .eq("is_active", true)
+        .order("display_order");
+      if (data) setAgencyManagers(data);
+    };
+    fetchManagers();
+  }, [selectedAgencyCode, form, agencyCodes]);
 
   // Find the current step config by matching the step index
   const currentStepIndex = currentStep - 1;
