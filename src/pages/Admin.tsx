@@ -29,6 +29,7 @@ import { GuidelineManagement } from "@/components/admin/guidelines/GuidelineMana
 import { PasswordResetRequestsList } from "@/components/admin/PasswordResetRequestsList";
 import { HierarchyPlacementModal } from "@/components/hierarchy/HierarchyPlacementModal";
 import { LeadProductsManagement } from "@/components/admin/performance/LeadProductsManagement";
+import { AgencyCodesManagement } from "@/components/admin/agency/AgencyCodesManagement";
 
 type ApprovedEmail = {
   id: string;
@@ -248,6 +249,7 @@ const Admin = () => {
           <TabsTrigger value="guidelines" className="whitespace-nowrap px-4 py-2">Carrier Guidelines</TabsTrigger>
           <TabsTrigger value="hierarchy" className="whitespace-nowrap px-4 py-2">Hierarchy</TabsTrigger>
           <TabsTrigger value="lead-products" className="whitespace-nowrap px-4 py-2">Lead Products</TabsTrigger>
+          <TabsTrigger value="agency-codes" className="whitespace-nowrap px-4 py-2">Agency Codes</TabsTrigger>
         </TabsList>
 
         <TabsContent value="training" className="space-y-6">
@@ -319,6 +321,10 @@ const Admin = () => {
 
         <TabsContent value="lead-products" className="space-y-6">
           <LeadProductsManagement />
+        </TabsContent>
+
+        <TabsContent value="agency-codes" className="space-y-6">
+          <AgencyCodesManagement />
         </TabsContent>
 
         <TabsContent value="approvals" className="space-y-6">

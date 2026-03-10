@@ -1,57 +1,71 @@
 
 
-# Admin-Managed Agency Codes & Managers
+# Add "Existing User" Flow to Onboarding Form
 
-## Current State
-Agency codes and their assigned managers are **hardcoded** in `OnboardingDialog.tsx` (lines 89-101) as a static `AGENCY_MANAGER_MAP` object. Any change requires a code edit.
+## Problem
+Existing BattersBox users who already have an account need to re-submit the onboarding form to trigger a GHL automation (licensing path). Currently the form forces them through Step 8 (password creation) and tries `supabase.auth.signUp`, which fails for duplicate emails. These users just need to fill out the form data and have it sent to the webhook — no account creation needed.
 
-## Plan
+## How It Works
 
-### 1. Create `agency_codes` database table
-New table with columns:
-- `id` (uuid, PK)
-- `code` (text, unique) — e.g. "100", "200"
-- `label` (text) — optional display name, e.g. "Lifeco Agency Direct"
-- `display_order` (integer, default 0)
-- `is_active` (boolean, default true)
-- `created_at`, `updated_at`
+### 1. Detect existing email after Step 5 (email step)
 
-### 2. Create `agency_managers` database table
-- `id` (uuid, PK)
-- `agency_code_id` (uuid, FK → agency_codes.id, on delete cascade)
-- `manager_name` (text) — display name shown in form, e.g. "K. Jenson"
-- `display_order` (integer, default 0)
-- `is_active` (boolean, default true)
-- `created_at`
+When the user advances past the email step, check if that email already exists by calling a lightweight query or RPC. The simplest approach: attempt a password reset call (`supabase.auth.resetPasswordForEmail`) which succeeds silently for existing users, or query `onboarding_requests` / `agent_profiles` for a matching email. The most reliable method is to add a small edge function or database function that checks if an email exists in `auth.users` (since that table isn't directly queryable from the client).
 
-### 3. RLS Policies
-- **SELECT**: public (anyone can read — needed for unauthenticated onboarding form)
-- **INSERT/UPDATE/DELETE**: admin only via `has_role(auth.uid(), 'admin')`
+**Chosen approach**: Create a simple database function (`check_email_exists`) that uses `SECURITY DEFINER` to check `auth.users` for the email. This runs server-side and returns a boolean.
 
-### 4. Seed existing data
-Insert the 11 current agency codes and their managers into the new tables so nothing breaks.
+### 2. Skip Step 8 (password) for existing users
 
-### 5. Update `OnboardingDialog.tsx`
-- Remove hardcoded `AGENCY_MANAGER_MAP`
-- Fetch `agency_codes` (where `is_active = true`) on dialog open
-- Fetch `agency_managers` filtered by selected `agency_code_id` (where `is_active = true`)
-- Replace the static Select options with dynamic data
+Add a state variable `isExistingUser`. When detected:
+- The `steps` array dynamically excludes the password step (7 steps instead of 8)
+- The form schema switches to one without `password`/`confirmPassword` fields
+- Step count and progress bar adjust automatically
 
-### 6. Create Admin UI — `AgencyCodesManagement` component
-New tab in the Admin Dashboard with:
-- **Table view** of all agency codes with their managers listed inline
-- **Add Agency Code** dialog (code, label, display order)
-- **Edit/Delete** agency code (with confirmation for delete)
-- **Add Manager** to a code (manager name, display order)
-- **Edit/Remove Manager** from a code
-- Toggle `is_active` for codes and managers without deleting
+### 3. Modified submit logic for existing users
 
-### 7. Wire into Admin Dashboard
-Add a new "Agency Codes" tab in `src/pages/Admin.tsx` rendering the `AgencyCodesManagement` component.
+When `isExistingUser` is true, the `onSubmit` function:
+- Skips `supabase.auth.signUp` entirely
+- Still inserts into `onboarding_requests` (without `user_id`, or with the existing user's ID from the DB function)
+- Still calls the `send-onboarding-webhook` edge function with all form data
+- Shows confetti and a success message like "Your information has been submitted!" instead of navigating to `/pending-approval`
 
-### Files to create/modify
-- **New migration**: `agency_codes` + `agency_managers` tables, RLS, seed data
-- **New**: `src/components/admin/agency/AgencyCodesManagement.tsx`
-- **Edit**: `src/components/auth/OnboardingDialog.tsx` — replace hardcoded map with DB queries
-- **Edit**: `src/pages/Admin.tsx` — add Agency Codes tab
+### 4. Files to change
+
+**New migration** — Create `check_email_exists` database function:
+```sql
+CREATE OR REPLACE FUNCTION public.check_email_exists(check_email TEXT)
+RETURNS BOOLEAN
+LANGUAGE sql
+STABLE
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1 FROM auth.users WHERE email = lower(check_email)
+  );
+$$;
+```
+
+**`src/components/auth/OnboardingDialog.tsx`** — Main changes:
+- Add `isExistingUser` state (default `false`)
+- After email step validation (step 5 → 6 transition), call `supabase.rpc('check_email_exists', { check_email: email })` to detect existing users
+- Define two schemas: full schema (with password) and a reduced schema (without password/confirmPassword)
+- Dynamically compute `steps` array: filter out step 8 when `isExistingUser` is true
+- Update `onSubmit`: if `isExistingUser`, skip signUp, insert onboarding request without `user_id` (or look up the user_id from the function), call webhook, show success toast, close dialog (no redirect to pending-approval)
+- Update progress bar denominator and step count text to reflect 7 vs 8 steps
+
+**`supabase/functions/send-onboarding-webhook/index.ts`** — No changes needed (already accepts the same payload regardless of user status).
+
+## What the User Experiences
+
+**Existing user flow (7 steps)**:
+```
+Name → Referral → Agency Code → Manager → Email → Phone → Licensed? → ✅ Done
+                                            ↑
+                                    email detected as existing,
+                                    password step silently removed
+```
+
+After submitting: confetti fires, toast says "Your information has been submitted!", dialog closes. No redirect. Data goes to GHL webhook.
+
+**New user flow (8 steps)**: Unchanged — still includes password creation and account signup.
 

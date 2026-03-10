@@ -85,20 +85,8 @@ const fireBrandConfetti = () => {
   fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8, origin: { x: 0.9, y: 0.7 } });
 };
 
-// Private mapping - never displayed to user
-const AGENCY_MANAGER_MAP: Record<string, string[]> = {
-  "100": ["K. Jenson", "E. Young Smith"],
-  "200": ["Chepe G."],
-  "300": ["Leah G."],
-  "400": ["J. Meletia"],
-  "500": ["Aaron C."],
-  "600": ["Tara H."],
-  "700": ["Eric H."],
-  "800": ["Adrian E."],
-  "900": ["M. Jaramillo"],
-  "1000": ["R. Pitterman"],
-  "1500": ["Jason L."],
-};
+type AgencyCodeRow = { id: string; code: string; label: string | null; display_order: number };
+type AgencyManagerRow = { id: string; manager_name: string; display_order: number };
 
 // Full schema for new users (includes password)
 const fullFormSchema = z.object({
@@ -155,8 +143,23 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
+  const [agencyCodes, setAgencyCodes] = useState<AgencyCodeRow[]>([]);
+  const [agencyManagers, setAgencyManagers] = useState<AgencyManagerRow[]>([]);
   const navigate = useNavigate();
   const isMobile = useIsMobile();
+
+  // Fetch agency codes on mount
+  useEffect(() => {
+    const fetchCodes = async () => {
+      const { data } = await supabase
+        .from("agency_codes")
+        .select("id, code, label, display_order")
+        .eq("is_active", true)
+        .order("display_order");
+      if (data) setAgencyCodes(data);
+    };
+    if (open) fetchCodes();
+  }, [open]);
 
   // Dynamically compute steps based on existing user status
   const steps = isExistingUser
@@ -179,12 +182,26 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
     },
   });
 
-  // Watch agency code to reset manager when it changes
+  // Watch agency code to reset manager and fetch managers when it changes
   const selectedAgencyCode = form.watch("agencyCode");
   
   useEffect(() => {
     form.setValue("assignedManager", "");
-  }, [selectedAgencyCode, form]);
+    // Fetch managers for the selected agency code
+    const fetchManagers = async () => {
+      if (!selectedAgencyCode) { setAgencyManagers([]); return; }
+      const selectedCodeRow = agencyCodes.find(ac => ac.code === selectedAgencyCode);
+      if (!selectedCodeRow) { setAgencyManagers([]); return; }
+      const { data } = await supabase
+        .from("agency_managers")
+        .select("id, manager_name, display_order")
+        .eq("agency_code_id", selectedCodeRow.id)
+        .eq("is_active", true)
+        .order("display_order");
+      if (data) setAgencyManagers(data);
+    };
+    fetchManagers();
+  }, [selectedAgencyCode, form, agencyCodes]);
 
   // Find the current step config by matching the step index
   const currentStepIndex = currentStep - 1;
@@ -392,7 +409,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   if (!currentStepConfig) return null;
 
   const Icon = currentStepConfig.icon;
-  const availableManagers = AGENCY_MANAGER_MAP[selectedAgencyCode] || [];
+  const availableManagers = agencyManagers.map(m => m.manager_name);
   const isLastStep = currentStep === steps.length;
 
   return (
@@ -499,8 +516,10 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent className="bg-background z-50">
-                                {["100", "200", "300", "400", "500", "600", "700", "800", "900", "1000", "1500"].map((code) => (
-                                  <SelectItem key={code} value={code} className="text-lg">{code}</SelectItem>
+                                {agencyCodes.map((ac) => (
+                                  <SelectItem key={ac.code} value={ac.code} className="text-lg">
+                                    {ac.code}{ac.label ? ` — ${ac.label}` : ""}
+                                  </SelectItem>
                                 ))}
                               </SelectContent>
                             </Select>
