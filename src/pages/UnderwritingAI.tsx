@@ -279,9 +279,15 @@ function UploadGuidelineDialog() {
 
 function ChatBubble({ message }: { message: Message }) {
   const isUser = message.role === "user";
+  const isClarifying = !isUser && message.content.includes("I need a bit more information");
 
   return (
-    <div className={cn("flex w-full gap-4 p-4 md:px-8", isUser ? "bg-background" : "bg-muted/30")}>
+    <div className={cn(
+      "flex w-full gap-4 p-4 md:px-8",
+      isClarifying
+        ? "border-l-4 border-l-primary bg-primary/5"
+        : isUser ? "bg-background" : "bg-muted/30"
+    )}>
       <div
         className={cn(
           "flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border",
