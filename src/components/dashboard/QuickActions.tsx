@@ -27,11 +27,6 @@ const actions = [
     icon: Shield,
     href: "/dashboard/compliance",
   },
-  {
-    title: "AI Assist",
-    icon: Bot,
-    href: "/dashboard/ai-assist",
-  }
 ];
 
 export const QuickActions = () => {

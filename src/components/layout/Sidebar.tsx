@@ -41,7 +41,7 @@ const navigation = [
   { name: "Training", href: "/dashboard/training", icon: GraduationCap },
   { name: "Marketing", href: "/dashboard/marketing", icon: Megaphone },
   { name: "Compliance", href: "/dashboard/compliance", icon: Shield },
-  { name: "AI Assist", href: "/dashboard/ai-assist", icon: Bot },
+  
   { name: "Underwriting AI", href: "/dashboard/underwriting", icon: FileSearch },
   { name: "Performance", href: "/dashboard/performance", icon: TrendingUp },
   { name: "Organization", href: "/dashboard/organization", icon: Network },
