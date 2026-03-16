@@ -279,9 +279,15 @@ function UploadGuidelineDialog() {
 
 function ChatBubble({ message }: { message: Message }) {
   const isUser = message.role === "user";
+  const isClarifying = !isUser && message.content.includes("I need a bit more information");
 
   return (
-    <div className={cn("flex w-full gap-4 p-4 md:px-8", isUser ? "bg-background" : "bg-muted/30")}>
+    <div className={cn(
+      "flex w-full gap-4 p-4 md:px-8",
+      isClarifying
+        ? "border-l-4 border-l-primary bg-primary/5"
+        : isUser ? "bg-background" : "bg-muted/30"
+    )}>
       <div
         className={cn(
           "flex h-8 w-8 shrink-0 select-none items-center justify-center rounded-full border",
@@ -462,7 +468,13 @@ export default function UnderwritingAI() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Describe the client profile or ask an underwriting question..."
+            placeholder={
+              messages.length > 0 &&
+              messages[messages.length - 1]?.role === "assistant" &&
+              messages[messages.length - 1]?.content.includes("I need a bit more information")
+                ? "Answer the question above..."
+                : "Describe the client profile or ask an underwriting question..."
+            }
             className="min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent py-3 focus-visible:ring-0 shadow-none scrollbar-thin"
             disabled={isLoading}
           />
