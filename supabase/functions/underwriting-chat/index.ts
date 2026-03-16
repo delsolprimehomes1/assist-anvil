@@ -10,7 +10,7 @@ const corsHeaders = {
 
 async function embedQuery(text: string): Promise<number[]> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
-  const url = `https://generativelanguage.googleapis.com/v1beta/models/text-embedding-004:embedContent?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:embedContent?key=${GEMINI_API_KEY}`;
 
   const res = await fetch(url, {
     method: "POST",
