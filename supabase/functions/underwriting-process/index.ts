@@ -89,7 +89,7 @@ function chunkBySection(markdown: string, carrierName: string): { text: string; 
 
 async function embedTexts(texts: string[], taskType: string): Promise<number[][]> {
   const GEMINI_API_KEY = Deno.env.get("GEMINI_API_KEY")!;
-  const url = `https://generativelanguage.googleapis.com/v1/models/text-embedding-004:batchEmbedContents?key=${GEMINI_API_KEY}`;
+  const url = `https://generativelanguage.googleapis.com/v1beta/models/gemini-embedding-001:batchEmbedContents?key=${GEMINI_API_KEY}`;
 
   // Process in batches of 100
   const allEmbeddings: number[][] = [];
@@ -100,7 +100,7 @@ async function embedTexts(texts: string[], taskType: string): Promise<number[][]
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         requests: batch.map((text) => ({
-          model: "models/text-embedding-004",
+          model: "models/gemini-embedding-001",
           content: { parts: [{ text }] },
           taskType,
           outputDimensionality: 768,
