@@ -26,6 +26,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Organization from "./pages/Organization";
 import Performance from "./pages/Performance";
+import UnderwritingAI from "./pages/UnderwritingAI";
 
 const queryClient = new QueryClient();
 
