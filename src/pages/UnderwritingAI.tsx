@@ -468,7 +468,13 @@ export default function UnderwritingAI() {
             value={input}
             onChange={(e) => setInput(e.target.value)}
             onKeyDown={handleKeyDown}
-            placeholder="Describe the client profile or ask an underwriting question..."
+            placeholder={
+              messages.length > 0 &&
+              messages[messages.length - 1]?.role === "assistant" &&
+              messages[messages.length - 1]?.content.includes("I need a bit more information")
+                ? "Answer the question above..."
+                : "Describe the client profile or ask an underwriting question..."
+            }
             className="min-h-[50px] max-h-[200px] w-full resize-none border-0 bg-transparent py-3 focus-visible:ring-0 shadow-none scrollbar-thin"
             disabled={isLoading}
           />
