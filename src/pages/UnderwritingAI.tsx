@@ -26,6 +26,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import ReactMarkdown from "react-markdown";
+import { useAdmin } from "@/hooks/useAdmin";
 import remarkGfm from "remark-gfm";
 
 // ── Types ────────────────────────────────────────────────────
@@ -313,6 +314,7 @@ export default function UnderwritingAI() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const { isAdmin } = useAdmin();
   const scrollRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
@@ -389,7 +391,7 @@ export default function UnderwritingAI() {
             <p className="text-xs text-muted-foreground">RAG-powered carrier guideline assistant</p>
           </div>
         </div>
-        <UploadGuidelineDialog />
+        {isAdmin && <UploadGuidelineDialog />}
       </div>
 
       {/* Messages Area */}
