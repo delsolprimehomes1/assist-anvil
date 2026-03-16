@@ -100,7 +100,7 @@ async function embedTexts(texts: string[], taskType: string): Promise<number[][]
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         requests: batch.map((text) => ({
-          model: "models/text-embedding-004",
+          model: "models/gemini-embedding-001",
           content: { parts: [{ text }] },
           taskType,
           outputDimensionality: 768,
