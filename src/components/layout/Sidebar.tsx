@@ -15,7 +15,8 @@ import {
   ExternalLink,
   Network,
   TrendingUp,
-  CreditCard
+  CreditCard,
+  FileSearch
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -41,6 +42,7 @@ const navigation = [
   { name: "Marketing", href: "/dashboard/marketing", icon: Megaphone },
   { name: "Compliance", href: "/dashboard/compliance", icon: Shield },
   { name: "AI Assist", href: "/dashboard/ai-assist", icon: Bot },
+  { name: "Underwriting AI", href: "/dashboard/underwriting", icon: FileSearch },
   { name: "Performance", href: "/dashboard/performance", icon: TrendingUp },
   { name: "Organization", href: "/dashboard/organization", icon: Network },
   { name: "Admin", href: "/dashboard/admin", icon: Settings },

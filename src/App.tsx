@@ -26,6 +26,7 @@ import PrivacyPolicy from "./pages/PrivacyPolicy";
 import TermsOfService from "./pages/TermsOfService";
 import Organization from "./pages/Organization";
 import Performance from "./pages/Performance";
+import UnderwritingAI from "./pages/UnderwritingAI";
 
 const queryClient = new QueryClient();
 
@@ -55,6 +56,7 @@ const App = () => (
             <Route path="carriers" element={<Carriers />} />
             <Route path="news" element={<News />} />
             <Route path="ai-assist" element={<AIAssist />} />
+            <Route path="underwriting" element={<UnderwritingAI />} />
             <Route path="tools" element={<Tools />} />
             <Route path="training" element={<Training />} />
             <Route path="training/:trainingId" element={<TrainingPlayer />} />
