@@ -44,3 +44,9 @@ verify_jwt = false
 
 [functions.analyze-video]
 verify_jwt = false
+
+[functions.underwriting-process]
+verify_jwt = false
+
+[functions.underwriting-chat]
+verify_jwt = false
