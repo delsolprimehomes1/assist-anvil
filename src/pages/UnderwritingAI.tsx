@@ -391,7 +391,7 @@ export default function UnderwritingAI() {
             <p className="text-xs text-muted-foreground">RAG-powered carrier guideline assistant</p>
           </div>
         </div>
-        <UploadGuidelineDialog />
+        {isAdmin && <UploadGuidelineDialog />}
       </div>
 
       {/* Messages Area */}
