@@ -341,9 +341,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
         }
 
         fireBrandConfetti();
-        toast.success("Request submitted successfully!");
-        onOpenChange(false);
-        navigate("/pending-approval");
+        setShowEmailConfirm(true);
       }
     } catch (error: any) {
       console.error("Onboarding error:", error);
