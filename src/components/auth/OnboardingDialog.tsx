@@ -143,6 +143,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
   const [isExistingUser, setIsExistingUser] = useState(false);
+  const [showEmailConfirm, setShowEmailConfirm] = useState(false);
   const [agencyCodes, setAgencyCodes] = useState<AgencyCodeRow[]>([]);
   const [agencyManagers, setAgencyManagers] = useState<AgencyManagerRow[]>([]);
   const navigate = useNavigate();
