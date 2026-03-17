@@ -375,6 +375,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
     if (open) {
       setCurrentStep(1);
       setIsExistingUser(false);
+      setShowEmailConfirm(false);
     }
   }, [open]);
 
