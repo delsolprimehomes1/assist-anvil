@@ -415,6 +415,79 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-w-none w-full h-screen m-0 p-0 rounded-none border-0">
+        {/* Email Confirmation Overlay */}
+        <AnimatePresence>
+          {showEmailConfirm && (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              transition={{ duration: 0.4 }}
+              className="absolute inset-0 z-[60] flex items-center justify-center bg-background/95 backdrop-blur-sm p-6"
+            >
+              <motion.div
+                initial={{ opacity: 0, y: 30, scale: 0.95 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={{ duration: 0.5, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+                className="max-w-md w-full text-center space-y-6"
+              >
+                {/* Animated Mail Icon */}
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ type: "spring", stiffness: 200, damping: 15, delay: 0.3 }}
+                  className="mx-auto w-20 h-20 rounded-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, hsl(var(--brand-teal)/0.15), hsl(var(--brand-gold)/0.15))" }}
+                >
+                  <Mail className="w-10 h-10" style={{ color: "hsl(var(--brand-teal))" }} />
+                </motion.div>
+
+                <div className="space-y-3">
+                  <h2 className="text-2xl md:text-3xl font-bold text-foreground">
+                    You're almost there! 🎉
+                  </h2>
+                  <p className="text-base md:text-lg text-muted-foreground leading-relaxed">
+                    We just sent you an email with everything you need to finish getting contracted. 
+                    Follow the instructions inside to complete your setup.
+                  </p>
+                </div>
+
+                <div className="rounded-xl border border-border/50 bg-muted/30 p-4 space-y-2">
+                  <p className="text-sm font-medium text-foreground">
+                    📬 Don't see it? Check your spam or junk folder
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    Sometimes emails land there by mistake. If you still can't find it, reach out and we'll get you sorted.
+                  </p>
+                </div>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.6 }}
+                >
+                  <Button
+                    type="button"
+                    onClick={() => {
+                      setShowEmailConfirm(false);
+                      onOpenChange(false);
+                      navigate("/pending-approval");
+                    }}
+                    className="w-full h-14 text-lg font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                    style={{
+                      background: "linear-gradient(135deg, hsl(var(--brand-teal)) 0%, hsl(var(--brand-teal)/0.85) 100%)",
+                      boxShadow: "0 10px 30px -5px hsl(var(--brand-teal) / 0.3)",
+                      color: "black",
+                    }}
+                  >
+                    Got it, thanks!
+                  </Button>
+                </motion.div>
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
         {/* Progress Bar */}
         <div className="absolute top-0 left-0 w-full h-1 bg-muted">
           <motion.div
