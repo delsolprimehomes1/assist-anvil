@@ -332,7 +332,6 @@ const Admin = () => {
         <TabsContent value="quoting-links" className="space-y-6">
           <QuotingLinksManagement />
         </TabsContent>
-        </TabsContent>
 
         <TabsContent value="approvals" className="space-y-6">
           <Card className="stat-card">
