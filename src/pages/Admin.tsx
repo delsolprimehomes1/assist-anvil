@@ -30,6 +30,7 @@ import { PasswordResetRequestsList } from "@/components/admin/PasswordResetReque
 import { HierarchyPlacementModal } from "@/components/hierarchy/HierarchyPlacementModal";
 import { LeadProductsManagement } from "@/components/admin/performance/LeadProductsManagement";
 import { AgencyCodesManagement } from "@/components/admin/agency/AgencyCodesManagement";
+import { QuotingLinksManagement } from "@/components/admin/quoting/QuotingLinksManagement";
 
 type ApprovedEmail = {
   id: string;
