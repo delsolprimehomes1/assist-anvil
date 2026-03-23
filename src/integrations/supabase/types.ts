@@ -568,6 +568,51 @@ export type Database = {
           },
         ]
       }
+      carrier_quoting_links: {
+        Row: {
+          carrier: string
+          created_at: string
+          description: string
+          display_order: number
+          gradient: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          requires_login: boolean
+          type: string
+          url: string
+        }
+        Insert: {
+          carrier: string
+          created_at?: string
+          description?: string
+          display_order?: number
+          gradient?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          requires_login?: boolean
+          type?: string
+          url: string
+        }
+        Update: {
+          carrier?: string
+          created_at?: string
+          description?: string
+          display_order?: number
+          gradient?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          requires_login?: boolean
+          type?: string
+          url?: string
+        }
+        Relationships: []
+      }
       carriers: {
         Row: {
           am_best_rating: string | null
