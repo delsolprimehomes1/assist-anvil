@@ -30,6 +30,7 @@ import { PasswordResetRequestsList } from "@/components/admin/PasswordResetReque
 import { HierarchyPlacementModal } from "@/components/hierarchy/HierarchyPlacementModal";
 import { LeadProductsManagement } from "@/components/admin/performance/LeadProductsManagement";
 import { AgencyCodesManagement } from "@/components/admin/agency/AgencyCodesManagement";
+import { QuotingLinksManagement } from "@/components/admin/quoting/QuotingLinksManagement";
 
 type ApprovedEmail = {
   id: string;
@@ -250,6 +251,7 @@ const Admin = () => {
           <TabsTrigger value="hierarchy" className="whitespace-nowrap px-4 py-2">Hierarchy</TabsTrigger>
           <TabsTrigger value="lead-products" className="whitespace-nowrap px-4 py-2">Lead Products</TabsTrigger>
           <TabsTrigger value="agency-codes" className="whitespace-nowrap px-4 py-2">Agency Codes</TabsTrigger>
+          <TabsTrigger value="quoting-links" className="whitespace-nowrap px-4 py-2">Quoting Links</TabsTrigger>
         </TabsList>
 
         <TabsContent value="training" className="space-y-6">
@@ -325,6 +327,10 @@ const Admin = () => {
 
         <TabsContent value="agency-codes" className="space-y-6">
           <AgencyCodesManagement />
+        </TabsContent>
+
+        <TabsContent value="quoting-links" className="space-y-6">
+          <QuotingLinksManagement />
         </TabsContent>
 
         <TabsContent value="approvals" className="space-y-6">
