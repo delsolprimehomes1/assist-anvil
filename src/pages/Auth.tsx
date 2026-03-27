@@ -266,88 +266,49 @@ const Auth = () => {
 
         {/* Onboarding Section */}
         <style>{`
-          @keyframes arrowOrbitLeft {
-            0%, 100% { transform: translateX(-8px) translateY(0) rotate(0deg); opacity: 0.5; }
-            30% { transform: translateX(-14px) translateY(-6px) rotate(-15deg); opacity: 0.7; }
-            60% { transform: translateX(-4px) translateY(2px) rotate(5deg); opacity: 1; }
-            80% { transform: translateX(2px) translateY(0) rotate(0deg); opacity: 1; }
-          }
-          @keyframes arrowOrbitRight {
-            0%, 100% { transform: translateX(8px) translateY(0) rotate(0deg) scaleX(-1); opacity: 0.5; }
-            30% { transform: translateX(14px) translateY(-6px) rotate(15deg) scaleX(-1); opacity: 0.7; }
-            60% { transform: translateX(4px) translateY(2px) rotate(-5deg) scaleX(-1); opacity: 1; }
-            80% { transform: translateX(-2px) translateY(0) rotate(0deg) scaleX(-1); opacity: 1; }
-          }
           @keyframes tealGlow {
             0%, 100% { box-shadow: 0 0 8px 0 rgba(139,186,196,0.2), inset 0 0 0 1px rgba(139,186,196,0.3); }
             50% { box-shadow: 0 0 20px 4px rgba(139,186,196,0.35), inset 0 0 0 1px rgba(139,186,196,0.6); }
           }
+          @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
         `}</style>
-        <div className="relative">
-          {/* Left animated arrow */}
-          <div
-            className="absolute -left-10 top-1/2 -translate-y-1/2 hidden md:block pointer-events-none"
-            style={{ animation: "arrowOrbitLeft 2.8s ease-in-out infinite" }}
-          >
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path
-                d="M26 16C26 16 20 6 12 10C4 14 8 24 14 22C20 20 18 12 14 14"
-                stroke="#8BBAC4"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                fill="none"
-                style={{ filter: "drop-shadow(0 0 4px rgba(139,186,196,0.6))" }}
-              />
-              <path
-                d="M14 14L18 13L15 17"
-                stroke="#8BBAC4"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-            </svg>
-          </div>
-          {/* Right animated arrow */}
-          <div
-            className="absolute -right-10 top-1/2 -translate-y-1/2 hidden md:block pointer-events-none"
-            style={{ animation: "arrowOrbitRight 2.8s ease-in-out infinite" }}
-          >
-            <svg width="32" height="32" viewBox="0 0 32 32" fill="none">
-              <path
-                d="M26 16C26 16 20 6 12 10C4 14 8 24 14 22C20 20 18 12 14 14"
-                stroke="#8BBAC4"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                fill="none"
-                style={{ filter: "drop-shadow(0 0 4px rgba(139,186,196,0.6))" }}
-              />
-              <path
-                d="M14 14L18 13L15 17"
-                stroke="#8BBAC4"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-              />
-            </svg>
-          </div>
-          <Card
-            className="border-2 shadow-lg rounded-xl"
-            style={{ animation: "tealGlow 3s ease-in-out infinite" }}
-          >
-            <CardContent className="pt-6">
-              <div className="text-center space-y-3">
-                <p className="text-base font-semibold text-foreground">Not onboarded yet as an agency?</p>
-                <p className="text-xs text-muted-foreground">Start your contracting process here 👇</p>
-                <Button variant="outline" className="w-full h-11 text-base font-semibold" onClick={() => setShowOnboarding(true)} style={{
-                  borderColor: "#8BBAC4",
-                  color: "#8BBAC4"
-                }}>Request To Be Contracted</Button>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+        <Card
+          className="border-2 shadow-lg rounded-xl"
+          style={{ animation: "tealGlow 3s ease-in-out infinite" }}
+        >
+          <CardContent className="pt-6">
+            <div className="text-center space-y-3">
+              <p className="text-base font-semibold text-foreground">Not onboarded yet as an agency?</p>
+              <p className="text-xs text-muted-foreground">Start your contracting process here 👇</p>
+              <button
+                onClick={() => setShowOnboarding(true)}
+                className="relative w-full h-11 rounded-md text-base font-semibold text-white overflow-hidden"
+                style={{
+                  background: "linear-gradient(270deg, #8BBAC4, #C98A3A, #8BBAC4, #C98A3A)",
+                  backgroundSize: "300% 300%",
+                  animation: "gradientShift 4s ease infinite",
+                }}
+              >
+                <span className="relative z-10">Request To Be Contracted</span>
+                <div
+                  className="absolute inset-0 z-[1]"
+                  style={{
+                    background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
+                    animation: "shimmer 2.5s ease-in-out infinite",
+                  }}
+                />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
 
         {/* Footer */}
         <p className="text-center text-xs text-muted-foreground px-4">
