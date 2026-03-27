@@ -266,6 +266,7 @@ const Auth = () => {
 
         {/* Onboarding Section */}
         <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');
           @keyframes cardGlow {
             0%, 100% { box-shadow: 0 0 20px 8px rgba(139,186,196,0.35), 0 0 40px 16px rgba(139,186,196,0.15); }
             50% { box-shadow: 0 0 25px 10px rgba(201,138,58,0.35), 0 0 45px 20px rgba(201,138,58,0.15); }
@@ -286,8 +287,27 @@ const Auth = () => {
         >
           <CardContent className="pt-5 pb-5 px-4 md:px-6">
             <div className="text-center space-y-3">
-              <p className="text-lg md:text-xl font-extrabold tracking-tight text-foreground">Not onboarded yet as an agency?</p>
-              <p className="text-sm md:text-base font-semibold text-foreground/70">Start your contracting process here 👇</p>
+              <p
+                className="text-xl md:text-2xl font-black tracking-tight"
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  background: "linear-gradient(135deg, #8BBAC4 0%, #C98A3A 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                }}
+              >
+                Not onboarded yet as an agency?
+              </p>
+              <p
+                className="text-base md:text-lg font-medium"
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  color: "#C98A3A",
+                }}
+              >
+                Start your contracting process here 👇
+              </p>
               <button
                 onClick={() => setShowOnboarding(true)}
                 className="relative w-full h-12 rounded-md text-base md:text-lg font-semibold text-white overflow-hidden"
