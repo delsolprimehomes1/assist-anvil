@@ -79,10 +79,19 @@ const Auth = () => {
           variant: "destructive"
         });
       } else {
-        toast({
-          title: "Success!",
-          description: "Your account has been created. Please log in."
-        });
+        setSignupName(fullName);
+        fireBrandConfetti();
+        setShowSignupSuccess(true);
+        
+        // Notify admins in background
+        try {
+          await supabase.functions.invoke("notify-admin-signup", {
+            body: { userName: fullName, userEmail: email },
+          });
+        } catch (e) {
+          console.error("Failed to notify admins:", e);
+        }
+        
         setEmail("");
         setPassword("");
         setFullName("");
