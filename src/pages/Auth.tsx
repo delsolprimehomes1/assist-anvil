@@ -27,6 +27,14 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [resetFullName, setResetFullName] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
+  const [signupName, setSignupName] = useState("");
+
+  const fireBrandConfetti = () => {
+    const colors = ["#8BBAC4", "#C98A3A"];
+    confetti({ particleCount: 80, spread: 70, origin: { x: 0, y: 0.6 }, colors });
+    confetti({ particleCount: 80, spread: 70, origin: { x: 1, y: 0.6 }, colors });
+  };
   useEffect(() => {
     supabase.auth.getSession().then(({
       data: {
