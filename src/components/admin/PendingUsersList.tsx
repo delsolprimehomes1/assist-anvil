@@ -24,22 +24,30 @@ export const PendingUsersList = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ userId, status, userName }: { userId: string; status: string; userName: string }) => {
+    mutationFn: async ({ userId, status, userName, userEmail }: { userId: string; status: string; userName: string; userEmail: string }) => {
       const { error } = await supabase
         .from("profiles")
         .update({ approval_status: status })
         .eq("id", userId);
 
       if (error) throw error;
-      return { userName, status };
+      return { userName, status, userEmail };
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["pending-users"] });
       queryClient.invalidateQueries({ queryKey: ["approved-users"] });
       queryClient.invalidateQueries({ queryKey: ["rejected-users"] });
       
       if (data.status === "approved") {
         toast.success(`${data.userName} approved - moved to Approved Users`);
+        // Send approval email to user
+        try {
+          await supabase.functions.invoke("notify-user-approved", {
+            body: { userName: data.userName, userEmail: data.userEmail },
+          });
+        } catch (e) {
+          console.error("Failed to send approval email:", e);
+        }
       } else {
         toast.success(`${data.userName} rejected - moved to Rejected Users`);
       }
