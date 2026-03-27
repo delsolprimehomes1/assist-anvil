@@ -58,12 +58,12 @@ export const PendingUsersList = () => {
     },
   });
 
-  const handleApprove = (userId: string, userName: string) => {
-    updateStatusMutation.mutate({ userId, status: "approved", userName });
+  const handleApprove = (userId: string, userName: string, userEmail: string) => {
+    updateStatusMutation.mutate({ userId, status: "approved", userName, userEmail });
   };
 
-  const handleReject = (userId: string, userName: string) => {
-    updateStatusMutation.mutate({ userId, status: "rejected", userName });
+  const handleReject = (userId: string, userName: string, userEmail: string) => {
+    updateStatusMutation.mutate({ userId, status: "rejected", userName, userEmail });
   };
 
   if (isLoading) {
