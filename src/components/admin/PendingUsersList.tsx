@@ -122,7 +122,7 @@ export const PendingUsersList = () => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleReject(user.id, user.full_name || user.email || "User")}
+                      onClick={() => handleReject(user.id, user.full_name || user.email || "User", user.email || "")}
                       disabled={updateStatusMutation.isPending}
                     >
                       {updateStatusMutation.isPending ? (
