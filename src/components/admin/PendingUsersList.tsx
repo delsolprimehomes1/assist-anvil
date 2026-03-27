@@ -110,7 +110,7 @@ export const PendingUsersList = () => {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      onClick={() => handleApprove(user.id, user.full_name || user.email || "User")}
+                      onClick={() => handleApprove(user.id, user.full_name || user.email || "User", user.email || "")}
                       disabled={updateStatusMutation.isPending}
                     >
                       {updateStatusMutation.isPending ? (
