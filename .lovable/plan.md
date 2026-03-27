@@ -1,28 +1,27 @@
 
 
-## Plan: Animated Attention-Grabbing Arrows for "Request to be Contracted"
+## Plan: Remove Ugly Arrows, Make CTA Button Pop
 
-### What Changes
+**File:** `src/pages/Auth.tsx` (lines 267–349)
 
-**File:** `src/pages/Auth.tsx` (lines 267-278, the Onboarding Section card)
+### Changes
 
-Wrap the existing card in a `relative` container and add two animated arrow elements — one on each side — that orbit/pulse and then point inward toward the button. The animation will loop continuously.
+**1. Remove the SVG arrows entirely**
+- Delete the `arrowOrbitLeft` and `arrowOrbitRight` keyframes and the two arrow `<div>` elements (lines 287–334)
+- Keep the `tealGlow` keyframe for the card pulse
 
-### Design
+**2. Make the "Request To Be Contracted" button eye-catching**
+- Replace the plain `variant="outline"` with an animated gradient button
+- Background: animated gradient shifting between teal (`#8BBAC4`) and gold (`#C98A3A`)
+- White text, bold, with a subtle shimmer/shine sweep animation across the surface
+- Add a new CSS keyframe `gradientShift` that slowly rotates the gradient angle, and `shimmer` that sweeps a white highlight across the button
+- This makes the button visually distinct and impossible to miss without needing external arrows
 
-- Two SVG curved arrows (left and right) positioned absolutely on either side of the card
-- CSS keyframe animation: arrows float in a subtle circular orbit, then sweep inward pointing at the button, pause briefly, then restart
-- Arrows use the brand teal color (`#8BBAC4`) with a subtle glow effect
-- Also add a soft pulsing glow/border animation on the card itself to reinforce attention
-- Enhance the text slightly: make "Not onboarded yet as an agency?" bolder/larger
-- All done with Tailwind + inline CSS keyframes via a `<style>` tag or framer-motion (already imported)
+**3. Keep the card glow**
+- The pulsing teal border glow stays as-is — it works well
 
-### Implementation
-
-1. Add a `<style>` block with custom `@keyframes` for the orbiting arrow animation (orbit outward, sweep inward, pause, repeat — ~3s cycle)
-2. Add two `motion.div` arrow containers (left + right) with the animated SVG arrows, positioned absolutely beside the card
-3. Add a subtle pulse animation to the card border (teal glow that fades in/out)
-4. Bump the "Not onboarded yet" text styling slightly for visibility
-
-Single file change, no new dependencies.
+### Result
+- No more confusing SVG shapes
+- The CTA button itself becomes the attention-grabber with animated color and a shimmer effect
+- Clean, modern, professional look
 
