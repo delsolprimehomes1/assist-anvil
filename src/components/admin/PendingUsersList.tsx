@@ -24,22 +24,30 @@ export const PendingUsersList = () => {
   });
 
   const updateStatusMutation = useMutation({
-    mutationFn: async ({ userId, status, userName }: { userId: string; status: string; userName: string }) => {
+    mutationFn: async ({ userId, status, userName, userEmail }: { userId: string; status: string; userName: string; userEmail: string }) => {
       const { error } = await supabase
         .from("profiles")
         .update({ approval_status: status })
         .eq("id", userId);
 
       if (error) throw error;
-      return { userName, status };
+      return { userName, status, userEmail };
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       queryClient.invalidateQueries({ queryKey: ["pending-users"] });
       queryClient.invalidateQueries({ queryKey: ["approved-users"] });
       queryClient.invalidateQueries({ queryKey: ["rejected-users"] });
       
       if (data.status === "approved") {
         toast.success(`${data.userName} approved - moved to Approved Users`);
+        // Send approval email to user
+        try {
+          await supabase.functions.invoke("notify-user-approved", {
+            body: { userName: data.userName, userEmail: data.userEmail },
+          });
+        } catch (e) {
+          console.error("Failed to send approval email:", e);
+        }
       } else {
         toast.success(`${data.userName} rejected - moved to Rejected Users`);
       }
@@ -50,12 +58,12 @@ export const PendingUsersList = () => {
     },
   });
 
-  const handleApprove = (userId: string, userName: string) => {
-    updateStatusMutation.mutate({ userId, status: "approved", userName });
+  const handleApprove = (userId: string, userName: string, userEmail: string) => {
+    updateStatusMutation.mutate({ userId, status: "approved", userName, userEmail });
   };
 
-  const handleReject = (userId: string, userName: string) => {
-    updateStatusMutation.mutate({ userId, status: "rejected", userName });
+  const handleReject = (userId: string, userName: string, userEmail: string) => {
+    updateStatusMutation.mutate({ userId, status: "rejected", userName, userEmail });
   };
 
   if (isLoading) {
@@ -102,7 +110,7 @@ export const PendingUsersList = () => {
                   <div className="flex gap-2">
                     <Button
                       size="sm"
-                      onClick={() => handleApprove(user.id, user.full_name || user.email || "User")}
+                      onClick={() => handleApprove(user.id, user.full_name || user.email || "User", user.email || "")}
                       disabled={updateStatusMutation.isPending}
                     >
                       {updateStatusMutation.isPending ? (
@@ -114,7 +122,7 @@ export const PendingUsersList = () => {
                     <Button
                       size="sm"
                       variant="destructive"
-                      onClick={() => handleReject(user.id, user.full_name || user.email || "User")}
+                      onClick={() => handleReject(user.id, user.full_name || user.email || "User", user.email || "")}
                       disabled={updateStatusMutation.isPending}
                     >
                       {updateStatusMutation.isPending ? (

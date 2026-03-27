@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2 } from "lucide-react";
+import { Loader2, PartyPopper, CheckCircle2 } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
@@ -11,6 +11,8 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import logo from "@/assets/batterbox-auth-logo.png";
 import { OnboardingDialog } from "@/components/auth/OnboardingDialog";
+import { motion, AnimatePresence } from "framer-motion";
+import confetti from "canvas-confetti";
 const Auth = () => {
   const navigate = useNavigate();
   const {
@@ -25,6 +27,14 @@ const Auth = () => {
   const [resetEmail, setResetEmail] = useState("");
   const [resetFullName, setResetFullName] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
+  const [signupName, setSignupName] = useState("");
+
+  const fireBrandConfetti = () => {
+    const colors = ["#8BBAC4", "#C98A3A"];
+    confetti({ particleCount: 80, spread: 70, origin: { x: 0, y: 0.6 }, colors });
+    confetti({ particleCount: 80, spread: 70, origin: { x: 1, y: 0.6 }, colors });
+  };
   useEffect(() => {
     supabase.auth.getSession().then(({
       data: {
@@ -69,10 +79,19 @@ const Auth = () => {
           variant: "destructive"
         });
       } else {
-        toast({
-          title: "Success!",
-          description: "Your account has been created. Please log in."
-        });
+        setSignupName(fullName);
+        fireBrandConfetti();
+        setShowSignupSuccess(true);
+        
+        // Notify admins in background
+        try {
+          await supabase.functions.invoke("notify-admin-signup", {
+            body: { userName: fullName, userEmail: email },
+          });
+        } catch (e) {
+          console.error("Failed to notify admins:", e);
+        }
+        
         setEmail("");
         setPassword("");
         setFullName("");
@@ -328,6 +347,66 @@ const Auth = () => {
           </form>
         </DialogContent>
       </Dialog>
+
+      {/* Sign-Up Success Modal */}
+      <AnimatePresence>
+        {showSignupSuccess && (
+          <Dialog open={showSignupSuccess} onOpenChange={setShowSignupSuccess}>
+            <DialogContent className="sm:max-w-md border-0 bg-transparent shadow-none p-0">
+              <motion.div
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                transition={{ duration: 0.4, ease: "easeOut" }}
+                className="bg-card rounded-2xl p-8 shadow-2xl border text-center space-y-5"
+              >
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
+                  className="mx-auto w-20 h-20 rounded-full flex items-center justify-center"
+                  style={{ background: "linear-gradient(135deg, #8BBAC4 0%, #C98A3A 100%)" }}
+                >
+                  <PartyPopper className="h-10 w-10 text-white" />
+                </motion.div>
+                
+                <div className="space-y-2">
+                  <h2 className="text-2xl font-bold text-foreground">
+                    You're in{signupName ? `, ${signupName}` : ""}! 🎉
+                  </h2>
+                  <p className="text-muted-foreground text-base leading-relaxed">
+                    Your sign-up is complete! The <span className="font-semibold text-foreground">BattersBox team</span> is reviewing your portal access — you'll be notified once you're approved.
+                  </p>
+                </div>
+
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.4 }}
+                  className="rounded-lg border bg-muted/30 p-4"
+                >
+                  <div className="flex items-center gap-2 justify-center text-sm text-muted-foreground">
+                    <CheckCircle2 className="h-4 w-4" style={{ color: "#8BBAC4" }} />
+                    <span>No action needed — we'll reach out when you're all set</span>
+                  </div>
+                </motion.div>
+
+                <Button 
+                  className="w-full h-11 text-base font-semibold"
+                  style={{ background: "linear-gradient(135deg, #8BBAC4 0%, #6a9aa5 100%)" }}
+                  onClick={() => {
+                    setShowSignupSuccess(false);
+                    navigate("/pending-approval");
+                  }}
+                >
+                  Got it!
+                </Button>
+              </motion.div>
+            </DialogContent>
+          </Dialog>
+        )}
+      </AnimatePresence>
     </div>;
+
 };
 export default Auth;

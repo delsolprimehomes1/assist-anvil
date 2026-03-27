@@ -320,6 +320,12 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
 
         if (dbError) throw dbError;
 
+        // Set signup_source to 'onboarding'
+        await supabase
+          .from("profiles")
+          .update({ signup_source: "onboarding" })
+          .eq("id", authData.user.id);
+
         const { error: webhookError } = await supabase.functions.invoke(
           "send-onboarding-webhook",
           {
