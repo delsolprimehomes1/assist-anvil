@@ -1,25 +1,32 @@
 
 
-## Plan: Enhance "Request to be Contracted" Card Visibility
+## Plan: Modernize CTA Text with Eye-Catching Font & Colors
 
-**File:** `src/pages/Auth.tsx` (lines 267–311)
+**File:** `src/pages/Auth.tsx` (lines 289-290)
 
 ### Changes
 
-**1. Add animated gradient box-shadow to the card**
-- Replace the current `tealGlow` keyframe with a more dramatic animated glow that alternates between teal and gold shadows
-- Larger spread radius (up to 30-40px) so the glow is unmissable
-- New keyframe name: `cardGlow` cycling through teal → gold → teal shadow colors
+**1. Import a distinctive Google Font**
+- Add a `<link>` tag in `index.html` for **"Playfair Display"** (elegant serif that contrasts with the rest of the UI's sans-serif) — or use **"Outfit"** (modern geometric sans) for a cleaner but still distinct look
+- Alternative: use inline `@import` in the `<style>` block already present in the component
 
-**2. Bold up the text styling**
-- "Not onboarded yet as an agency?" → `text-lg md:text-xl font-extrabold tracking-tight`
-- "Start your contracting process here 👇" → `text-sm md:text-base font-semibold text-foreground/70` (promoted from `text-xs text-muted-foreground`)
+**2. Restyle the two text lines (lines 289-290)**
 
-**3. Mobile optimization**
-- Card padding: `pt-5 pb-5 px-4` on mobile, slightly more on desktop
-- Button height: `h-12` with `text-base md:text-lg` for large touch target
-- Text sizes scale responsively with `md:` breakpoints
-- Spacing between elements adjusted for compact mobile view
+- **"Not onboarded yet as an agency?"**
+  - Apply the new font family via inline style
+  - Use a **gradient text effect** (teal-to-gold) with `-webkit-background-clip: text` and `transparent` text color
+  - Size: `text-xl md:text-2xl`, `font-black`, `tracking-tight`
 
-Single file, no new dependencies.
+- **"Start your contracting process here 👇"**
+  - Same distinctive font
+  - Lighter weight: `font-medium`
+  - Color: solid gold (`#C98A3A`) instead of the current muted foreground
+  - Size: `text-base md:text-lg`
+
+**3. Implementation approach**
+- Add `@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap')` inside the existing `<style>` block
+- Apply `fontFamily: "'Playfair Display', serif"` via inline `style` on both `<p>` tags
+- Add gradient text CSS to the first line using inline styles
+
+No new files or dependencies. Single file edit.
 
