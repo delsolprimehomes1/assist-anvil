@@ -1,81 +1,28 @@
 
 
-## Plan: Fix Sign-Up Flow Messaging + Admin/User Email Automations
+## Plan: Animated Attention-Grabbing Arrows for "Request to be Contracted"
 
-### Problem
-Both the regular **Sign Up** and **Request to be Contracted** flows land users on the same `PendingApproval` page, which shows contracting-specific messaging ("Check your email to finish contracting"). Regular sign-up users are already contracted — they just need portal access approval.
+### What Changes
 
-### Solution Overview
-1. Differentiate the two user types so the PendingApproval page shows the right message
-2. Show a celebratory modal with confetti on regular sign-up completion
-3. Send an email to admins when someone signs up
-4. Send an email to the user when an admin approves them
+**File:** `src/pages/Auth.tsx` (lines 267-278, the Onboarding Section card)
 
----
+Wrap the existing card in a `relative` container and add two animated arrow elements — one on each side — that orbit/pulse and then point inward toward the button. The animation will loop continuously.
 
-### Changes
+### Design
 
-**1. Add `signup_source` column to profiles table**
+- Two SVG curved arrows (left and right) positioned absolutely on either side of the card
+- CSS keyframe animation: arrows float in a subtle circular orbit, then sweep inward pointing at the button, pause briefly, then restart
+- Arrows use the brand teal color (`#8BBAC4`) with a subtle glow effect
+- Also add a soft pulsing glow/border animation on the card itself to reinforce attention
+- Enhance the text slightly: make "Not onboarded yet as an agency?" bolder/larger
+- All done with Tailwind + inline CSS keyframes via a `<style>` tag or framer-motion (already imported)
 
-Migration to add `signup_source TEXT DEFAULT 'direct'` to profiles. Values: `'direct'` (regular sign-up) or `'onboarding'` (Request to be Contracted). Update the existing trigger or add logic so:
-- Regular sign-up sets `signup_source = 'direct'` (default)
-- Onboarding flow sets `signup_source = 'onboarding'`
+### Implementation
 
-**2. Update OnboardingDialog to set `signup_source = 'onboarding'`**
+1. Add a `<style>` block with custom `@keyframes` for the orbiting arrow animation (orbit outward, sweep inward, pause, repeat — ~3s cycle)
+2. Add two `motion.div` arrow containers (left + right) with the animated SVG arrows, positioned absolutely beside the card
+3. Add a subtle pulse animation to the card border (teal glow that fades in/out)
+4. Bump the "Not onboarded yet" text styling slightly for visibility
 
-File: `src/components/auth/OnboardingDialog.tsx`
-- After creating the user, update their profile to set `signup_source = 'onboarding'`
-
-**3. Add celebration modal to Auth.tsx sign-up success**
-
-File: `src/pages/Auth.tsx`
-- On successful sign-up, show a modal with confetti (reuse the `fireBrandConfetti` pattern from OnboardingDialog)
-- Message: "You're in! 🎉 Your sign-up is complete. The BattersBox team is reviewing your access — you'll be notified once you're approved."
-- "Got it" button signs them in and navigates to `/pending-approval`
-
-**4. Update PendingApproval page to show different messages**
-
-File: `src/pages/PendingApproval.tsx`
-- Fetch `signup_source` from the profile
-- If `signup_source = 'onboarding'`: show current contracting messaging (check email, etc.)
-- If `signup_source = 'direct'`: show approval-waiting messaging — "Your portal access is being reviewed by the BattersBox team. We'll let you know as soon as you're approved!"
-- No mention of contracting or checking email for direct sign-ups
-
-**5. Create `notify-admin-signup` edge function**
-
-New file: `supabase/functions/notify-admin-signup/index.ts`
-- Accepts `{ userName, userEmail }` payload
-- Queries `user_roles` table for all admin user IDs, then fetches their emails from profiles
-- Sends email via Resend to all admins: "New sign-up: [Name] ([email]) is waiting for portal access approval"
-- Called from Auth.tsx after successful sign-up
-
-**6. Create `notify-user-approved` edge function**
-
-New file: `supabase/functions/notify-user-approved/index.ts`
-- Accepts `{ userId, userName, userEmail }` payload
-- Sends email via Resend to the user: "Great news! Your BattersBox portal access has been approved. Log in now."
-- Called from `PendingUsersList.tsx` when admin clicks "Approve"
-
-**7. Wire up the email calls**
-
-- `src/pages/Auth.tsx`: After successful sign-up, invoke `notify-admin-signup`
-- `src/components/admin/PendingUsersList.tsx`: After successful approval mutation, invoke `notify-user-approved`
-
----
-
-### Technical Details
-
-- Both new edge functions use the existing `RESEND_API_KEY` secret (already configured)
-- Sender: `noreply@battersbox.com` (or whatever domain is configured in Resend)
-- Confetti uses the existing brand colors (teal `#8BBAC4`, gold `#C98A3A`) and `canvas-confetti` already in the project
-- No new dependencies needed
-
-### Files Changed/Created
-- New migration (add `signup_source` column)
-- `src/pages/Auth.tsx` — celebration modal + admin notification call
-- `src/pages/PendingApproval.tsx` — conditional messaging
-- `src/components/auth/OnboardingDialog.tsx` — set signup_source
-- `src/components/admin/PendingUsersList.tsx` — approval email call
-- `supabase/functions/notify-admin-signup/index.ts` (new)
-- `supabase/functions/notify-user-approved/index.ts` (new)
+Single file change, no new dependencies.
 
