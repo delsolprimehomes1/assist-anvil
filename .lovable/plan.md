@@ -1,27 +1,25 @@
 
 
-## Plan: Remove Ugly Arrows, Make CTA Button Pop
+## Plan: Enhance "Request to be Contracted" Card Visibility
 
-**File:** `src/pages/Auth.tsx` (lines 267–349)
+**File:** `src/pages/Auth.tsx` (lines 267–311)
 
 ### Changes
 
-**1. Remove the SVG arrows entirely**
-- Delete the `arrowOrbitLeft` and `arrowOrbitRight` keyframes and the two arrow `<div>` elements (lines 287–334)
-- Keep the `tealGlow` keyframe for the card pulse
+**1. Add animated gradient box-shadow to the card**
+- Replace the current `tealGlow` keyframe with a more dramatic animated glow that alternates between teal and gold shadows
+- Larger spread radius (up to 30-40px) so the glow is unmissable
+- New keyframe name: `cardGlow` cycling through teal → gold → teal shadow colors
 
-**2. Make the "Request To Be Contracted" button eye-catching**
-- Replace the plain `variant="outline"` with an animated gradient button
-- Background: animated gradient shifting between teal (`#8BBAC4`) and gold (`#C98A3A`)
-- White text, bold, with a subtle shimmer/shine sweep animation across the surface
-- Add a new CSS keyframe `gradientShift` that slowly rotates the gradient angle, and `shimmer` that sweeps a white highlight across the button
-- This makes the button visually distinct and impossible to miss without needing external arrows
+**2. Bold up the text styling**
+- "Not onboarded yet as an agency?" → `text-lg md:text-xl font-extrabold tracking-tight`
+- "Start your contracting process here 👇" → `text-sm md:text-base font-semibold text-foreground/70` (promoted from `text-xs text-muted-foreground`)
 
-**3. Keep the card glow**
-- The pulsing teal border glow stays as-is — it works well
+**3. Mobile optimization**
+- Card padding: `pt-5 pb-5 px-4` on mobile, slightly more on desktop
+- Button height: `h-12` with `text-base md:text-lg` for large touch target
+- Text sizes scale responsively with `md:` breakpoints
+- Spacing between elements adjusted for compact mobile view
 
-### Result
-- No more confusing SVG shapes
-- The CTA button itself becomes the attention-grabber with animated color and a shimmer effect
-- Clean, modern, professional look
+Single file, no new dependencies.
 
