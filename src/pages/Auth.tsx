@@ -266,6 +266,7 @@ const Auth = () => {
 
         {/* Onboarding Section */}
         <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');
           @keyframes cardGlow {
             0%, 100% { box-shadow: 0 0 20px 8px rgba(139,186,196,0.35), 0 0 40px 16px rgba(139,186,196,0.15); }
             50% { box-shadow: 0 0 25px 10px rgba(201,138,58,0.35), 0 0 45px 20px rgba(201,138,58,0.15); }
