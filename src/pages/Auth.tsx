@@ -174,6 +174,60 @@ const Auth = () => {
           </p>
         </div>
 
+        {/* Onboarding Section */}
+        <style>{`
+          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');
+          @keyframes cardGlow {
+            0%, 100% { box-shadow: 0 0 20px 8px rgba(139,186,196,0.35), 0 0 40px 16px rgba(139,186,196,0.15); }
+            50% { box-shadow: 0 0 25px 10px rgba(201,138,58,0.35), 0 0 45px 20px rgba(201,138,58,0.15); }
+          }
+          @keyframes gradientShift {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+          }
+          @keyframes shimmer {
+            0% { transform: translateX(-100%); }
+            100% { transform: translateX(100%); }
+          }
+        `}</style>
+        <Card
+          className="border-2 shadow-lg rounded-xl"
+          style={{ animation: "cardGlow 3s ease-in-out infinite" }}
+        >
+          <CardContent className="pt-5 pb-5 px-4 md:px-6">
+            <div className="text-center space-y-3">
+              <p
+                className="text-base md:text-lg font-medium"
+                style={{
+                  fontFamily: "'Playfair Display', serif",
+                  color: "#C98A3A",
+                }}
+              >
+                Start your contracting process here 👇
+              </p>
+              <button
+                onClick={() => setShowOnboarding(true)}
+                className="relative w-full h-12 rounded-md text-base md:text-lg font-semibold text-white overflow-hidden"
+                style={{
+                  background: "linear-gradient(270deg, #8BBAC4, #C98A3A, #8BBAC4, #C98A3A)",
+                  backgroundSize: "300% 300%",
+                  animation: "gradientShift 4s ease infinite",
+                }}
+              >
+                <span className="relative z-10">Request To Be Contracted</span>
+                <div
+                  className="absolute inset-0 z-[1]"
+                  style={{
+                    background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
+                    animation: "shimmer 2.5s ease-in-out infinite",
+                  }}
+                />
+              </button>
+            </div>
+          </CardContent>
+        </Card>
+
         {/* Auth Card */}
         <Card className="border-2 shadow-lg">
           <Tabs defaultValue="login" className="w-full">
