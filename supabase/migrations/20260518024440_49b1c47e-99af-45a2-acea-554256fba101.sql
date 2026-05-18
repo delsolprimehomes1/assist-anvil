@@ -1,21 +1,4 @@
-## Goal
-Keep `hierarchy_agents.contracts_approved` / `contracts_pending` in sync with `carrier_contracts` so the Licensing tab counters (and the Yellow zone for pending contracts) reflect reality.
-
-## Important finding — enum mismatch
-The task spec assumes `contract_status` values `'approved'` and `'pending'`. The actual enum in the DB is:
-
-```
-contract_status = ('active', 'pending', 'terminated')
-```
-
-There is no `'approved'`. The semantically equivalent value is **`'active'`** (that's also what the Carrier Contracts UI writes — see `src/integrations/supabase/types.ts` and `src/pages/Compliance.tsx`). 
-
-**Plan: map "approved" → `'active'`** in the trigger. The `contracts_approved` column name on `hierarchy_agents` stays as-is (it's just a counter label). If you'd rather extend the enum to add a literal `'approved'` value, say so and I'll revise.
-
-## Migration
-
-```sql
--- 1. Recount function
+-- Recount function: sets contracts_approved/pending on hierarchy_agents for a given agent
 CREATE OR REPLACE FUNCTION public.recount_agent_contracts(_agent_id uuid)
 RETURNS void
 LANGUAGE plpgsql
@@ -38,7 +21,7 @@ BEGIN
 END;
 $$;
 
--- 2. Trigger function (dispatches NEW vs OLD)
+-- Trigger dispatcher
 CREATE OR REPLACE FUNCTION public.trg_recount_agent_contracts()
 RETURNS trigger
 LANGUAGE plpgsql
@@ -51,7 +34,6 @@ BEGIN
     RETURN OLD;
   ELSE
     PERFORM public.recount_agent_contracts(NEW.agent_id);
-    -- If agent_id changed on UPDATE, also recount the old owner
     IF TG_OP = 'UPDATE' AND NEW.agent_id IS DISTINCT FROM OLD.agent_id THEN
       PERFORM public.recount_agent_contracts(OLD.agent_id);
     END IF;
@@ -60,7 +42,6 @@ BEGIN
 END;
 $$;
 
--- 3. Triggers
 DROP TRIGGER IF EXISTS carrier_contracts_recount_ins ON public.carrier_contracts;
 DROP TRIGGER IF EXISTS carrier_contracts_recount_upd ON public.carrier_contracts;
 DROP TRIGGER IF EXISTS carrier_contracts_recount_del ON public.carrier_contracts;
@@ -77,7 +58,7 @@ CREATE TRIGGER carrier_contracts_recount_del
 AFTER DELETE ON public.carrier_contracts
 FOR EACH ROW EXECUTE FUNCTION public.trg_recount_agent_contracts();
 
--- 4. One-time backfill for every agent that has a hierarchy row
+-- One-time backfill
 UPDATE public.hierarchy_agents ha
 SET
   contracts_approved = COALESCE(c.approved_ct, 0),
@@ -92,16 +73,3 @@ FROM (
   GROUP BY agent_id
 ) c
 WHERE ha.user_id = c.agent_id;
-```
-
-## Verification (after migration applies)
-1. Run `SELECT unnest(enum_range(NULL::contract_status));` → confirm `{active, pending, terminated}`.
-2. Backfill row count via `RETURNING` or a follow-up `SELECT count(*) FROM hierarchy_agents WHERE contracts_approved > 0 OR contracts_pending > 0;`
-3. Manual UI verification per the task:
-   - Add a `pending` contract → Licensing tab shows Pending: 1.
-   - Flip to `active` → Approved: 1, Pending: 0.
-   - Add another `pending` → Approved: 1, Pending: 1; agent enters Yellow zone.
-   - Delete one → counters decrement.
-
-## Files touched
-- New migration file under `supabase/migrations/` (SQL above). No app code changes — `LicensingCommandCenter` and `useHierarchy` already read the two counter columns.

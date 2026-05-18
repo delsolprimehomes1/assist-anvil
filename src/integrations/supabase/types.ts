@@ -1909,6 +1909,10 @@ export type Database = {
         Args: { _agent_id: string; _new_parent_id: string }
         Returns: undefined
       }
+      recount_agent_contracts: {
+        Args: { _agent_id: string }
+        Returns: undefined
+      }
       update_my_last_login: { Args: never; Returns: undefined }
     }
     Enums: {
