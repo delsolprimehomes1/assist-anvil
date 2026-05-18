@@ -866,6 +866,8 @@ export type Database = {
           updated_at: string | null
           user_id: string | null
           verification_complete: boolean | null
+          verified_at: string | null
+          verified_by: string | null
           weekly_business_submitted: number | null
           ytd_premium: number | null
         }
@@ -893,6 +895,8 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           verification_complete?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
           weekly_business_submitted?: number | null
           ytd_premium?: number | null
         }
@@ -920,6 +924,8 @@ export type Database = {
           updated_at?: string | null
           user_id?: string | null
           verification_complete?: boolean | null
+          verified_at?: string | null
+          verified_by?: string | null
           weekly_business_submitted?: number | null
           ytd_premium?: number | null
         }
@@ -1912,6 +1918,44 @@ export type Database = {
       recount_agent_contracts: {
         Args: { _agent_id: string }
         Returns: undefined
+      }
+      set_agent_verification: {
+        Args: { is_verified: boolean; target_user_id: string }
+        Returns: {
+          ce_due_date: string | null
+          comp_level: number | null
+          contracts_approved: number | null
+          contracts_pending: number | null
+          created_at: string | null
+          depth: number | null
+          id: string
+          joined_at: string | null
+          last_activity_at: string | null
+          last_business_date: string | null
+          last_login_at: string | null
+          license_states: string[] | null
+          monthly_goal: number | null
+          net_profit: number | null
+          parent_id: string | null
+          path: string
+          resident_license_exp: string | null
+          status: string | null
+          tier: string | null
+          total_lead_spend: number | null
+          updated_at: string | null
+          user_id: string | null
+          verification_complete: boolean | null
+          verified_at: string | null
+          verified_by: string | null
+          weekly_business_submitted: number | null
+          ytd_premium: number | null
+        }
+        SetofOptions: {
+          from: "*"
+          to: "hierarchy_agents"
+          isOneToOne: true
+          isSetofReturn: false
+        }
       }
       update_my_last_login: { Args: never; Returns: undefined }
     }
