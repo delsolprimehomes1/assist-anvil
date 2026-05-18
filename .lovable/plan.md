@@ -1,107 +1,78 @@
 ## Goal
-Keep `hierarchy_agents.contracts_approved` / `contracts_pending` in sync with `carrier_contracts` so the Licensing tab counters (and the Yellow zone for pending contracts) reflect reality.
+Give admins a one-click way to flip `hierarchy_agents.verification_complete`, with a proper audit trail, so agents can leave the Blue Onboarding zone.
 
-## Important finding — enum mismatch
-The task spec assumes `contract_status` values `'approved'` and `'pending'`. The actual enum in the DB is:
+## Placement note
+The user mentioned `HierarchyPlacementModal`, but that modal is only a bulk move-agent tool — it has no per-agent admin actions. The natural home is the **Licensing tab's agent row in `LicensingCommandCenter.tsx`** (line ~287), which already renders the "Verification: Complete / Pending" badge for each agent. That's where the admin toggle belongs.
 
-```
-contract_status = ('active', 'pending', 'terminated')
-```
+If you'd rather have it inside `HierarchyPlacementModal` or on the flippable card back, say so and I'll move it.
 
-There is no `'approved'`. The semantically equivalent value is **`'active'`** (that's also what the Carrier Contracts UI writes — see `src/integrations/supabase/types.ts` and `src/pages/Compliance.tsx`). 
-
-**Plan: map "approved" → `'active'`** in the trigger. The `contracts_approved` column name on `hierarchy_agents` stays as-is (it's just a counter label). If you'd rather extend the enum to add a literal `'approved'` value, say so and I'll revise.
-
-## Migration
+## Migration (schema + RPC)
 
 ```sql
--- 1. Recount function
-CREATE OR REPLACE FUNCTION public.recount_agent_contracts(_agent_id uuid)
-RETURNS void
+-- 1. Audit columns
+ALTER TABLE public.hierarchy_agents
+  ADD COLUMN IF NOT EXISTS verified_at timestamptz,
+  ADD COLUMN IF NOT EXISTS verified_by uuid REFERENCES auth.users(id) ON DELETE SET NULL;
+
+-- 2. Admin-only RPC
+CREATE OR REPLACE FUNCTION public.set_agent_verification(
+  target_user_id uuid,
+  is_verified boolean
+)
+RETURNS public.hierarchy_agents
 LANGUAGE plpgsql
 SECURITY DEFINER
 SET search_path = public
 AS $$
+DECLARE
+  updated_row public.hierarchy_agents;
 BEGIN
+  IF NOT public.has_role(auth.uid(), 'admin'::app_role) THEN
+    RAISE EXCEPTION 'Only admins can change verification status';
+  END IF;
+
   UPDATE public.hierarchy_agents
   SET
-    contracts_approved = (
-      SELECT COUNT(*) FROM public.carrier_contracts
-      WHERE agent_id = _agent_id AND contract_status = 'active'
-    ),
-    contracts_pending = (
-      SELECT COUNT(*) FROM public.carrier_contracts
-      WHERE agent_id = _agent_id AND contract_status = 'pending'
-    ),
+    verification_complete = is_verified,
+    verified_at = CASE WHEN is_verified THEN now() ELSE NULL END,
+    verified_by = CASE WHEN is_verified THEN auth.uid() ELSE NULL END,
     updated_at = now()
-  WHERE user_id = _agent_id;
-END;
-$$;
+  WHERE user_id = target_user_id
+  RETURNING * INTO updated_row;
 
--- 2. Trigger function (dispatches NEW vs OLD)
-CREATE OR REPLACE FUNCTION public.trg_recount_agent_contracts()
-RETURNS trigger
-LANGUAGE plpgsql
-SECURITY DEFINER
-SET search_path = public
-AS $$
-BEGIN
-  IF TG_OP = 'DELETE' THEN
-    PERFORM public.recount_agent_contracts(OLD.agent_id);
-    RETURN OLD;
-  ELSE
-    PERFORM public.recount_agent_contracts(NEW.agent_id);
-    -- If agent_id changed on UPDATE, also recount the old owner
-    IF TG_OP = 'UPDATE' AND NEW.agent_id IS DISTINCT FROM OLD.agent_id THEN
-      PERFORM public.recount_agent_contracts(OLD.agent_id);
-    END IF;
-    RETURN NEW;
+  IF updated_row IS NULL THEN
+    RAISE EXCEPTION 'Agent % not found', target_user_id;
   END IF;
+
+  RETURN updated_row;
 END;
 $$;
 
--- 3. Triggers
-DROP TRIGGER IF EXISTS carrier_contracts_recount_ins ON public.carrier_contracts;
-DROP TRIGGER IF EXISTS carrier_contracts_recount_upd ON public.carrier_contracts;
-DROP TRIGGER IF EXISTS carrier_contracts_recount_del ON public.carrier_contracts;
-
-CREATE TRIGGER carrier_contracts_recount_ins
-AFTER INSERT ON public.carrier_contracts
-FOR EACH ROW EXECUTE FUNCTION public.trg_recount_agent_contracts();
-
-CREATE TRIGGER carrier_contracts_recount_upd
-AFTER UPDATE OF contract_status, agent_id ON public.carrier_contracts
-FOR EACH ROW EXECUTE FUNCTION public.trg_recount_agent_contracts();
-
-CREATE TRIGGER carrier_contracts_recount_del
-AFTER DELETE ON public.carrier_contracts
-FOR EACH ROW EXECUTE FUNCTION public.trg_recount_agent_contracts();
-
--- 4. One-time backfill for every agent that has a hierarchy row
-UPDATE public.hierarchy_agents ha
-SET
-  contracts_approved = COALESCE(c.approved_ct, 0),
-  contracts_pending  = COALESCE(c.pending_ct, 0),
-  updated_at = now()
-FROM (
-  SELECT
-    agent_id,
-    COUNT(*) FILTER (WHERE contract_status = 'active')  AS approved_ct,
-    COUNT(*) FILTER (WHERE contract_status = 'pending') AS pending_ct
-  FROM public.carrier_contracts
-  GROUP BY agent_id
-) c
-WHERE ha.user_id = c.agent_id;
+REVOKE ALL ON FUNCTION public.set_agent_verification(uuid, boolean) FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.set_agent_verification(uuid, boolean) TO authenticated;
 ```
 
-## Verification (after migration applies)
-1. Run `SELECT unnest(enum_range(NULL::contract_status));` → confirm `{active, pending, terminated}`.
-2. Backfill row count via `RETURNING` or a follow-up `SELECT count(*) FROM hierarchy_agents WHERE contracts_approved > 0 OR contracts_pending > 0;`
-3. Manual UI verification per the task:
-   - Add a `pending` contract → Licensing tab shows Pending: 1.
-   - Flip to `active` → Approved: 1, Pending: 0.
-   - Add another `pending` → Approved: 1, Pending: 1; agent enters Yellow zone.
-   - Delete one → counters decrement.
+Admin enforcement is enforced inside the function via `has_role()`, so a non-admin calling the RPC directly gets a clean exception.
+
+## Frontend changes
+
+**`src/components/hierarchy/LicensingCommandCenter.tsx`**
+- Import `useAdmin` and `supabase`.
+- Add a small `<Button>` next to the Verification badge, only rendered when `isAdmin`:
+  - Label: "Mark Verified" when `!agent.verificationComplete`, "Unverify" otherwise.
+  - On click: `supabase.rpc('set_agent_verification', { target_user_id: agent.userId, is_verified: !agent.verificationComplete })`.
+  - Show toast on success/error. No manual refetch — `useHierarchy` realtime sub picks up the row update.
+  - Disable while in-flight (track a `pendingId` state).
+
+No other UI surfaces need changes.
+
+## Verification
+1. SQL check on enum/migration applied; columns exist on `hierarchy_agents`.
+2. Sign in as admin → Licensing tab → click "Mark Verified" on a pending agent → badge flips within ~1s via realtime.
+3. `SELECT verification_complete, verified_at, verified_by FROM hierarchy_agents WHERE user_id = '<id>'` confirms values set.
+4. Click "Unverify" → values clear back to false / NULL / NULL.
+5. As a non-admin: button is hidden; calling the RPC manually returns "Only admins can change verification status".
 
 ## Files touched
-- New migration file under `supabase/migrations/` (SQL above). No app code changes — `LicensingCommandCenter` and `useHierarchy` already read the two counter columns.
+- New migration under `supabase/migrations/`
+- `src/components/hierarchy/LicensingCommandCenter.tsx`

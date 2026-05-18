@@ -29,6 +29,9 @@ import {
 } from "@/lib/licensing-logic";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAdmin } from "@/hooks/useAdmin";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface LicensingCommandCenterProps {
   agents: EnhancedAgent[];
@@ -40,6 +43,22 @@ export function LicensingCommandCenter({ agents }: LicensingCommandCenterProps) 
   const [searchQuery, setSearchQuery] = useState("");
   const [zoneFilter, setZoneFilter] = useState<AgentZone | "all">("all");
   const [sortBy, setSortBy] = useState<SortOption>("urgency");
+  const { isAdmin } = useAdmin();
+  const [pendingVerifyId, setPendingVerifyId] = useState<string | null>(null);
+
+  const toggleVerification = async (userId: string, currentlyVerified: boolean) => {
+    setPendingVerifyId(userId);
+    const { error } = await supabase.rpc("set_agent_verification", {
+      target_user_id: userId,
+      is_verified: !currentlyVerified,
+    });
+    setPendingVerifyId(null);
+    if (error) {
+      toast.error(error.message || "Failed to update verification");
+    } else {
+      toast.success(currentlyVerified ? "Agent unverified" : "Agent marked verified");
+    }
+  };
 
   // Zone priority for sorting (lower = more urgent)
   const zonePriority: Record<AgentZone, number> = {
@@ -298,6 +317,23 @@ export function LicensingCommandCenter({ agents }: LicensingCommandCenterProps) 
                               <Clock className="h-3 w-3 mr-1" />
                               Pending
                             </Badge>
+                          )}
+                          {isAdmin && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 px-2 mt-1 text-xs"
+                              disabled={pendingVerifyId === agent.userId}
+                              onClick={() =>
+                                toggleVerification(agent.userId, agent.verificationComplete)
+                              }
+                            >
+                              {pendingVerifyId === agent.userId
+                                ? "Saving…"
+                                : agent.verificationComplete
+                                ? "Unverify"
+                                : "Mark Verified"}
+                            </Button>
                           )}
                         </div>
                       </div>
