@@ -29,6 +29,9 @@ import {
 } from "@/lib/licensing-logic";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { useAdmin } from "@/hooks/useAdmin";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 interface LicensingCommandCenterProps {
   agents: EnhancedAgent[];
