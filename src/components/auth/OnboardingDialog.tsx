@@ -162,7 +162,7 @@ const allSteps = [
   { id: 4, question: "Select your manager", icon: UserCheck, fields: ["assignedManager"] as const },
   { id: 5, question: "What's your email address?", icon: Mail, fields: ["email"] as const },
   { id: 6, question: "What's your phone number?", icon: Phone, fields: ["phone"] as const },
-  { id: 7, question: "Are you licensed?", icon: Award, fields: ["isLicensed"] as const },
+  { id: 7, question: "Are you licensed?", icon: Award, fields: ["isLicensed", "residentLicenseExp", "residentLicenseState", "residentLicenseNumber", "npnNumber", "otherLicenseStates", "ceDueDate"] as const },
   { id: 8, question: "Create a secure password", icon: Lock, fields: ["password", "confirmPassword"] as const },
 ];
 
