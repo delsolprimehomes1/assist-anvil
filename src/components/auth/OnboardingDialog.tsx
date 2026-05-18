@@ -94,25 +94,23 @@ const fireBrandConfetti = () => {
 type AgencyCodeRow = { id: string; code: string; label: string | null; display_order: number };
 type AgencyManagerRow = { id: string; manager_name: string; display_order: number };
 
-// Full schema for new users (includes password)
-const fullFormSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  isLicensed: z.enum(["yes", "no"], { required_error: "Please select an option" }),
-  agencyCode: z.string().min(1, "Please select an agency code"),
-  assignedManager: z.string().min(1, "Please select your manager"),
-  referredBy: z.string().min(2, "Please enter who referred you"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+// License-conditional refinement: when isLicensed === "yes", certain fields are required.
+const licensedRefine = (data: any, ctx: z.RefinementCtx) => {
+  if (data.isLicensed !== "yes") return;
+  if (!data.residentLicenseExp) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseExp"], message: "Resident license expiration is required" });
+  } else if (data.residentLicenseExp <= new Date()) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseExp"], message: "Expiration must be in the future" });
+  }
+  if (!data.residentLicenseState) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseState"], message: "Resident state is required" });
+  }
+  if (!data.residentLicenseNumber || data.residentLicenseNumber.trim().length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseNumber"], message: "License number is required" });
+  }
+};
 
-// Reduced schema for existing users (no password)
-const existingUserFormSchema = z.object({
+const baseShape = {
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
@@ -121,9 +119,34 @@ const existingUserFormSchema = z.object({
   agencyCode: z.string().min(1, "Please select an agency code"),
   assignedManager: z.string().min(1, "Please select your manager"),
   referredBy: z.string().min(2, "Please enter who referred you"),
-  password: z.string().optional(),
-  confirmPassword: z.string().optional(),
-});
+  // Licensing fields (conditionally required via superRefine)
+  residentLicenseExp: z.date().optional(),
+  residentLicenseState: z.string().optional(),
+  residentLicenseNumber: z.string().optional(),
+  npnNumber: z.string().optional(),
+  otherLicenseStates: z.array(z.string()).optional().default([]),
+  ceDueDate: z.date().optional(),
+};
+
+const fullFormSchema = z
+  .object({
+    ...baseShape,
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
+  .superRefine(licensedRefine);
+
+const existingUserFormSchema = z
+  .object({
+    ...baseShape,
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+  })
+  .superRefine(licensedRefine);
 
 type FormValues = z.infer<typeof fullFormSchema>;
 
