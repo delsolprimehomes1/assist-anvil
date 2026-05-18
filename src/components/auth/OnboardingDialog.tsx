@@ -716,32 +716,180 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
 
                       {/* Step 7: Licensed? */}
                       {currentStepConfig.id === 7 && (
-                        <FormField control={form.control} name="isLicensed" render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4" disabled={loading}>
-                                <label className={cn(
-                                  "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
-                                  field.value === "yes" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
-                                )}>
-                                  <RadioGroupItem value="yes" className="sr-only" />
-                                  <Award className="w-12 h-12 mb-3 text-green-500" />
-                                  <span className="text-xl font-semibold">Yes</span>
-                                </label>
-                                <label className={cn(
-                                  "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
-                                  field.value === "no" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
-                                )}>
-                                  <RadioGroupItem value="no" className="sr-only" />
-                                  <XCircle className="w-12 h-12 mb-3 text-red-400" />
-                                  <span className="text-xl font-semibold">No</span>
-                                </label>
-                              </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
+                        <div className="space-y-6">
+                          <FormField control={form.control} name="isLicensed" render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4" disabled={loading}>
+                                  <label className={cn(
+                                    "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                    field.value === "yes" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
+                                  )}>
+                                    <RadioGroupItem value="yes" className="sr-only" />
+                                    <Award className="w-12 h-12 mb-3 text-green-500" />
+                                    <span className="text-xl font-semibold">Yes</span>
+                                  </label>
+                                  <label className={cn(
+                                    "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                    field.value === "no" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
+                                  )}>
+                                    <RadioGroupItem value="no" className="sr-only" />
+                                    <XCircle className="w-12 h-12 mb-3 text-red-400" />
+                                    <span className="text-xl font-semibold">No</span>
+                                  </label>
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+
+                          {form.watch("isLicensed") === "yes" && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="space-y-5 pt-2"
+                            >
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Resident license exp */}
+                                <FormField control={form.control} name="residentLicenseExp" render={({ field }) => (
+                                  <FormItem className="flex flex-col">
+                                    <Label className="mb-1">Resident license expiration *</Label>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <FormControl>
+                                          <Button type="button" variant="outline" disabled={loading}
+                                            className={cn("h-12 justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                          </Button>
+                                        </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
+                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange}
+                                          disabled={(d) => d <= new Date()} initialFocus className={cn("p-3 pointer-events-auto")} />
+                                      </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+
+                                {/* Resident state */}
+                                <FormField control={form.control} name="residentLicenseState" render={({ field }) => (
+                                  <FormItem className="flex flex-col">
+                                    <Label className="mb-1">Resident state *</Label>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                                      <FormControl>
+                                        <SelectTrigger className="h-12 bg-background">
+                                          <SelectValue placeholder="Select state" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent className="bg-background z-50 max-h-72">
+                                        {US_STATES.map((s) => (
+                                          <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+
+                                {/* License number */}
+                                <FormField control={form.control} name="residentLicenseNumber" render={({ field }) => (
+                                  <FormItem>
+                                    <Label className="mb-1">License number *</Label>
+                                    <FormControl>
+                                      <Input {...field} placeholder="e.g. P123456" disabled={loading} className="h-12" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+
+                                {/* NPN */}
+                                <FormField control={form.control} name="npnNumber" render={({ field }) => (
+                                  <FormItem>
+                                    <Label className="mb-1">NPN number</Label>
+                                    <FormControl>
+                                      <Input {...field} placeholder="National Producer Number" disabled={loading} className="h-12" />
+                                    </FormControl>
+                                    <p className="text-xs text-muted-foreground mt-1">Your National Producer Number from NIPR</p>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                              </div>
+
+                              {/* CE due date */}
+                              <FormField control={form.control} name="ceDueDate" render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                  <Label className="mb-1">CE due date <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button type="button" variant="outline" disabled={loading}
+                                          className={cn("h-12 justify-start text-left font-normal max-w-xs", !field.value && "text-muted-foreground")}>
+                                          <CalendarIcon className="mr-2 h-4 w-4" />
+                                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
+                                      <Calendar mode="single" selected={field.value} onSelect={field.onChange}
+                                        initialFocus className={cn("p-3 pointer-events-auto")} />
+                                    </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                </FormItem>
+                              )} />
+
+                              {/* Other licensed states */}
+                              <FormField control={form.control} name="otherLicenseStates" render={({ field }) => {
+                                const selected: string[] = field.value || [];
+                                const toggle = (code: string) => {
+                                  if (selected.includes(code)) field.onChange(selected.filter((c) => c !== code));
+                                  else field.onChange([...selected, code]);
+                                };
+                                return (
+                                  <FormItem>
+                                    <Label className="mb-1">Other states you're licensed in <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <FormControl>
+                                          <Button type="button" variant="outline" disabled={loading}
+                                            className="h-12 w-full justify-start text-left font-normal">
+                                            {selected.length === 0 ? <span className="text-muted-foreground">Select states</span> : `${selected.length} state${selected.length === 1 ? "" : "s"} selected`}
+                                          </Button>
+                                        </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-[320px] p-0 bg-background z-50" align="start">
+                                        <div className="max-h-72 overflow-y-auto p-2">
+                                          {US_STATES.map((s) => (
+                                            <label key={s.code} className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer">
+                                              <Checkbox checked={selected.includes(s.code)} onCheckedChange={() => toggle(s.code)} />
+                                              <span className="text-sm">{s.name}</span>
+                                            </label>
+                                          ))}
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
+                                    {selected.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 mt-2">
+                                        {selected.map((c) => (
+                                          <span key={c} className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[hsl(var(--brand-teal))]/15 text-foreground">
+                                            {c}
+                                            <button type="button" onClick={() => toggle(c)} className="text-muted-foreground hover:text-foreground" aria-label={`Remove ${c}`}>×</button>
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    <FormMessage />
+                                  </FormItem>
+                                );
+                              }} />
+                            </motion.div>
+                          )}
+                        </div>
                       )}
+
 
                       {/* Step 8: Password (only for new users) */}
                       {currentStepConfig.id === 8 && (
