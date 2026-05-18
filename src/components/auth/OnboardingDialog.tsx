@@ -9,13 +9,19 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock, Award, XCircle, UserCheck } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock, Award, XCircle, UserCheck, CalendarIcon, Check } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import confetti from "canvas-confetti";
+import { US_STATES } from "@/lib/us-states";
 
 // Brand colors for confetti
 const BRAND_TEAL = "#8BBAC4";
