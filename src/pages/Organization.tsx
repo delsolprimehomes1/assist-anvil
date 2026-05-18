@@ -1,3 +1,5 @@
+// Licensing tab temporarily hidden. All underlying data plumbing remains active.
+// See commented blocks below to restore.
 import { useState } from "react";
 import { HierarchyTree } from "@/components/hierarchy/HierarchyTree";
 import { HierarchySearchBar } from "@/components/hierarchy/HierarchySearchBar";
@@ -92,10 +94,11 @@ const Organization = () => {
                   <Network className="h-4 w-4" />
                   <span>Hierarchy</span>
                 </TabsTrigger>
-                <TabsTrigger value="licensing" className="gap-1.5 text-xs sm:text-sm px-3 sm:px-4">
+                {/* LICENSING TAB HIDDEN — to re-enable, uncomment the trigger above and the TabsContent block below. */}
+                {/* <TabsTrigger value="licensing" className="gap-1.5 text-xs sm:text-sm px-3 sm:px-4">
                   <Shield className="h-4 w-4" />
                   <span>Licensing</span>
-                </TabsTrigger>
+                </TabsTrigger> */}
                 <TabsTrigger value="invitations" className="gap-1.5 text-xs sm:text-sm px-3 sm:px-4">
                   <Mail className="h-4 w-4" />
                   <span>Invites</span>
@@ -158,9 +161,10 @@ const Organization = () => {
               <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
               <ZoneLegend />
             </TabsContent>
-            <TabsContent value="licensing" className="absolute inset-0 m-0 overflow-auto">
+            {/* LICENSING TAB HIDDEN — to re-enable, uncomment the trigger above and the TabsContent block below. */}
+            {/* <TabsContent value="licensing" className="absolute inset-0 m-0 overflow-auto">
               <LicensingCommandCenter agents={filteredAgents as EnhancedAgent[]} />
-            </TabsContent>
+            </TabsContent> */}
             <TabsContent value="invitations" className="absolute inset-0 m-0 overflow-auto p-4 sm:p-6">
               <Card className="max-w-2xl mx-auto">
                 <CardHeader className="pb-3 sm:pb-6">
