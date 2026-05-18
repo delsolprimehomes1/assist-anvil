@@ -298,22 +298,48 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
+      const isLicensedBool = values.isLicensed === "yes";
+      const toIsoDate = (d?: Date) => (d ? d.toISOString().slice(0, 10) : null);
+      const licenseFields = isLicensedBool
+        ? {
+            resident_license_exp: toIsoDate(values.residentLicenseExp),
+            resident_license_state: values.residentLicenseState || null,
+            resident_license_number: values.residentLicenseNumber?.trim() || null,
+            npn_number: values.npnNumber?.trim() || null,
+            other_license_states: values.otherLicenseStates && values.otherLicenseStates.length > 0 ? values.otherLicenseStates : null,
+            ce_due_date: toIsoDate(values.ceDueDate),
+          }
+        : {
+            resident_license_exp: null,
+            resident_license_state: null,
+            resident_license_number: null,
+            npn_number: null,
+            other_license_states: null,
+            ce_due_date: null,
+          };
+
+      const webhookBody = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        phone: values.phone,
+        isLicensed: isLicensedBool,
+        agencyCode: values.agencyCode,
+        assignedManager: values.assignedManager,
+        referredBy: values.referredBy,
+        residentLicenseExp: licenseFields.resident_license_exp,
+        residentLicenseState: licenseFields.resident_license_state,
+        residentLicenseNumber: licenseFields.resident_license_number,
+        npnNumber: licenseFields.npn_number,
+        otherLicenseStates: licenseFields.other_license_states,
+        ceDueDate: licenseFields.ce_due_date,
+      };
+
       if (isExistingUser) {
         // Existing user: skip signup, just send webhook
         const { error: webhookError } = await supabase.functions.invoke(
           "send-onboarding-webhook",
-          {
-            body: {
-              firstName: values.firstName,
-              lastName: values.lastName,
-              email: values.email,
-              phone: values.phone,
-              isLicensed: values.isLicensed === "yes",
-              agencyCode: values.agencyCode,
-              assignedManager: values.assignedManager,
-              referredBy: values.referredBy,
-            },
-          }
+          { body: webhookBody }
         );
 
         if (webhookError) {
@@ -347,10 +373,11 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
             last_name: values.lastName,
             email: values.email,
             phone: values.phone,
-            is_licensed: values.isLicensed === "yes",
+            is_licensed: isLicensedBool,
             agency_code: values.agencyCode || null,
             assigned_manager: values.assignedManager || null,
             referred_by: values.referredBy || null,
+            ...licenseFields,
           });
 
         if (dbError) throw dbError;
@@ -363,18 +390,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
 
         const { error: webhookError } = await supabase.functions.invoke(
           "send-onboarding-webhook",
-          {
-            body: {
-              firstName: values.firstName,
-              lastName: values.lastName,
-              email: values.email,
-              phone: values.phone,
-              isLicensed: values.isLicensed === "yes",
-              agencyCode: values.agencyCode,
-              assignedManager: values.assignedManager,
-              referredBy: values.referredBy,
-            },
-          }
+          { body: webhookBody }
         );
 
         if (webhookError) {
