@@ -129,9 +129,17 @@ export const useHierarchy = (): UseHierarchyReturn => {
     fetchHierarchy();
   }, [user]);
 
-  // Real-time subscription for hierarchy changes
+  // Real-time subscription for hierarchy changes (debounced to collapse bursts)
   useEffect(() => {
     if (!user) return;
+
+    let debounceTimer: ReturnType<typeof setTimeout> | null = null;
+    const scheduleRefetch = () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
+      debounceTimer = setTimeout(() => {
+        fetchHierarchy();
+      }, 500);
+    };
 
     const channel = supabase
       .channel("hierarchy-changes")
@@ -142,11 +150,7 @@ export const useHierarchy = (): UseHierarchyReturn => {
           schema: "public",
           table: "hierarchy_agents",
         },
-        (payload) => {
-          console.log("Hierarchy change detected:", payload);
-          // Refetch when changes occur
-          fetchHierarchy();
-        }
+        () => scheduleRefetch()
       )
       .on(
         "postgres_changes",
@@ -157,21 +161,18 @@ export const useHierarchy = (): UseHierarchyReturn => {
           filter: `invited_by=eq.${user.id}`,
         },
         (payload: any) => {
-          // When an invitation is accepted, refetch the hierarchy
           if (payload.new?.status === 'accepted') {
-            console.log("Invitation accepted, refetching hierarchy");
-            fetchHierarchy();
+            scheduleRefetch();
           }
         }
       )
-      .subscribe((status) => {
-        console.log("Realtime subscription status:", status);
-      });
+      .subscribe();
 
     return () => {
+      if (debounceTimer) clearTimeout(debounceTimer);
       supabase.removeChannel(channel);
     };
-  }, [user]);
+  }, [user?.id]);
 
   // Move an agent to a new parent using the RPC function
   const moveAgent = async (agentUserId: string, newParentUserId: string) => {
