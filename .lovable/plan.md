@@ -1,47 +1,62 @@
-## Why the page is glitching
+## Sync license + CE dates from `agent_profiles` into `hierarchy_agents`
 
-The console shows `hierarchy_agents` UPDATE events firing roughly once per second on `/dashboard/organization`. Every one of those events triggers `fetchHierarchy()` in `useHierarchy`, which re-renders the whole Organization page (tree, licensing tab, skeletons flashing). That's the "glitch."
+### Schema reality check
 
-### Root cause — feedback loop introduced with the last-login fix
+- `agent_profiles` uses **`id`** (uuid) as its primary key, which equals `auth.users.id` — there is no separate `user_id` column.
+- Columns to sync: **`resident_license_exp`** (date) and **`ce_due_date`** (date). Both already exist on `hierarchy_agents`.
+- `license_states` is NOT in `agent_profiles` (only `goal_states` exists there) → skip.
 
-1. `useAuth` (in `src/hooks/useAuth.tsx`) now calls `update_my_last_login` whenever an auth event fires (`SIGNED_IN`, `TOKEN_REFRESHED`, or initial session) — and on every `useAuth` mount.
-2. `useAuth` is consumed in **5+ places** simultaneously on this page: `ProtectedRoute`, `Header`, `useHierarchy`, `MyInvitationsList`, `AddAgentModal`. Each one creates its own `onAuthStateChange` subscription and its own `getSession()` call, so every auth tick fans out to N pings.
-3. Each ping writes to `hierarchy_agents.last_login_at`.
-4. `useHierarchy` subscribes to **all** `hierarchy_agents` UPDATE events with no filter, so every ping echoes back as a full refetch → setState → cascade re-render.
-5. Re-renders cause `setUser(session?.user ?? null)` in each `useAuth` to install a fresh User object reference, which retriggers `useEffect([user])` consumers (notably `useHierarchy`'s subscription effect), tearing down and re-creating the realtime channel — and in some paths re-firing a ping. The system never settles.
+### Migration
 
-The console confirms the loop: the same row (`11111111-1111…`) keeps getting `last_login_at` rewritten ~1×/sec with no user interaction.
+```sql
+-- 1. Trigger function: mirror license/CE dates into hierarchy_agents
+CREATE OR REPLACE FUNCTION public.sync_license_exp_to_hierarchy()
+RETURNS trigger
+LANGUAGE plpgsql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+BEGIN
+  UPDATE public.hierarchy_agents
+  SET
+    resident_license_exp = NEW.resident_license_exp,
+    ce_due_date          = NEW.ce_due_date,
+    updated_at           = now()
+  WHERE user_id = NEW.id;
+  RETURN NEW;
+END;
+$$;
 
-## Fix
+-- 2. Trigger: fire on insert, or on update when either field changes
+DROP TRIGGER IF EXISTS sync_license_exp_to_hierarchy ON public.agent_profiles;
+CREATE TRIGGER sync_license_exp_to_hierarchy
+AFTER INSERT OR UPDATE OF resident_license_exp, ce_due_date
+ON public.agent_profiles
+FOR EACH ROW
+EXECUTE FUNCTION public.sync_license_exp_to_hierarchy();
 
-Two small, targeted changes.
-
-### 1. Ping last-login at most once per page load — `src/hooks/useAuth.tsx`
-
-- Move the "already pinged" flag to **module scope** (not per-hook-instance) so all 5 `useAuth` consumers share it.
-- Only ping on the first `SIGNED_IN` of the session or the initial restored session. **Remove `TOKEN_REFRESHED`** from the trigger list (token refresh ≠ new login).
-- Keep the `setTimeout(0)` defer so the auth callback isn't blocked.
-
-Pseudocode:
-```ts
-let hasPingedThisLoad = false;
-const pingOnce = () => {
-  if (hasPingedThisLoad) return;
-  hasPingedThisLoad = true;
-  setTimeout(() => supabase.rpc("update_my_last_login"), 0);
-};
+-- 3. One-time backfill of existing rows
+UPDATE public.hierarchy_agents ha
+SET
+  resident_license_exp = ap.resident_license_exp,
+  ce_due_date          = ap.ce_due_date,
+  updated_at           = now()
+FROM public.agent_profiles ap
+WHERE ha.user_id = ap.id
+  AND (
+    ha.resident_license_exp IS DISTINCT FROM ap.resident_license_exp
+    OR ha.ce_due_date        IS DISTINCT FROM ap.ce_due_date
+  );
 ```
 
-### 2. Make the realtime subscription cheaper — `src/hooks/useHierarchy.ts`
+`SECURITY DEFINER` is required so the trigger can update `hierarchy_agents` rows the editing agent doesn't directly own (the row IS theirs, but RLS on `hierarchy_agents` has no self-UPDATE policy for agents).
 
-- Debounce `fetchHierarchy()` calls from the realtime handler (e.g. 500ms trailing) so a burst of writes collapses into one refetch.
-- This is defense-in-depth: even if some other column starts updating frequently in the future, the UI won't thrash.
+### Verification steps
 
-No DB or RLS changes. No edit to `update_my_last_login` (it's still correct and safe — verified in the last turn).
+1. Run the migration. Report the backfill row count.
+2. As a test agent, change `resident_license_exp` to **today + 5d** on the Compliance page → reload `/dashboard/organization` → agent appears **Red** (license expiring ≤7d).
+3. Change to **today + 20d** → reload → agent appears **Yellow** (expiring 8–30d).
+4. Change to **today + 60d** → reload → agent drops out of license-driven zones (Green/Black depending on other signals).
+5. Confirm via `SELECT user_id, resident_license_exp, ce_due_date FROM hierarchy_agents WHERE user_id = '<agent>';`
 
-## Verification
-
-1. Reload `/dashboard/organization` and watch the preview console: `Hierarchy change detected` should fire **at most once** on load, then stop.
-2. Confirm in DB: `SELECT last_login_at FROM hierarchy_agents WHERE user_id = auth.uid()` still updates on fresh sign-in.
-3. Open a second browser tab, sign in there → first tab should refetch exactly once (realtime working), not 9× in 8 seconds.
-4. Black-zone behavior remains correct: backdating `last_login_at` 8 days still flips the agent to Black.
+No frontend changes required — `determineAgentZone()` already reads these fields.
