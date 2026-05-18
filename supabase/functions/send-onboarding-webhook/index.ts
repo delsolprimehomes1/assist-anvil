@@ -11,34 +11,35 @@ Deno.serve(async (req) => {
   }
 
   try {
-    const { firstName, lastName, email, phone, isLicensed, agencyCode, assignedManager, referredBy } = await req.json();
+    const {
+      firstName, lastName, email, phone, isLicensed, agencyCode, assignedManager, referredBy,
+      residentLicenseExp, residentLicenseState, residentLicenseNumber, npnNumber, otherLicenseStates, ceDueDate,
+    } = await req.json();
 
     console.log('Sending onboarding webhook for:', email);
 
-    // Send data to webhook
     const webhookUrl = 'https://services.leadconnectorhq.com/hooks/8QTBB0ELEbvOf31OXIdM/webhook-trigger/7676888d-9040-4f44-bb44-b6699e3238b7';
-    
+
     const payload = {
-      // Standard contact fields (camelCase for LeadConnector)
-      firstName: firstName,
-      lastName: lastName,
-      name: `${firstName} ${lastName}`,
-      email: email,
-      phone: phone,
-      
-      // Custom fields - both formats for compatibility
-      first_name: firstName,
-      last_name: lastName,
-      is_licensed: isLicensed,
-      isLicensed: isLicensed,
-      agency_code: agencyCode,
-      agencyCode: agencyCode,
-      assigned_manager: assignedManager,
-      assignedManager: assignedManager,
-      referred_by: referredBy,
-      referredBy: referredBy,
-      
-      // Metadata
+      firstName, lastName, name: `${firstName} ${lastName}`, email, phone,
+      first_name: firstName, last_name: lastName,
+      is_licensed: isLicensed, isLicensed,
+      agency_code: agencyCode, agencyCode,
+      assigned_manager: assignedManager, assignedManager,
+      referred_by: referredBy, referredBy,
+      // Licensing fields (snake + camel for LeadConnector compatibility)
+      resident_license_exp: residentLicenseExp ?? null,
+      residentLicenseExp: residentLicenseExp ?? null,
+      resident_license_state: residentLicenseState ?? null,
+      residentLicenseState: residentLicenseState ?? null,
+      resident_license_number: residentLicenseNumber ?? null,
+      residentLicenseNumber: residentLicenseNumber ?? null,
+      npn_number: npnNumber ?? null,
+      npnNumber: npnNumber ?? null,
+      other_license_states: otherLicenseStates ?? null,
+      otherLicenseStates: otherLicenseStates ?? null,
+      ce_due_date: ceDueDate ?? null,
+      ceDueDate: ceDueDate ?? null,
       source: "BatterBox Onboarding",
       timestamp: new Date().toISOString(),
     };

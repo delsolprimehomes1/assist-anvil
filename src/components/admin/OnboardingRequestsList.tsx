@@ -57,6 +57,40 @@ export const OnboardingRequestsList = () => {
         .eq("id", userId);
 
       if (profileError) throw profileError;
+
+      // On approval, propagate license fields from onboarding_requests to agent_profiles
+      // so the Licensing tab zone engine can fire immediately (sync trigger then
+      // mirrors resident_license_exp / ce_due_date into hierarchy_agents).
+      if (newStatus === "approved") {
+        const { data: req, error: fetchErr } = await supabase
+          .from("onboarding_requests")
+          .select(
+            "is_licensed, resident_license_exp, resident_license_state, resident_license_number, npn_number, other_license_states, ce_due_date"
+          )
+          .eq("id", requestId)
+          .maybeSingle();
+
+        if (fetchErr) throw fetchErr;
+
+        if (req?.is_licensed) {
+          const profilePayload = {
+            id: userId,
+            resident_license_exp: req.resident_license_exp ?? null,
+            resident_state: req.resident_license_state ?? null,
+            resident_license_number: req.resident_license_number ?? null,
+            npn_number: req.npn_number ?? null,
+            license_states: req.other_license_states ?? [],
+            ce_due_date: req.ce_due_date ?? null,
+          };
+
+          // Upsert: create row if missing, otherwise update license fields in place.
+          const { error: upsertErr } = await supabase
+            .from("agent_profiles")
+            .upsert(profilePayload, { onConflict: "id" });
+
+          if (upsertErr) throw upsertErr;
+        }
+      }
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["onboarding-requests"] });

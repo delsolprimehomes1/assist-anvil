@@ -211,6 +211,7 @@ export type Database = {
           created_at: string
           goal_states: string[] | null
           id: string
+          license_states: string[] | null
           npn_number: string | null
           resident_license_exp: string | null
           resident_license_number: string | null
@@ -224,6 +225,7 @@ export type Database = {
           created_at?: string
           goal_states?: string[] | null
           id: string
+          license_states?: string[] | null
           npn_number?: string | null
           resident_license_exp?: string | null
           resident_license_number?: string | null
@@ -237,6 +239,7 @@ export type Database = {
           created_at?: string
           goal_states?: string[] | null
           id?: string
+          license_states?: string[] | null
           npn_number?: string | null
           resident_license_exp?: string | null
           resident_license_number?: string | null
@@ -1126,14 +1129,20 @@ export type Database = {
         Row: {
           agency_code: string | null
           assigned_manager: string | null
+          ce_due_date: string | null
           created_at: string
           email: string
           first_name: string
           id: string
           is_licensed: boolean | null
           last_name: string
+          npn_number: string | null
+          other_license_states: string[] | null
           phone: string
           referred_by: string | null
+          resident_license_exp: string | null
+          resident_license_number: string | null
+          resident_license_state: string | null
           status: string | null
           updated_at: string
           user_id: string
@@ -1141,14 +1150,20 @@ export type Database = {
         Insert: {
           agency_code?: string | null
           assigned_manager?: string | null
+          ce_due_date?: string | null
           created_at?: string
           email: string
           first_name: string
           id?: string
           is_licensed?: boolean | null
           last_name: string
+          npn_number?: string | null
+          other_license_states?: string[] | null
           phone: string
           referred_by?: string | null
+          resident_license_exp?: string | null
+          resident_license_number?: string | null
+          resident_license_state?: string | null
           status?: string | null
           updated_at?: string
           user_id: string
@@ -1156,14 +1171,20 @@ export type Database = {
         Update: {
           agency_code?: string | null
           assigned_manager?: string | null
+          ce_due_date?: string | null
           created_at?: string
           email?: string
           first_name?: string
           id?: string
           is_licensed?: boolean | null
           last_name?: string
+          npn_number?: string | null
+          other_license_states?: string[] | null
           phone?: string
           referred_by?: string | null
+          resident_license_exp?: string | null
+          resident_license_number?: string | null
+          resident_license_state?: string | null
           status?: string | null
           updated_at?: string
           user_id?: string

@@ -9,13 +9,19 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock, Award, XCircle, UserCheck } from "lucide-react";
+import { Loader2, ArrowRight, ArrowLeft, User, Mail, Phone, Building2, Users, Lock, Award, XCircle, UserCheck, CalendarIcon, Check } from "lucide-react";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { cn } from "@/lib/utils";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { Checkbox } from "@/components/ui/checkbox";
+import { Label } from "@/components/ui/label";
+import { format } from "date-fns";
 import { motion, AnimatePresence } from "framer-motion";
 import { useIsMobile } from "@/hooks/use-mobile";
 import confetti from "canvas-confetti";
+import { US_STATES } from "@/lib/us-states";
 
 // Brand colors for confetti
 const BRAND_TEAL = "#8BBAC4";
@@ -88,25 +94,23 @@ const fireBrandConfetti = () => {
 type AgencyCodeRow = { id: string; code: string; label: string | null; display_order: number };
 type AgencyManagerRow = { id: string; manager_name: string; display_order: number };
 
-// Full schema for new users (includes password)
-const fullFormSchema = z.object({
-  firstName: z.string().min(2, "First name must be at least 2 characters"),
-  lastName: z.string().min(2, "Last name must be at least 2 characters"),
-  email: z.string().email("Invalid email address"),
-  phone: z.string().min(10, "Phone number must be at least 10 digits"),
-  isLicensed: z.enum(["yes", "no"], { required_error: "Please select an option" }),
-  agencyCode: z.string().min(1, "Please select an agency code"),
-  assignedManager: z.string().min(1, "Please select your manager"),
-  referredBy: z.string().min(2, "Please enter who referred you"),
-  password: z.string().min(8, "Password must be at least 8 characters"),
-  confirmPassword: z.string(),
-}).refine((data) => data.password === data.confirmPassword, {
-  message: "Passwords don't match",
-  path: ["confirmPassword"],
-});
+// License-conditional refinement: when isLicensed === "yes", certain fields are required.
+const licensedRefine = (data: any, ctx: z.RefinementCtx) => {
+  if (data.isLicensed !== "yes") return;
+  if (!data.residentLicenseExp) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseExp"], message: "Resident license expiration is required" });
+  } else if (data.residentLicenseExp <= new Date()) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseExp"], message: "Expiration must be in the future" });
+  }
+  if (!data.residentLicenseState) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseState"], message: "Resident state is required" });
+  }
+  if (!data.residentLicenseNumber || data.residentLicenseNumber.trim().length === 0) {
+    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseNumber"], message: "License number is required" });
+  }
+};
 
-// Reduced schema for existing users (no password)
-const existingUserFormSchema = z.object({
+const baseShape = {
   firstName: z.string().min(2, "First name must be at least 2 characters"),
   lastName: z.string().min(2, "Last name must be at least 2 characters"),
   email: z.string().email("Invalid email address"),
@@ -115,9 +119,34 @@ const existingUserFormSchema = z.object({
   agencyCode: z.string().min(1, "Please select an agency code"),
   assignedManager: z.string().min(1, "Please select your manager"),
   referredBy: z.string().min(2, "Please enter who referred you"),
-  password: z.string().optional(),
-  confirmPassword: z.string().optional(),
-});
+  // Licensing fields (conditionally required via superRefine)
+  residentLicenseExp: z.date().optional(),
+  residentLicenseState: z.string().optional(),
+  residentLicenseNumber: z.string().optional(),
+  npnNumber: z.string().optional(),
+  otherLicenseStates: z.array(z.string()).optional().default([]),
+  ceDueDate: z.date().optional(),
+};
+
+const fullFormSchema = z
+  .object({
+    ...baseShape,
+    password: z.string().min(8, "Password must be at least 8 characters"),
+    confirmPassword: z.string(),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Passwords don't match",
+    path: ["confirmPassword"],
+  })
+  .superRefine(licensedRefine);
+
+const existingUserFormSchema = z
+  .object({
+    ...baseShape,
+    password: z.string().optional(),
+    confirmPassword: z.string().optional(),
+  })
+  .superRefine(licensedRefine);
 
 type FormValues = z.infer<typeof fullFormSchema>;
 
@@ -133,7 +162,7 @@ const allSteps = [
   { id: 4, question: "Select your manager", icon: UserCheck, fields: ["assignedManager"] as const },
   { id: 5, question: "What's your email address?", icon: Mail, fields: ["email"] as const },
   { id: 6, question: "What's your phone number?", icon: Phone, fields: ["phone"] as const },
-  { id: 7, question: "Are you licensed?", icon: Award, fields: ["isLicensed"] as const },
+  { id: 7, question: "Are you licensed?", icon: Award, fields: ["isLicensed", "residentLicenseExp", "residentLicenseState", "residentLicenseNumber", "npnNumber", "otherLicenseStates", "ceDueDate"] as const },
   { id: 8, question: "Create a secure password", icon: Lock, fields: ["password", "confirmPassword"] as const },
 ];
 
@@ -178,6 +207,12 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
       agencyCode: "",
       assignedManager: "",
       referredBy: "",
+      residentLicenseExp: undefined,
+      residentLicenseState: "",
+      residentLicenseNumber: "",
+      npnNumber: "",
+      otherLicenseStates: [],
+      ceDueDate: undefined,
       password: "",
       confirmPassword: "",
     },
@@ -263,22 +298,48 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
   const onSubmit = async (values: FormValues) => {
     setLoading(true);
     try {
+      const isLicensedBool = values.isLicensed === "yes";
+      const toIsoDate = (d?: Date) => (d ? d.toISOString().slice(0, 10) : null);
+      const licenseFields = isLicensedBool
+        ? {
+            resident_license_exp: toIsoDate(values.residentLicenseExp),
+            resident_license_state: values.residentLicenseState || null,
+            resident_license_number: values.residentLicenseNumber?.trim() || null,
+            npn_number: values.npnNumber?.trim() || null,
+            other_license_states: values.otherLicenseStates && values.otherLicenseStates.length > 0 ? values.otherLicenseStates : null,
+            ce_due_date: toIsoDate(values.ceDueDate),
+          }
+        : {
+            resident_license_exp: null,
+            resident_license_state: null,
+            resident_license_number: null,
+            npn_number: null,
+            other_license_states: null,
+            ce_due_date: null,
+          };
+
+      const webhookBody = {
+        firstName: values.firstName,
+        lastName: values.lastName,
+        email: values.email,
+        phone: values.phone,
+        isLicensed: isLicensedBool,
+        agencyCode: values.agencyCode,
+        assignedManager: values.assignedManager,
+        referredBy: values.referredBy,
+        residentLicenseExp: licenseFields.resident_license_exp,
+        residentLicenseState: licenseFields.resident_license_state,
+        residentLicenseNumber: licenseFields.resident_license_number,
+        npnNumber: licenseFields.npn_number,
+        otherLicenseStates: licenseFields.other_license_states,
+        ceDueDate: licenseFields.ce_due_date,
+      };
+
       if (isExistingUser) {
         // Existing user: skip signup, just send webhook
         const { error: webhookError } = await supabase.functions.invoke(
           "send-onboarding-webhook",
-          {
-            body: {
-              firstName: values.firstName,
-              lastName: values.lastName,
-              email: values.email,
-              phone: values.phone,
-              isLicensed: values.isLicensed === "yes",
-              agencyCode: values.agencyCode,
-              assignedManager: values.assignedManager,
-              referredBy: values.referredBy,
-            },
-          }
+          { body: webhookBody }
         );
 
         if (webhookError) {
@@ -312,10 +373,11 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
             last_name: values.lastName,
             email: values.email,
             phone: values.phone,
-            is_licensed: values.isLicensed === "yes",
+            is_licensed: isLicensedBool,
             agency_code: values.agencyCode || null,
             assigned_manager: values.assignedManager || null,
             referred_by: values.referredBy || null,
+            ...licenseFields,
           });
 
         if (dbError) throw dbError;
@@ -328,18 +390,7 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
 
         const { error: webhookError } = await supabase.functions.invoke(
           "send-onboarding-webhook",
-          {
-            body: {
-              firstName: values.firstName,
-              lastName: values.lastName,
-              email: values.email,
-              phone: values.phone,
-              isLicensed: values.isLicensed === "yes",
-              agencyCode: values.agencyCode,
-              assignedManager: values.assignedManager,
-              referredBy: values.referredBy,
-            },
-          }
+          { body: webhookBody }
         );
 
         if (webhookError) {
@@ -665,32 +716,180 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
 
                       {/* Step 7: Licensed? */}
                       {currentStepConfig.id === 7 && (
-                        <FormField control={form.control} name="isLicensed" render={({ field }) => (
-                          <FormItem>
-                            <FormControl>
-                              <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4" disabled={loading}>
-                                <label className={cn(
-                                  "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
-                                  field.value === "yes" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
-                                )}>
-                                  <RadioGroupItem value="yes" className="sr-only" />
-                                  <Award className="w-12 h-12 mb-3 text-green-500" />
-                                  <span className="text-xl font-semibold">Yes</span>
-                                </label>
-                                <label className={cn(
-                                  "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
-                                  field.value === "no" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
-                                )}>
-                                  <RadioGroupItem value="no" className="sr-only" />
-                                  <XCircle className="w-12 h-12 mb-3 text-red-400" />
-                                  <span className="text-xl font-semibold">No</span>
-                                </label>
-                              </RadioGroup>
-                            </FormControl>
-                            <FormMessage />
-                          </FormItem>
-                        )} />
+                        <div className="space-y-6">
+                          <FormField control={form.control} name="isLicensed" render={({ field }) => (
+                            <FormItem>
+                              <FormControl>
+                                <RadioGroup onValueChange={field.onChange} value={field.value} className="grid grid-cols-2 gap-4" disabled={loading}>
+                                  <label className={cn(
+                                    "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                    field.value === "yes" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
+                                  )}>
+                                    <RadioGroupItem value="yes" className="sr-only" />
+                                    <Award className="w-12 h-12 mb-3 text-green-500" />
+                                    <span className="text-xl font-semibold">Yes</span>
+                                  </label>
+                                  <label className={cn(
+                                    "flex flex-col items-center justify-center p-8 rounded-xl border-2 cursor-pointer transition-all duration-200",
+                                    field.value === "no" ? "border-[hsl(var(--brand-teal))] bg-[hsl(var(--brand-teal))]/10" : "border-border hover:border-muted-foreground"
+                                  )}>
+                                    <RadioGroupItem value="no" className="sr-only" />
+                                    <XCircle className="w-12 h-12 mb-3 text-red-400" />
+                                    <span className="text-xl font-semibold">No</span>
+                                  </label>
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )} />
+
+                          {form.watch("isLicensed") === "yes" && (
+                            <motion.div
+                              initial={{ opacity: 0, y: 10 }}
+                              animate={{ opacity: 1, y: 0 }}
+                              transition={{ duration: 0.25 }}
+                              className="space-y-5 pt-2"
+                            >
+                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                {/* Resident license exp */}
+                                <FormField control={form.control} name="residentLicenseExp" render={({ field }) => (
+                                  <FormItem className="flex flex-col">
+                                    <Label className="mb-1">Resident license expiration *</Label>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <FormControl>
+                                          <Button type="button" variant="outline" disabled={loading}
+                                            className={cn("h-12 justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
+                                            <CalendarIcon className="mr-2 h-4 w-4" />
+                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                          </Button>
+                                        </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
+                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange}
+                                          disabled={(d) => d <= new Date()} initialFocus className={cn("p-3 pointer-events-auto")} />
+                                      </PopoverContent>
+                                    </Popover>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+
+                                {/* Resident state */}
+                                <FormField control={form.control} name="residentLicenseState" render={({ field }) => (
+                                  <FormItem className="flex flex-col">
+                                    <Label className="mb-1">Resident state *</Label>
+                                    <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
+                                      <FormControl>
+                                        <SelectTrigger className="h-12 bg-background">
+                                          <SelectValue placeholder="Select state" />
+                                        </SelectTrigger>
+                                      </FormControl>
+                                      <SelectContent className="bg-background z-50 max-h-72">
+                                        {US_STATES.map((s) => (
+                                          <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
+                                        ))}
+                                      </SelectContent>
+                                    </Select>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+
+                                {/* License number */}
+                                <FormField control={form.control} name="residentLicenseNumber" render={({ field }) => (
+                                  <FormItem>
+                                    <Label className="mb-1">License number *</Label>
+                                    <FormControl>
+                                      <Input {...field} placeholder="e.g. P123456" disabled={loading} className="h-12" />
+                                    </FormControl>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+
+                                {/* NPN */}
+                                <FormField control={form.control} name="npnNumber" render={({ field }) => (
+                                  <FormItem>
+                                    <Label className="mb-1">NPN number</Label>
+                                    <FormControl>
+                                      <Input {...field} placeholder="National Producer Number" disabled={loading} className="h-12" />
+                                    </FormControl>
+                                    <p className="text-xs text-muted-foreground mt-1">Your National Producer Number from NIPR</p>
+                                    <FormMessage />
+                                  </FormItem>
+                                )} />
+                              </div>
+
+                              {/* CE due date */}
+                              <FormField control={form.control} name="ceDueDate" render={({ field }) => (
+                                <FormItem className="flex flex-col">
+                                  <Label className="mb-1">CE due date <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                                  <Popover>
+                                    <PopoverTrigger asChild>
+                                      <FormControl>
+                                        <Button type="button" variant="outline" disabled={loading}
+                                          className={cn("h-12 justify-start text-left font-normal max-w-xs", !field.value && "text-muted-foreground")}>
+                                          <CalendarIcon className="mr-2 h-4 w-4" />
+                                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
+                                        </Button>
+                                      </FormControl>
+                                    </PopoverTrigger>
+                                    <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
+                                      <Calendar mode="single" selected={field.value} onSelect={field.onChange}
+                                        initialFocus className={cn("p-3 pointer-events-auto")} />
+                                    </PopoverContent>
+                                  </Popover>
+                                  <FormMessage />
+                                </FormItem>
+                              )} />
+
+                              {/* Other licensed states */}
+                              <FormField control={form.control} name="otherLicenseStates" render={({ field }) => {
+                                const selected: string[] = field.value || [];
+                                const toggle = (code: string) => {
+                                  if (selected.includes(code)) field.onChange(selected.filter((c) => c !== code));
+                                  else field.onChange([...selected, code]);
+                                };
+                                return (
+                                  <FormItem>
+                                    <Label className="mb-1">Other states you're licensed in <span className="text-muted-foreground font-normal">(optional)</span></Label>
+                                    <Popover>
+                                      <PopoverTrigger asChild>
+                                        <FormControl>
+                                          <Button type="button" variant="outline" disabled={loading}
+                                            className="h-12 w-full justify-start text-left font-normal">
+                                            {selected.length === 0 ? <span className="text-muted-foreground">Select states</span> : `${selected.length} state${selected.length === 1 ? "" : "s"} selected`}
+                                          </Button>
+                                        </FormControl>
+                                      </PopoverTrigger>
+                                      <PopoverContent className="w-[320px] p-0 bg-background z-50" align="start">
+                                        <div className="max-h-72 overflow-y-auto p-2">
+                                          {US_STATES.map((s) => (
+                                            <label key={s.code} className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer">
+                                              <Checkbox checked={selected.includes(s.code)} onCheckedChange={() => toggle(s.code)} />
+                                              <span className="text-sm">{s.name}</span>
+                                            </label>
+                                          ))}
+                                        </div>
+                                      </PopoverContent>
+                                    </Popover>
+                                    {selected.length > 0 && (
+                                      <div className="flex flex-wrap gap-1 mt-2">
+                                        {selected.map((c) => (
+                                          <span key={c} className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[hsl(var(--brand-teal))]/15 text-foreground">
+                                            {c}
+                                            <button type="button" onClick={() => toggle(c)} className="text-muted-foreground hover:text-foreground" aria-label={`Remove ${c}`}>×</button>
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                    <FormMessage />
+                                  </FormItem>
+                                );
+                              }} />
+                            </motion.div>
+                          )}
+                        </div>
                       )}
+
 
                       {/* Step 8: Password (only for new users) */}
                       {currentStepConfig.id === 8 && (
