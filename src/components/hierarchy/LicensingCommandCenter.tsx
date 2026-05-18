@@ -43,6 +43,22 @@ export function LicensingCommandCenter({ agents }: LicensingCommandCenterProps) 
   const [searchQuery, setSearchQuery] = useState("");
   const [zoneFilter, setZoneFilter] = useState<AgentZone | "all">("all");
   const [sortBy, setSortBy] = useState<SortOption>("urgency");
+  const { isAdmin } = useAdmin();
+  const [pendingVerifyId, setPendingVerifyId] = useState<string | null>(null);
+
+  const toggleVerification = async (userId: string, currentlyVerified: boolean) => {
+    setPendingVerifyId(userId);
+    const { error } = await supabase.rpc("set_agent_verification", {
+      target_user_id: userId,
+      is_verified: !currentlyVerified,
+    });
+    setPendingVerifyId(null);
+    if (error) {
+      toast.error(error.message || "Failed to update verification");
+    } else {
+      toast.success(currentlyVerified ? "Agent unverified" : "Agent marked verified");
+    }
+  };
 
   // Zone priority for sorting (lower = more urgent)
   const zonePriority: Record<AgentZone, number> = {
