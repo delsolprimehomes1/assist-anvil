@@ -204,7 +204,7 @@ export const FlippableAgentNode = memo(({ data }: FlippableAgentNodeProps) => {
             }}
           >
             <div className="w-full h-full flex flex-col gap-1.5 text-[10px]">
-              {/* Comp Level */}
+              {/* COMP LEVEL HIDDEN — uncomment to restore. Requires write path for hierarchy_agents.comp_level before re-enabling.
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-1">
                   <Percent className="w-3 h-3 text-primary" />
@@ -212,6 +212,7 @@ export const FlippableAgentNode = memo(({ data }: FlippableAgentNodeProps) => {
                 </div>
                 <span className="font-bold text-primary">{compLevel}%</span>
               </div>
+              */}
 
               {/* Weekly Business */}
               <div className="flex items-center justify-between">
@@ -262,7 +263,7 @@ export const FlippableAgentNode = memo(({ data }: FlippableAgentNodeProps) => {
                 <span className="font-bold">{downlineCount}</span>
               </div>
 
-              {/* Progress to next rank */}
+              {/* RANK PROGRESS BAR HIDDEN — uncomment to restore. Requires write path for hierarchy_agents.ytd_premium and rank threshold config before re-enabling.
               <div className="mt-auto">
                 <div className="flex justify-between text-[9px] mb-1">
                   <span className="text-muted-foreground">→ {tier.nextRank}</span>
@@ -270,6 +271,7 @@ export const FlippableAgentNode = memo(({ data }: FlippableAgentNodeProps) => {
                 </div>
                 <Progress value={ytdProgress} className="h-1.5" />
               </div>
+              */}
 
               {/* Recent notes indicator */}
               {agent.notes && agent.notes.length > 0 && (
