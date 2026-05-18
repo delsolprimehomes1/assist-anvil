@@ -94,10 +94,11 @@ const Organization = () => {
                   <Network className="h-4 w-4" />
                   <span>Hierarchy</span>
                 </TabsTrigger>
-                <TabsTrigger value="licensing" className="gap-1.5 text-xs sm:text-sm px-3 sm:px-4">
+                {/* LICENSING TAB HIDDEN — to re-enable, uncomment the trigger above and the TabsContent block below. */}
+                {/* <TabsTrigger value="licensing" className="gap-1.5 text-xs sm:text-sm px-3 sm:px-4">
                   <Shield className="h-4 w-4" />
                   <span>Licensing</span>
-                </TabsTrigger>
+                </TabsTrigger> */}
                 <TabsTrigger value="invitations" className="gap-1.5 text-xs sm:text-sm px-3 sm:px-4">
                   <Mail className="h-4 w-4" />
                   <span>Invites</span>
