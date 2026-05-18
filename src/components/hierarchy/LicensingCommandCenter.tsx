@@ -318,6 +318,23 @@ export function LicensingCommandCenter({ agents }: LicensingCommandCenterProps) 
                               Pending
                             </Badge>
                           )}
+                          {isAdmin && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-6 px-2 mt-1 text-xs"
+                              disabled={pendingVerifyId === agent.userId}
+                              onClick={() =>
+                                toggleVerification(agent.userId, agent.verificationComplete)
+                              }
+                            >
+                              {pendingVerifyId === agent.userId
+                                ? "Saving…"
+                                : agent.verificationComplete
+                                ? "Unverify"
+                                : "Mark Verified"}
+                            </Button>
+                          )}
                         </div>
                       </div>
 
