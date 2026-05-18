@@ -1888,6 +1888,7 @@ export type Database = {
         Args: { _agent_id: string; _new_parent_id: string }
         Returns: undefined
       }
+      update_my_last_login: { Args: never; Returns: undefined }
     }
     Enums: {
       app_role: "admin" | "agent" | "user"
