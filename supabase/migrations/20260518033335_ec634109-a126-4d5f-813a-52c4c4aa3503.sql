@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.update_my_last_login() FROM PUBLIC, anon;
