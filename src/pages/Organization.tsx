@@ -161,9 +161,10 @@ const Organization = () => {
               <HierarchyTree agents={filteredAgents} viewMode={viewMode} />
               <ZoneLegend />
             </TabsContent>
-            <TabsContent value="licensing" className="absolute inset-0 m-0 overflow-auto">
+            {/* LICENSING TAB HIDDEN — to re-enable, uncomment the trigger above and the TabsContent block below. */}
+            {/* <TabsContent value="licensing" className="absolute inset-0 m-0 overflow-auto">
               <LicensingCommandCenter agents={filteredAgents as EnhancedAgent[]} />
-            </TabsContent>
+            </TabsContent> */}
             <TabsContent value="invitations" className="absolute inset-0 m-0 overflow-auto p-4 sm:p-6">
               <Card className="max-w-2xl mx-auto">
                 <CardHeader className="pb-3 sm:pb-6">
