@@ -8,12 +8,24 @@ export const useAuth = () => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const pingLastLogin = () => {
+      // Fire-and-forget; defer to avoid blocking auth callback
+      setTimeout(() => {
+        supabase.rpc("update_my_last_login" as any).then(({ error }) => {
+          if (error) console.warn("update_my_last_login failed:", error.message);
+        });
+      }, 0);
+    };
+
     // Set up auth state listener
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
         setUser(session?.user ?? null);
         setLoading(false);
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          pingLastLogin();
+        }
       }
     );
 
@@ -22,6 +34,7 @@ export const useAuth = () => {
       setSession(session);
       setUser(session?.user ?? null);
       setLoading(false);
+      if (session?.user) pingLastLogin();
     });
 
     return () => subscription.unsubscribe();
