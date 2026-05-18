@@ -1,3 +1,5 @@
+// Licensing tab temporarily hidden. All underlying data plumbing remains active.
+// See commented blocks below to restore.
 import { useState } from "react";
 import { HierarchyTree } from "@/components/hierarchy/HierarchyTree";
 import { HierarchySearchBar } from "@/components/hierarchy/HierarchySearchBar";
