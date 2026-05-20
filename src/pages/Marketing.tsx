@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Megaphone, Copy, ExternalLink, Download, Mail, MessageSquare, Plus, Edit, Trash2, Eye, Rocket } from "lucide-react";
+import { Megaphone, Copy, ExternalLink, Download, Palette, Mail, MessageSquare, Plus, Edit, Trash2, Eye, Rocket } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
