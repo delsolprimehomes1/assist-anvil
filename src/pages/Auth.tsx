@@ -154,14 +154,16 @@ const Auth = () => {
     if (!resetEmail.trim()) return;
     setSelfResetLoading(true);
     try {
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        resetEmail.toLowerCase().trim(),
-        { redirectTo: `${window.location.origin}/reset-password` }
-      );
+      const { error } = await supabase.functions.invoke("send-password-reset-email", {
+        body: {
+          email: resetEmail.toLowerCase().trim(),
+          redirectOrigin: window.location.origin,
+        },
+      });
       if (error) throw error;
       toast({
         title: "Check your email",
-        description: "We sent a password reset link to your inbox. It may take a minute to arrive.",
+        description: "If an account exists for that email, we've sent a password reset link. It may take a minute to arrive.",
       });
       setShowForgotPassword(false);
       setShowAdminResetFallback(false);
