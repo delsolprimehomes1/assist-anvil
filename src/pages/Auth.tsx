@@ -311,6 +311,20 @@ const Auth = () => {
                   </div>
 
                   <div className="space-y-2">
+                    <Label htmlFor="signup-phone" className="text-sm">
+                      Phone Number
+                    </Label>
+                    <Input id="signup-phone" type="tel" placeholder="(555) 123-4567" value={phone} onChange={e => setPhone(e.target.value)} required disabled={loading} className="h-11" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-agency" className="text-sm">
+                      Agency Name
+                    </Label>
+                    <Input id="signup-agency" type="text" placeholder="Acme Insurance Agency" value={agencyName} onChange={e => setAgencyName(e.target.value)} required disabled={loading} className="h-11" />
+                  </div>
+
+                  <div className="space-y-2">
                     <Label htmlFor="signup-password" className="text-sm">
                       Password
                     </Label>
