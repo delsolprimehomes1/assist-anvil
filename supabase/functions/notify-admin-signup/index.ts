@@ -65,7 +65,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "BattersBox <noreply@battersbox.com>",
+        from: "BattersBox <noreply@battersbox.ai>",
         to: adminEmails,
         subject: `New Sign-Up: ${userName} is waiting for portal access`,
         html: `
