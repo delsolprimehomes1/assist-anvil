@@ -26,9 +26,11 @@ const Auth = () => {
   const [agencyName, setAgencyName] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
+  const [showAdminResetFallback, setShowAdminResetFallback] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
   const [resetFullName, setResetFullName] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
+  const [selfResetLoading, setSelfResetLoading] = useState(false);
   const [showSignupSuccess, setShowSignupSuccess] = useState(false);
   const [signupName, setSignupName] = useState("");
 
