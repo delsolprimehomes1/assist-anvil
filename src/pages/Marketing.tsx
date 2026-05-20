@@ -120,10 +120,6 @@ const Marketing = () => {
     }
   };
 
-  const confirmBrandKitDelete = async () => {
-    await deleteBrandKit.mutateAsync();
-    setBrandKitDeleteDialogOpen(false);
-  };
 
   const copyToClipboard = (content: string) => {
     navigator.clipboard.writeText(content);
