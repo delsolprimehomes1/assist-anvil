@@ -149,6 +149,34 @@ const Auth = () => {
       setLoading(false);
     }
   };
+  const handleSelfServeReset = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!resetEmail.trim()) return;
+    setSelfResetLoading(true);
+    try {
+      const { error } = await supabase.auth.resetPasswordForEmail(
+        resetEmail.toLowerCase().trim(),
+        { redirectTo: `${window.location.origin}/reset-password` }
+      );
+      if (error) throw error;
+      toast({
+        title: "Check your email",
+        description: "We sent a password reset link to your inbox. It may take a minute to arrive.",
+      });
+      setShowForgotPassword(false);
+      setShowAdminResetFallback(false);
+      setResetEmail("");
+      setResetFullName("");
+    } catch (error: any) {
+      toast({
+        title: "Error",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setSelfResetLoading(false);
+    }
+  };
   const handlePasswordResetRequest = async (e: React.FormEvent) => {
     e.preventDefault();
     setResetLoading(true);
@@ -167,6 +195,7 @@ const Auth = () => {
         description: "An administrator will reset your password shortly. Please check your email for the new password.",
       });
       setShowForgotPassword(false);
+      setShowAdminResetFallback(false);
       setResetEmail("");
       setResetFullName("");
     } catch (error: any) {
