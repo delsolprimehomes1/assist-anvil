@@ -469,11 +469,7 @@ const Marketing = () => {
       </Tabs>
 
       {/* Dialogs */}
-      <BrandKitEditor
-        open={brandKitEditorOpen}
-        onOpenChange={setBrandKitEditorOpen}
-        brandKit={brandKit}
-      />
+
 
       <TemplateEditor
         open={templateEditorOpen}
