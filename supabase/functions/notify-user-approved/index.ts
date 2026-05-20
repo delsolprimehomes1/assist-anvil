@@ -58,6 +58,7 @@ Deno.serve(async (req) => {
               </div>
               <p style="color: #666; margin: 0;">If you have any questions, reach out to us at support@battersbox.ai.</p>
             </div>
+            ${LIFECO_FOOTER}
           </div>
         `,
       }),
