@@ -25,6 +25,21 @@ function isRateLimited(email: string): boolean {
   return false;
 }
 
+const LIFECO_FOOTER = `
+  <div style="margin-top:8px;padding:24px;background:#fff;border:1px solid #e5e7eb;border-radius:12px;font-family:Arial,sans-serif;color:#4a4a4a;font-size:13px;line-height:1.6;">
+    <p style="margin:0 0 4px;color:#8BBAC4;font-weight:700;font-size:15px;">Lifeco Support</p>
+    <p style="margin:0;">P. <a href="tel:+18885653178" style="color:#4a4a4a;text-decoration:none;">1-888-565-3178</a></p>
+    <p style="margin:0;">E. <a href="mailto:admin@lifecoimo.com" style="color:#4a4a4a;text-decoration:none;">admin@lifecoimo.com</a></p>
+    <p style="margin:0 0 14px;">W. <a href="https://lifecoimo.com/" style="color:#4a4a4a;text-decoration:none;">https://lifecoimo.com/</a></p>
+    <p style="margin:0 0 18px;">
+      <a href="https://leads.lifecoimo.com" style="display:inline-block;background:#C98A3A;color:#fff;text-decoration:none;padding:10px 22px;border-radius:8px;font-weight:600;font-size:13px;">Access Leads</a>
+    </p>
+    <p style="margin:0;color:#888;font-size:11px;line-height:1.5;">
+      <strong>CONFIDENTIAL NOTICE:</strong> This email and any attachments are strictly confidential and intended exclusively for the individual or entity to whom they are addressed. Any unauthorized review, use, disclosure, copying, or distribution is strictly prohibited. If you are not the intended recipient, you are hereby notified that you must immediately cease reading this message, notify the sender, and permanently delete all copies of this communication.
+    </p>
+  </div>
+`;
+
 function buildEmailHtml(resetLink: string): string {
   return `<!DOCTYPE html>
 <html lang="en">
@@ -61,6 +76,7 @@ function buildEmailHtml(resetLink: string): string {
             &copy; ${new Date().getFullYear()} BattersBox. All rights reserved.
           </p>
         </td></tr>
+        <tr><td style="padding:0 40px 40px;">${LIFECO_FOOTER}</td></tr>
       </table>
     </td></tr>
   </table>
