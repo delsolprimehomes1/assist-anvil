@@ -22,6 +22,8 @@ const Auth = () => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [phone, setPhone] = useState("");
+  const [agencyName, setAgencyName] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [resetEmail, setResetEmail] = useState("");
@@ -58,6 +60,14 @@ const Auth = () => {
   }, [navigate]);
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName.trim() || !email.trim() || !phone.trim() || !agencyName.trim() || !password.trim()) {
+      toast({
+        title: "All fields are required",
+        description: "Please fill out every field before creating your account.",
+        variant: "destructive"
+      });
+      return;
+    }
     setLoading(true);
     try {
       const {
@@ -68,7 +78,9 @@ const Auth = () => {
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
-            full_name: fullName
+            full_name: fullName,
+            phone,
+            agency_name: agencyName
           }
         }
       });
@@ -86,7 +98,7 @@ const Auth = () => {
         // Notify admins in background
         try {
           await supabase.functions.invoke("notify-admin-signup", {
-            body: { userName: fullName, userEmail: email },
+            body: { userName: fullName, userEmail: email, phone, agencyName },
           });
         } catch (e) {
           console.error("Failed to notify admins:", e);
@@ -95,6 +107,8 @@ const Auth = () => {
         setEmail("");
         setPassword("");
         setFullName("");
+        setPhone("");
+        setAgencyName("");
       }
     } catch (error: any) {
       toast({
@@ -294,6 +308,20 @@ const Auth = () => {
                       Email Address
                     </Label>
                     <Input id="signup-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} className="h-11" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-phone" className="text-sm">
+                      Phone Number
+                    </Label>
+                    <Input id="signup-phone" type="tel" placeholder="(555) 123-4567" value={phone} onChange={e => setPhone(e.target.value)} required disabled={loading} className="h-11" />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label htmlFor="signup-agency" className="text-sm">
+                      Agency Name
+                    </Label>
+                    <Input id="signup-agency" type="text" placeholder="Acme Insurance Agency" value={agencyName} onChange={e => setAgencyName(e.target.value)} required disabled={loading} className="h-11" />
                   </div>
 
                   <div className="space-y-2">
