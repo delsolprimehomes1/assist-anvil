@@ -137,7 +137,7 @@ const Marketing = () => {
         <div>
           <h1 className="text-3xl font-bold flex items-center gap-2">
             <Megaphone className="h-8 w-8 text-primary" />
-            Marketing Center
+            Sales Tools Center
           </h1>
           <p className="text-muted-foreground">Templates, scripts, and brand assets to grow your business</p>
         </div>
