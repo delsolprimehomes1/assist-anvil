@@ -1,16 +1,13 @@
 import { useState } from "react";
-import { Megaphone, Copy, ExternalLink, Download, Palette, Mail, MessageSquare, Plus, Edit, Trash2, Eye, Rocket } from "lucide-react";
+import { Megaphone, Copy, ExternalLink, Download, Mail, MessageSquare, Plus, Edit, Trash2, Eye, Rocket } from "lucide-react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
-import { useBrandKit } from "@/hooks/useBrandKit";
 import { useMarketingTemplates } from "@/hooks/useMarketingTemplates";
 import { useMarketingResources } from "@/hooks/useMarketingResources";
-import { BrandKitEditor } from "@/components/marketing/BrandKitEditor";
-import { BrandKitDisplay } from "@/components/marketing/BrandKitDisplay";
 import { TemplateEditor } from "@/components/marketing/TemplateEditor";
 import { CustomBuildsForm } from "@/components/marketing/CustomBuildsForm";
 import {
