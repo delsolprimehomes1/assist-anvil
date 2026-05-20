@@ -5,13 +5,17 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
+const ALWAYS_NOTIFY = ["admin@lifecoimo.com"];
+
 Deno.serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
   }
 
   try {
-    const { userName, userEmail } = await req.json();
+    const body = await req.json();
+    const { userName, userEmail, phone, agencyName, signupSource, ...rest } = body ?? {};
+
     if (!userName || !userEmail) {
       return new Response(JSON.stringify({ error: "Missing userName or userEmail" }), {
         status: 400,
@@ -25,39 +29,43 @@ Deno.serve(async (req) => {
 
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
-    // Get all admin user IDs
-    const { data: adminRoles, error: rolesError } = await supabase
-      .from("user_roles")
-      .select("user_id")
-      .eq("role", "admin");
+    // Get all admin user emails (best-effort)
+    let adminEmails: string[] = [];
+    try {
+      const { data: adminRoles } = await supabase
+        .from("user_roles")
+        .select("user_id")
+        .eq("role", "admin");
 
-    if (rolesError) throw rolesError;
-    if (!adminRoles || adminRoles.length === 0) {
-      return new Response(JSON.stringify({ message: "No admins found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
+      const adminIds = (adminRoles ?? []).map((r: any) => r.user_id);
+      if (adminIds.length) {
+        const { data: adminProfiles } = await supabase
+          .from("profiles")
+          .select("email")
+          .in("id", adminIds);
+        adminEmails = (adminProfiles ?? [])
+          .map((p: any) => p.email)
+          .filter(Boolean) as string[];
+      }
+    } catch (e) {
+      console.error("Failed to fetch admin emails:", e);
     }
 
-    // Get admin emails
-    const adminIds = adminRoles.map((r) => r.user_id);
-    const { data: adminProfiles, error: profilesError } = await supabase
-      .from("profiles")
-      .select("email")
-      .in("id", adminIds);
+    // Always include ALWAYS_NOTIFY, dedupe (case-insensitive)
+    const recipients = Array.from(
+      new Map(
+        [...ALWAYS_NOTIFY, ...adminEmails].map((e) => [e.toLowerCase(), e])
+      ).values()
+    );
 
-    if (profilesError) throw profilesError;
+    const extraFields = Object.entries(rest)
+      .filter(([, v]) => v !== undefined && v !== null && v !== "")
+      .map(
+        ([k, v]) =>
+          `<p style="margin: 0 0 12px;"><strong>${k}:</strong> ${String(v)}</p>`
+      )
+      .join("");
 
-    const adminEmails = (adminProfiles || [])
-      .map((p) => p.email)
-      .filter(Boolean) as string[];
-
-    if (adminEmails.length === 0) {
-      return new Response(JSON.stringify({ message: "No admin emails found" }), {
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-      });
-    }
-
-    // Send email via Resend
     const emailRes = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
@@ -66,7 +74,7 @@ Deno.serve(async (req) => {
       },
       body: JSON.stringify({
         from: "BattersBox <noreply@battersbox.ai>",
-        to: adminEmails,
+        to: recipients,
         subject: `New Sign-Up: ${userName} is waiting for portal access`,
         html: `
           <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
@@ -77,6 +85,10 @@ Deno.serve(async (req) => {
             <div style="background: #fff; border: 1px solid #e5e7eb; border-radius: 12px; padding: 24px; margin-top: 16px;">
               <p style="margin: 0 0 12px;"><strong>Name:</strong> ${userName}</p>
               <p style="margin: 0 0 12px;"><strong>Email:</strong> ${userEmail}</p>
+              ${phone ? `<p style="margin: 0 0 12px;"><strong>Phone:</strong> ${phone}</p>` : ""}
+              ${agencyName ? `<p style="margin: 0 0 12px;"><strong>Agency:</strong> ${agencyName}</p>` : ""}
+              ${signupSource ? `<p style="margin: 0 0 12px;"><strong>Source:</strong> ${signupSource}</p>` : ""}
+              ${extraFields}
               <p style="color: #666; margin: 16px 0 0;">Log in to the admin dashboard to review and approve this user.</p>
             </div>
           </div>
@@ -85,10 +97,10 @@ Deno.serve(async (req) => {
     });
 
     const emailData = await emailRes.json();
-    return new Response(JSON.stringify({ success: true, data: emailData }), {
+    return new Response(JSON.stringify({ success: true, recipients, data: emailData }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
-  } catch (error) {
+  } catch (error: any) {
     console.error("Error in notify-admin-signup:", error);
     return new Response(JSON.stringify({ error: error.message }), {
       status: 500,
