@@ -384,66 +384,112 @@ const Auth = () => {
 
       <OnboardingDialog open={showOnboarding} onOpenChange={setShowOnboarding} />
 
-      {/* Password Reset Request Dialog */}
-      <Dialog open={showForgotPassword} onOpenChange={setShowForgotPassword}>
+      {/* Password Reset Dialog (Hybrid: self-serve primary, admin fallback) */}
+      <Dialog open={showForgotPassword} onOpenChange={(open) => {
+        setShowForgotPassword(open);
+        if (!open) {
+          setShowAdminResetFallback(false);
+          setResetEmail("");
+          setResetFullName("");
+        }
+      }}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>Request Password Reset</DialogTitle>
+            <DialogTitle>
+              {showAdminResetFallback ? "Request Admin Reset" : "Reset Your Password"}
+            </DialogTitle>
             <DialogDescription>
-              Enter your information and an administrator will reset your password for you.
+              {showAdminResetFallback
+                ? "An administrator will reset your password manually and email you the new one."
+                : "Enter your email and we'll send you a secure link to set a new password."}
             </DialogDescription>
           </DialogHeader>
-          <form onSubmit={handlePasswordResetRequest} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="reset-name">Full Name</Label>
-              <Input 
-                id="reset-name" 
-                type="text" 
-                placeholder="John Doe" 
-                value={resetFullName} 
-                onChange={e => setResetFullName(e.target.value)} 
-                required 
-                disabled={resetLoading} 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="reset-email">Email Address</Label>
-              <Input 
-                id="reset-email" 
-                type="email" 
-                placeholder="you@example.com" 
-                value={resetEmail} 
-                onChange={e => setResetEmail(e.target.value)} 
-                required 
-                disabled={resetLoading} 
-              />
-            </div>
-            <div className="flex gap-2">
-              <Button 
-                type="button" 
-                variant="outline" 
-                onClick={() => {
-                  setShowForgotPassword(false);
-                  setResetEmail("");
-                  setResetFullName("");
-                }} 
-                disabled={resetLoading} 
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button type="submit" disabled={resetLoading} className="flex-1">
-                {resetLoading ? (
+
+          {!showAdminResetFallback ? (
+            <form onSubmit={handleSelfServeReset} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-email">Email Address</Label>
+                <Input
+                  id="reset-email"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={resetEmail}
+                  onChange={e => setResetEmail(e.target.value)}
+                  required
+                  disabled={selfResetLoading}
+                />
+              </div>
+              <Button type="submit" disabled={selfResetLoading} className="w-full">
+                {selfResetLoading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                    Submitting...
+                    Sending link...
                   </>
                 ) : (
-                  "Submit Request"
+                  "Send Reset Link"
                 )}
               </Button>
-            </div>
-          </form>
+              <div className="text-center pt-2 border-t">
+                <p className="text-xs text-muted-foreground mb-2">Can't access your email?</p>
+                <Button
+                  type="button"
+                  variant="link"
+                  className="text-xs h-auto p-0"
+                  onClick={() => setShowAdminResetFallback(true)}
+                >
+                  Request an admin reset instead
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <form onSubmit={handlePasswordResetRequest} className="space-y-4">
+              <div className="space-y-2">
+                <Label htmlFor="reset-name">Full Name</Label>
+                <Input
+                  id="reset-name"
+                  type="text"
+                  placeholder="John Doe"
+                  value={resetFullName}
+                  onChange={e => setResetFullName(e.target.value)}
+                  required
+                  disabled={resetLoading}
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="reset-email-admin">Email Address</Label>
+                <Input
+                  id="reset-email-admin"
+                  type="email"
+                  placeholder="you@example.com"
+                  value={resetEmail}
+                  onChange={e => setResetEmail(e.target.value)}
+                  required
+                  disabled={resetLoading}
+                />
+              </div>
+              <div className="flex gap-2">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={() => setShowAdminResetFallback(false)}
+                  disabled={resetLoading}
+                  className="flex-1"
+                >
+                  Back
+                </Button>
+                <Button type="submit" disabled={resetLoading} className="flex-1">
+                  {resetLoading ? (
+                    <>
+                      <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                      Submitting...
+                    </>
+                  ) : (
+                    "Submit Request"
+                  )}
+                </Button>
+              </div>
+            </form>
+          )}
         </DialogContent>
       </Dialog>
 
