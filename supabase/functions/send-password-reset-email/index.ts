@@ -131,7 +131,7 @@ serve(async (req) => {
 
     const resend = new Resend(resendApiKey);
     const { error: sendError } = await resend.emails.send({
-      from: "BattersBox <noreply@battersbox.com>",
+      from: "BattersBox <noreply@battersbox.ai>",
       to: [normalizedEmail],
       subject: "Reset your BattersBox password",
       html: buildEmailHtml(actionLink),

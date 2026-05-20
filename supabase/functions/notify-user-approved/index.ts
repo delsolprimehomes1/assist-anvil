@@ -26,7 +26,7 @@ Deno.serve(async (req) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        from: "BattersBox <noreply@battersbox.com>",
+        from: "BattersBox <noreply@battersbox.ai>",
         to: [userEmail],
         subject: "You're Approved! Welcome to BattersBox 🎉",
         html: `
@@ -41,7 +41,7 @@ Deno.serve(async (req) => {
               <div style="text-align: center; margin: 24px 0;">
                 <a href="https://battersbox.lovable.app/auth" style="display: inline-block; background: #8BBAC4; color: #fff; padding: 12px 32px; border-radius: 8px; text-decoration: none; font-weight: bold;">Log In Now</a>
               </div>
-              <p style="color: #666; margin: 0;">If you have any questions, reach out to us at support@battersbox.com.</p>
+              <p style="color: #666; margin: 0;">If you have any questions, reach out to us at support@battersbox.ai.</p>
             </div>
           </div>
         `,
