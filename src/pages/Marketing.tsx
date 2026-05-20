@@ -162,11 +162,10 @@ const Marketing = () => {
       </div>
 
       <Tabs defaultValue="templates" className="w-full">
-        <TabsList className="grid w-full grid-cols-5">
+        <TabsList className="grid w-full grid-cols-4">
           <TabsTrigger value="templates">Templates</TabsTrigger>
           <TabsTrigger value="scripts">Scripts</TabsTrigger>
-          <TabsTrigger value="creatives">Creatives</TabsTrigger>
-          <TabsTrigger value="brand">Brand Kit</TabsTrigger>
+          <TabsTrigger value="creatives">Sales & Financial Forms</TabsTrigger>
           <TabsTrigger value="custom-builds" className="flex items-center gap-1.5">
             <Rocket className="h-4 w-4" />
             Custom Builds
@@ -463,97 +462,6 @@ const Marketing = () => {
           )}
         </TabsContent>
 
-        <TabsContent value="brand" className="space-y-6">
-          {/* Brand Kit Section */}
-          {isBrandKitLoading ? (
-            <Card className="stat-card">
-              <CardContent className="py-12 text-center">
-                <p className="text-muted-foreground">Loading brand kit...</p>
-              </CardContent>
-            </Card>
-          ) : brandKit ? (
-            <BrandKitDisplay 
-              brandKit={brandKit} 
-              onEdit={() => setBrandKitEditorOpen(true)} 
-              onDelete={() => setBrandKitDeleteDialogOpen(true)}
-            />
-          ) : (
-            <Card className="stat-card">
-              <CardContent className="py-12 text-center space-y-4">
-                <div className="flex justify-center">
-                  <div className="w-20 h-20 bg-gradient-primary rounded-full flex items-center justify-center">
-                    <Palette className="h-10 w-10 text-white" />
-                  </div>
-                </div>
-                <div className="space-y-2">
-                  <h3 className="text-xl font-semibold">Create Your Brand Kit</h3>
-                  <p className="text-muted-foreground max-w-md mx-auto">
-                    Set up your company branding to personalize all your marketing materials with your logo, colors, and contact information.
-                  </p>
-                </div>
-                <Button onClick={() => setBrandKitEditorOpen(true)} size="lg">
-                  <Plus className="mr-2 h-5 w-5" />
-                  Create Brand Kit
-                </Button>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* User's Brand Assets */}
-          {userTemplates.filter(t => t.type === "brand_asset").length > 0 && (
-            <>
-              <h3 className="text-lg font-semibold">My Brand Assets</h3>
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {userTemplates.filter(t => t.type === "brand_asset").map((asset, index) => {
-                  const Icon = getTypeIcon(asset.type);
-                  return (
-                    <Card key={asset.id} className="stat-card hover-lift" style={{ animationDelay: `${index * 0.1}s` }}>
-                      <CardHeader className="pb-4">
-                        <div className="flex items-start justify-between">
-                          <div className="flex items-center space-x-3 flex-1">
-                            <div className="w-12 h-12 bg-gradient-secondary rounded-lg flex items-center justify-center">
-                              <Icon className="h-6 w-6 text-primary" />
-                            </div>
-                            <div className="flex-1">
-                              <CardTitle className="text-lg">{asset.title}</CardTitle>
-                              <CardDescription className="text-sm">
-                                {asset.description}
-                              </CardDescription>
-                            </div>
-                          </div>
-                          <div className="flex gap-1">
-                            <Button size="icon" variant="ghost" onClick={() => handleEditTemplate(asset)}>
-                              <Edit className="h-4 w-4" />
-                            </Button>
-                            <Button size="icon" variant="ghost" onClick={() => handleDeleteTemplate(asset.id)}>
-                              <Trash2 className="h-4 w-4" />
-                            </Button>
-                          </div>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="space-y-4">
-                        <div className="flex flex-wrap gap-1">
-                          {asset.tags.map(tag => (
-                            <Badge key={tag} variant="outline" className="text-xs">
-                              {tag.replace('_', ' ')}
-                            </Badge>
-                          ))}
-                        </div>
-
-                        <Button className="w-full" asChild>
-                          <a href={asset.file_url || "#"} download>
-                            <Download className="mr-2 h-4 w-4" />
-                            Download
-                          </a>
-                        </Button>
-                      </CardContent>
-                    </Card>
-                  );
-                })}
-              </div>
-            </>
-          )}
-        </TabsContent>
 
         <TabsContent value="custom-builds">
           <CustomBuildsForm />
