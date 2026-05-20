@@ -492,25 +492,6 @@ const Marketing = () => {
         </AlertDialogContent>
       </AlertDialog>
 
-      <AlertDialog open={brandKitDeleteDialogOpen} onOpenChange={setBrandKitDeleteDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Brand Kit?</AlertDialogTitle>
-            <AlertDialogDescription>
-              This will permanently delete your brand kit including all uploaded images. This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Cancel</AlertDialogCancel>
-            <AlertDialogAction 
-              onClick={confirmBrandKitDelete}
-              className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
 
       <Dialog open={!!selectedCreative} onOpenChange={() => setSelectedCreative(null)}>
         <DialogContent className="max-w-4xl">
