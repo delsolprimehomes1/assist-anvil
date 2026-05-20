@@ -62,24 +62,6 @@ const templates = [
   }
 ];
 
-const brandAssets = [
-  {
-    id: 1,
-    title: "Company Logo Pack",
-    type: "brand_asset",
-    description: "High-resolution logos in various formats",
-    downloadUrl: "/brand/logos.zip",
-    tags: ["logo", "branding"]
-  },
-  {
-    id: 2,
-    title: "Brand Guidelines",
-    type: "brand_asset",
-    description: "Official brand colors, fonts, and usage guidelines",
-    downloadUrl: "/brand/guidelines.pdf",
-    tags: ["guidelines", "branding"]
-  }
-];
 
 const Marketing = () => {
   const [searchTerm, setSearchTerm] = useState("");
@@ -401,7 +383,7 @@ const Marketing = () => {
         </TabsContent>
 
         <TabsContent value="creatives" className="space-y-6">
-          <h3 className="text-lg font-semibold">Agency Creatives</h3>
+          <h3 className="text-lg font-semibold">Sales & Financial Forms</h3>
           {agencyCreatives.length === 0 ? (
             <Card className="stat-card">
               <CardContent className="py-12 text-center">
