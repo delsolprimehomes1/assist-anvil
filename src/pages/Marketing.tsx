@@ -85,19 +85,16 @@ const Marketing = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const { toast } = useToast();
-  
-  const { brandKit, isLoading: isBrandKitLoading, deleteBrandKit } = useBrandKit();
+
   const { templates: userTemplates, deleteTemplate } = useMarketingTemplates();
   const { resources: agencyTemplates, isLoading: isAgencyLoading } = useMarketingResources("canva_template");
   const { resources: agencyScripts } = useMarketingResources();
   const { resources: agencyCreatives } = useMarketingResources("creative");
-  
-  const [brandKitEditorOpen, setBrandKitEditorOpen] = useState(false);
+
   const [templateEditorOpen, setTemplateEditorOpen] = useState(false);
   const [editingTemplate, setEditingTemplate] = useState<any>(null);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [templateToDelete, setTemplateToDelete] = useState<string | null>(null);
-  const [brandKitDeleteDialogOpen, setBrandKitDeleteDialogOpen] = useState(false);
   const [selectedCreative, setSelectedCreative] = useState<any>(null);
 
   const handleEditTemplate = (template: any) => {
