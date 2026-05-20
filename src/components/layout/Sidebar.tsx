@@ -39,7 +39,7 @@ const navigation = [
   { name: "News", href: "/dashboard/news", icon: Newspaper },
   { name: "Quoting Tools", href: "/dashboard/tools", icon: Calculator },
   { name: "Training", href: "/dashboard/training", icon: GraduationCap },
-  { name: "Marketing", href: "/dashboard/marketing", icon: Megaphone },
+  { name: "Sales Tools", href: "/dashboard/marketing", icon: Megaphone },
   { name: "Compliance", href: "/dashboard/compliance", icon: Shield },
   
   { name: "Underwriting AI", href: "/dashboard/underwriting", icon: FileSearch },

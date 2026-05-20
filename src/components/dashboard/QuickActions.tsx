@@ -18,7 +18,7 @@ const actions = [
     href: "/dashboard/training",
   },
   {
-    title: "Marketing",
+    title: "Sales Tools",
     icon: Megaphone,
     href: "/dashboard/marketing",
   },
