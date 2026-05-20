@@ -60,6 +60,14 @@ const Auth = () => {
   }, [navigate]);
   const handleSignUp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!fullName.trim() || !email.trim() || !phone.trim() || !agencyName.trim() || !password.trim()) {
+      toast({
+        title: "All fields are required",
+        description: "Please fill out every field before creating your account.",
+        variant: "destructive"
+      });
+      return;
+    }
     setLoading(true);
     try {
       const {
@@ -70,7 +78,9 @@ const Auth = () => {
         options: {
           emailRedirectTo: `${window.location.origin}/dashboard`,
           data: {
-            full_name: fullName
+            full_name: fullName,
+            phone,
+            agency_name: agencyName
           }
         }
       });
@@ -88,7 +98,7 @@ const Auth = () => {
         // Notify admins in background
         try {
           await supabase.functions.invoke("notify-admin-signup", {
-            body: { userName: fullName, userEmail: email },
+            body: { userName: fullName, userEmail: email, phone, agencyName },
           });
         } catch (e) {
           console.error("Failed to notify admins:", e);
@@ -97,6 +107,8 @@ const Auth = () => {
         setEmail("");
         setPassword("");
         setFullName("");
+        setPhone("");
+        setAgencyName("");
       }
     } catch (error: any) {
       toast({
