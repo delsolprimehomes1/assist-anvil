@@ -16,25 +16,55 @@ const ResetPassword = () => {
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [isValidSession, setIsValidSession] = useState(false);
+  const [checking, setChecking] = useState(true);
 
   useEffect(() => {
-    // Listen for PASSWORD_RECOVERY event
+    let cancelled = false;
+
+    // Recovery markers in the URL (implicit hash flow or PKCE ?code= flow)
+    const hash = window.location.hash || "";
+    const search = window.location.search || "";
+    const hasRecoveryMarker =
+      hash.includes("type=recovery") ||
+      hash.includes("access_token") ||
+      search.includes("code=");
+
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
-        if (event === "PASSWORD_RECOVERY") {
+        if (cancelled) return;
+        if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
           setIsValidSession(true);
+          setChecking(false);
         }
       }
     );
 
-    // Check if there's already a session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (session) {
-        setIsValidSession(true);
-      }
-    });
+    // Poll a few times while Supabase finishes exchanging the recovery token
+    // from the URL — avoids the race where "Invalid Reset Link" showed even
+    // after /verify succeeded.
+    const start = Date.now();
+    const maxWaitMs = hasRecoveryMarker ? 5000 : 1500;
 
-    return () => subscription.unsubscribe();
+    const tick = async () => {
+      if (cancelled) return;
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setIsValidSession(true);
+        setChecking(false);
+        return;
+      }
+      if (Date.now() - start >= maxWaitMs) {
+        setChecking(false);
+        return;
+      }
+      setTimeout(tick, 300);
+    };
+    tick();
+
+    return () => {
+      cancelled = true;
+      subscription.unsubscribe();
+    };
   }, []);
 
   const handleResetPassword = async (e: React.FormEvent) => {
@@ -72,10 +102,11 @@ const ResetPassword = () => {
         description: "Your password has been successfully updated.",
       });
 
-      // Redirect to auth page
+      // Sign out and send back to login so the user signs in with the new password
+      await supabase.auth.signOut();
       setTimeout(() => {
         navigate("/auth");
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
       toast({
         title: "Error",
@@ -86,6 +117,17 @@ const ResetPassword = () => {
       setLoading(false);
     }
   };
+
+  if (checking) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-secondary/5 to-background">
+        <div className="flex flex-col items-center space-y-3">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+          <p className="text-sm text-muted-foreground">Verifying your reset link…</p>
+        </div>
+      </div>
+    );
+  }
 
   if (!isValidSession) {
     return (
