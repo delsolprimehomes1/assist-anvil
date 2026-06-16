@@ -16,7 +16,8 @@ import {
   Network,
   TrendingUp,
   CreditCard,
-  FileSearch
+  FileSearch,
+  Phone
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -34,6 +35,7 @@ const navigation = [
     icon: ShoppingBag,
     external: true
   },
+  { name: "Callin Leads", href: "https://callins.battersbox.ai/", icon: Phone, external: true },
   { name: "CRM", href: "https://app.battersbox.ai", icon: Users, external: true },
   { name: "Carriers", href: "/dashboard/carriers", icon: Building2 },
   { name: "News", href: "/dashboard/news", icon: Newspaper },
