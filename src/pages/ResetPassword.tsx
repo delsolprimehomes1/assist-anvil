@@ -21,13 +21,16 @@ const ResetPassword = () => {
   useEffect(() => {
     let cancelled = false;
 
-    // Recovery markers in the URL (implicit hash flow or PKCE ?code= flow)
     const hash = window.location.hash || "";
     const search = window.location.search || "";
+    const params = new URLSearchParams(search);
+    const tokenHash = params.get("token_hash");
+    const typeParam = params.get("type");
     const hasRecoveryMarker =
       hash.includes("type=recovery") ||
       hash.includes("access_token") ||
-      search.includes("code=");
+      search.includes("code=") ||
+      !!tokenHash;
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
@@ -39,27 +42,44 @@ const ResetPassword = () => {
       }
     );
 
-    // Poll a few times while Supabase finishes exchanging the recovery token
-    // from the URL — avoids the race where "Invalid Reset Link" showed even
-    // after /verify succeeded.
-    const start = Date.now();
-    const maxWaitMs = hasRecoveryMarker ? 5000 : 1500;
+    const init = async () => {
+      // Preferred: token_hash flow — app owns verification
+      if (tokenHash) {
+        const { error } = await supabase.auth.verifyOtp({
+          type: (typeParam as "recovery") || "recovery",
+          token_hash: tokenHash,
+        });
+        if (cancelled) return;
+        if (!error) {
+          setIsValidSession(true);
+          setChecking(false);
+          // Clean the URL so refresh doesn't re-consume the token
+          window.history.replaceState({}, "", "/reset-password");
+          return;
+        }
+        console.error("verifyOtp recovery failed:", error.message);
+      }
 
-    const tick = async () => {
-      if (cancelled) return;
-      const { data } = await supabase.auth.getSession();
-      if (data.session) {
-        setIsValidSession(true);
-        setChecking(false);
-        return;
-      }
-      if (Date.now() - start >= maxWaitMs) {
-        setChecking(false);
-        return;
-      }
-      setTimeout(tick, 300);
+      // Fallback: poll for session while Supabase finishes any hash/PKCE exchange
+      const start = Date.now();
+      const maxWaitMs = hasRecoveryMarker ? 5000 : 1500;
+      const tick = async () => {
+        if (cancelled) return;
+        const { data } = await supabase.auth.getSession();
+        if (data.session) {
+          setIsValidSession(true);
+          setChecking(false);
+          return;
+        }
+        if (Date.now() - start >= maxWaitMs) {
+          setChecking(false);
+          return;
+        }
+        setTimeout(tick, 300);
+      };
+      tick();
     };
-    tick();
+    init();
 
     return () => {
       cancelled = true;

@@ -136,14 +136,21 @@ serve(async (req) => {
       });
     }
 
-    const actionLink = data?.properties?.action_link;
-    if (!actionLink) {
-      console.error("No action_link returned from generateLink");
+    const hashedToken = data?.properties?.hashed_token;
+    if (!hashedToken) {
+      console.error("No hashed_token returned from generateLink");
       return new Response(JSON.stringify({ success: true }), {
         status: 200,
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
+
+    // Build a direct app link that hands the token to /reset-password,
+    // so the app verifies it (avoids the one-time /verify redirect being
+    // consumed by email scanners or losing the session in the redirect).
+    const actionLink = `${origin}/reset-password?token_hash=${encodeURIComponent(
+      hashedToken
+    )}&type=recovery`;
 
     const resend = new Resend(resendApiKey);
     const { error: sendError } = await resend.emails.send({
