@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useToast } from "@/hooks/use-toast";
+import { useAdmin } from "@/hooks/useAdmin";
 import { useMarketingTemplates } from "@/hooks/useMarketingTemplates";
 import { useMarketingResources } from "@/hooks/useMarketingResources";
 import { TemplateEditor } from "@/components/marketing/TemplateEditor";
@@ -67,6 +68,7 @@ const Marketing = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedType, setSelectedType] = useState("all");
   const { toast } = useToast();
+  const { isAdmin } = useAdmin();
 
   const { templates: userTemplates, deleteTemplate } = useMarketingTemplates();
   const { resources: agencyTemplates, isLoading: isAgencyLoading } = useMarketingResources("canva_template");
@@ -163,10 +165,12 @@ const Marketing = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-sm"
             />
-            <Button onClick={handleNewTemplate}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Template
-            </Button>
+            {isAdmin && (
+              <Button onClick={handleNewTemplate}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Template
+              </Button>
+            )}
           </div>
 
           {/* User's Canva Templates */}
@@ -274,12 +278,14 @@ const Marketing = () => {
 
         <TabsContent value="scripts" className="space-y-6">
           {/* Header with New Script Button */}
-          <div className="flex justify-end">
-            <Button onClick={handleNewTemplate}>
-              <Plus className="mr-2 h-4 w-4" />
-              New Script
-            </Button>
-          </div>
+          {isAdmin && (
+            <div className="flex justify-end">
+              <Button onClick={handleNewTemplate}>
+                <Plus className="mr-2 h-4 w-4" />
+                New Script
+              </Button>
+            </div>
+          )}
 
           {/* User's Scripts */}
           {userTemplates.filter(t => t.type === "email_script" || t.type === "sms_script").length > 0 && (
