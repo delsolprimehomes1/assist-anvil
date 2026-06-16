@@ -1,13 +1,21 @@
-## Current state
+## Add "Callin Leads" entry to Sidebar and Dashboard
 
-The **+ New Template** and **+ New Script** buttons in Sales Tools Center (`src/pages/Marketing.tsx`) are rendered unconditionally, so every logged-in user sees them, not just admins.
+Both buttons open `https://callins.battersbox.ai/` in a new tab.
 
-## Plan
+### 1. `src/components/layout/Sidebar.tsx`
+- Add `Phone` (or similar) icon to the lucide-react imports.
+- Insert a new nav item directly after "Order Leads":
+  ```ts
+  { name: "Callin Leads", href: "https://callins.battersbox.ai/", icon: Phone, external: true },
+  ```
+- Existing external-link rendering logic already handles `external: true`, so no further changes needed.
 
-1. In `src/pages/Marketing.tsx`, read the current user's admin status via the existing `useAdmin` hook.
-2. Wrap the **+ New Template** button (Templates tab) and the **+ New Script** button (Scripts tab) so they only render when `isAdmin === true`.
-3. Leave the rest of the tab content (search, listings, etc.) untouched so regular users still see and use templates/scripts — they just can't create new ones.
-4. No backend or RLS changes; this is a UI-only gate. The underlying create actions are already admin-only at the data layer via existing policies.
+### 2. `src/components/dashboard/QuickActions.tsx`
+- Add `Phone` to the lucide-react imports.
+- Add a new entry to the `actions` array:
+  ```ts
+  { title: "Callin Leads", icon: Phone, href: "https://callins.battersbox.ai/", external: true }
+  ```
+- Update the render to use an `<a target="_blank" rel="noopener noreferrer">` when `action.external` is true, instead of `<Link>`. Internal items keep using `<Link>`.
 
-## File to change
-- `src/pages/Marketing.tsx`
+No backend or routing changes required.
