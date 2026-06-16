@@ -102,10 +102,11 @@ const ResetPassword = () => {
         description: "Your password has been successfully updated.",
       });
 
-      // Redirect to auth page
+      // Sign out and send back to login so the user signs in with the new password
+      await supabase.auth.signOut();
       setTimeout(() => {
         navigate("/auth");
-      }, 1500);
+      }, 1200);
     } catch (error: any) {
       toast({
         title: "Error",
