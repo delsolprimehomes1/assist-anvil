@@ -1,24 +1,27 @@
-## Add signup notification to admin@lifecoimo.com
+## Goal
+Stop valid password-reset emails from landing on the “Invalid Reset Link” screen.
 
-There's already a `notify-admin-signup` edge function that emails admins when a new user signs up. It currently sends to all users with the `admin` role. We'll update it to also (or instead) send to `admin@lifecoimo.com`, and verify it's actually being triggered from the signup flow.
+## What I’ll change
+1. **Use the correct reset link format**
+   - Update the password reset email function to send the direct `hashed_token` recovery URL format instead of relying on the generated one-time action link.
+   - This avoids the backend verification URL being consumed before the app can establish the reset session.
 
-### Changes
+2. **Make the reset page handle token URLs directly**
+   - Teach `/reset-password` to detect `token_hash` + `type=recovery` in the query string.
+   - Exchange that token in the app using the auth client, then show the “Set New Password” form.
+   - Keep the existing fallback for hash-based recovery links and already-active sessions.
 
-1. **`supabase/functions/notify-admin-signup/index.ts`**
-   - Add `admin@lifecoimo.com` as a guaranteed recipient (in addition to existing admin role emails, deduplicated).
-   - Expand the email body to include all signup info the user provided (name, email, plus any extra metadata passed in the request: phone, agency, signup source, etc.).
-   - Keep using Resend via `RESEND_API_KEY` (already configured) sending from `noreply@battersbox.ai` (verified domain).
+3. **Improve invalid-state timing**
+   - Keep a loading/verification state while the token exchange runs.
+   - Only show “Invalid Reset Link” after the token exchange fails or no valid reset markers/session exist.
 
-2. **`src/pages/Auth.tsx` (signup handler)**
-   - Verify the function is invoked after `supabase.auth.signUp(...)`. If not, add the `supabase.functions.invoke('notify-admin-signup', { body: { userName, userEmail, ...extra } })` call.
-   - Pass through any additional signup fields the user filled in.
+4. **Verify the backend email sender**
+   - Redeploy the password reset email function after the change.
+   - Check recent function/auth logs to confirm new reset emails generate correctly.
 
-3. **Redeploy** the `notify-admin-signup` edge function.
+## Files expected to change
+- `supabase/functions/send-password-reset-email/index.ts`
+- `src/pages/ResetPassword.tsx`
 
-### Open question
-
-Do you want the email to go **only** to `admin@lifecoimo.com`, or to `admin@lifecoimo.com` **plus** all existing admin-role users? Default plan is "plus" (additive, deduplicated) — say the word if you want it locked to just that one address.
-
-### Verify
-
-Trigger a signup from the Auth page, confirm the email arrives at `admin@lifecoimo.com` with the new user's name, email, and any extra signup data.
+## Why this should fix it
+The current email is using an action link that immediately hits the backend `/verify` endpoint. That link is one-time-use and can redirect before the React page is ready, which can still produce the invalid page. Using `token_hash` lets the app own the verification step on `/reset-password`, making the reset form much more reliable.
