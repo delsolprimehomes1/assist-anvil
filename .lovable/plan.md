@@ -1,27 +1,36 @@
-## Goal
-Stop valid password-reset emails from landing on the “Invalid Reset Link” screen.
+## Why you’re seeing “Auth session missing”
 
-## What I’ll change
-1. **Use the correct reset link format**
-   - Update the password reset email function to send the direct `hashed_token` recovery URL format instead of relying on the generated one-time action link.
-   - This avoids the backend verification URL being consumed before the app can establish the reset session.
+The reset link is getting verified, so the form appears. But when you tap **Update Password**, the browser sometimes does not have a persisted auth session yet. `updateUser({ password })` requires that session, so the auth client returns **Auth session missing**.
 
-2. **Make the reset page handle token URLs directly**
-   - Teach `/reset-password` to detect `token_hash` + `type=recovery` in the query string.
-   - Exchange that token in the app using the auth client, then show the “Set New Password” form.
-   - Keep the existing fallback for hash-based recovery links and already-active sessions.
+This is a known fragile part of recovery-token flows: `verifyOtp` can succeed but the temporary recovery session may not be available to the password update call, especially on mobile/in-app browsers.
 
-3. **Improve invalid-state timing**
-   - Keep a loading/verification state while the token exchange runs.
-   - Only show “Invalid Reset Link” after the token exchange fails or no valid reset markers/session exist.
+## Plan
 
-4. **Verify the backend email sender**
-   - Redeploy the password reset email function after the change.
-   - Check recent function/auth logs to confirm new reset emails generate correctly.
+1. **Move the final password update to the backend**
+   - Keep `/reset-password?token_hash=...&type=recovery` as the reset URL.
+   - Do not rely on the mobile browser holding a temporary recovery session.
+   - Add a secure backend function that receives `token_hash`, `newPassword`, and `type: recovery`.
+   - The function verifies the recovery token server-side, identifies the user, updates that user’s password, and returns success.
 
-## Files expected to change
-- `supabase/functions/send-password-reset-email/index.ts`
+2. **Update `/reset-password` page state**
+   - Store the `token_hash` from the URL in component state.
+   - Show the reset form when the link contains a valid-looking recovery token, without consuming it immediately on page load.
+   - On submit, call the backend function with the token and new password.
+   - Only show an invalid/expired message if the backend function says the token is invalid or expired.
+
+3. **Preserve fallback behavior**
+   - Keep support for existing hash/session recovery links for older emails already sent.
+   - If there is no `token_hash`, continue using the current session-based `updateUser` fallback.
+
+4. **Clean up the user experience**
+   - Replace the raw “Auth session missing!” toast with clearer copy like “This reset link expired or was already used. Please request a new one.”
+   - After a successful reset, sign out any temporary session and send the user back to login.
+
+## Files to change
+
 - `src/pages/ResetPassword.tsx`
+- Add a new backend function, likely `supabase/functions/complete-password-reset/index.ts`
 
-## Why this should fix it
-The current email is using an action link that immediately hits the backend `/verify` endpoint. That link is one-time-use and can redirect before the React page is ready, which can still produce the invalid page. Using `token_hash` lets the app own the verification step on `/reset-password`, making the reset form much more reliable.
+## Expected result
+
+The reset flow will no longer depend on Safari/Gmail/in-app browser session persistence, so clicking the link once and submitting a new password should work reliably.

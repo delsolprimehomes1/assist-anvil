@@ -15,7 +15,9 @@ const ResetPassword = () => {
   const [loading, setLoading] = useState(false);
   const [newPassword, setNewPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [isValidSession, setIsValidSession] = useState(false);
+  const [tokenHash, setTokenHash] = useState<string | null>(null);
+  const [tokenType, setTokenType] = useState<string>("recovery");
+  const [hasSessionFallback, setHasSessionFallback] = useState(false);
   const [checking, setChecking] = useState(true);
 
   useEffect(() => {
@@ -24,62 +26,52 @@ const ResetPassword = () => {
     const hash = window.location.hash || "";
     const search = window.location.search || "";
     const params = new URLSearchParams(search);
-    const tokenHash = params.get("token_hash");
-    const typeParam = params.get("type");
+    const th = params.get("token_hash");
+    const typeParam = params.get("type") || "recovery";
+
+    // Preferred path: token in URL. Don't consume it; pass to backend on submit.
+    if (th) {
+      setTokenHash(th);
+      setTokenType(typeParam);
+      setChecking(false);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    // Fallback path: legacy hash/PKCE sessions already established by Supabase client.
     const hasRecoveryMarker =
       hash.includes("type=recovery") ||
       hash.includes("access_token") ||
-      search.includes("code=") ||
-      !!tokenHash;
+      search.includes("code=");
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         if (cancelled) return;
         if (event === "PASSWORD_RECOVERY" || (event === "SIGNED_IN" && session)) {
-          setIsValidSession(true);
+          setHasSessionFallback(true);
           setChecking(false);
         }
       }
     );
 
-    const init = async () => {
-      // Preferred: token_hash flow — app owns verification
-      if (tokenHash) {
-        const { error } = await supabase.auth.verifyOtp({
-          type: (typeParam as "recovery") || "recovery",
-          token_hash: tokenHash,
-        });
-        if (cancelled) return;
-        if (!error) {
-          setIsValidSession(true);
-          setChecking(false);
-          // Clean the URL so refresh doesn't re-consume the token
-          window.history.replaceState({}, "", "/reset-password");
-          return;
-        }
-        console.error("verifyOtp recovery failed:", error.message);
+    const start = Date.now();
+    const maxWaitMs = hasRecoveryMarker ? 5000 : 1500;
+    const tick = async () => {
+      if (cancelled) return;
+      const { data } = await supabase.auth.getSession();
+      if (data.session) {
+        setHasSessionFallback(true);
+        setChecking(false);
+        return;
       }
-
-      // Fallback: poll for session while Supabase finishes any hash/PKCE exchange
-      const start = Date.now();
-      const maxWaitMs = hasRecoveryMarker ? 5000 : 1500;
-      const tick = async () => {
-        if (cancelled) return;
-        const { data } = await supabase.auth.getSession();
-        if (data.session) {
-          setIsValidSession(true);
-          setChecking(false);
-          return;
-        }
-        if (Date.now() - start >= maxWaitMs) {
-          setChecking(false);
-          return;
-        }
-        setTimeout(tick, 300);
-      };
-      tick();
+      if (Date.now() - start >= maxWaitMs) {
+        setChecking(false);
+        return;
+      }
+      setTimeout(tick, 300);
     };
-    init();
+    tick();
 
     return () => {
       cancelled = true;
@@ -90,7 +82,6 @@ const ResetPassword = () => {
   const handleResetPassword = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Validation
     if (newPassword !== confirmPassword) {
       toast({
         title: "Passwords don't match",
@@ -111,26 +102,36 @@ const ResetPassword = () => {
 
     setLoading(true);
     try {
-      const { error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-
-      if (error) throw error;
+      if (tokenHash) {
+        // Backend handles verification + password update in one shot.
+        const { data, error } = await supabase.functions.invoke("complete-password-reset", {
+          body: { token_hash: tokenHash, new_password: newPassword, type: tokenType },
+        });
+        if (error) {
+          const msg = (data as any)?.error || error.message || "Failed to update password";
+          throw new Error(msg);
+        }
+        if ((data as any)?.error) {
+          throw new Error((data as any).error);
+        }
+      } else if (hasSessionFallback) {
+        const { error } = await supabase.auth.updateUser({ password: newPassword });
+        if (error) throw error;
+      } else {
+        throw new Error("This reset link is invalid or has expired. Please request a new one.");
+      }
 
       toast({
         title: "Password updated!",
         description: "Your password has been successfully updated.",
       });
 
-      // Sign out and send back to login so the user signs in with the new password
-      await supabase.auth.signOut();
-      setTimeout(() => {
-        navigate("/auth");
-      }, 1200);
+      await supabase.auth.signOut().catch(() => {});
+      setTimeout(() => navigate("/auth"), 1200);
     } catch (error: any) {
       toast({
-        title: "Error",
-        description: error.message,
+        title: "Couldn't reset password",
+        description: error.message || "Please request a new reset link and try again.",
         variant: "destructive",
       });
     } finally {
@@ -149,7 +150,9 @@ const ResetPassword = () => {
     );
   }
 
-  if (!isValidSession) {
+  const canReset = !!tokenHash || hasSessionFallback;
+
+  if (!canReset) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-secondary/5 to-background">
         <div className="w-full max-w-md space-y-6">
@@ -157,7 +160,7 @@ const ResetPassword = () => {
             <img src={logo} alt="BattersBox Logo" className="h-16 w-auto md:h-20" />
             <h1 className="text-2xl md:text-3xl font-bold text-foreground">BattersBox Portal</h1>
           </div>
-          
+
           <Card className="border-2 shadow-lg">
             <CardHeader>
               <CardTitle>Invalid Reset Link</CardTitle>
@@ -166,10 +169,7 @@ const ResetPassword = () => {
               </CardDescription>
             </CardHeader>
             <CardContent>
-              <Button 
-                onClick={() => navigate("/auth")} 
-                className="w-full"
-              >
+              <Button onClick={() => navigate("/auth")} className="w-full">
                 Back to Login
               </Button>
             </CardContent>
@@ -182,7 +182,6 @@ const ResetPassword = () => {
   return (
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-secondary/5 to-background">
       <div className="w-full max-w-md space-y-6">
-        {/* Logo Section */}
         <div className="flex flex-col items-center space-y-2">
           <img src={logo} alt="BattersBox Logo" className="h-16 w-auto md:h-20" />
           <h1 className="text-2xl md:text-3xl font-bold text-foreground">BattersBox Portal</h1>
@@ -191,7 +190,6 @@ const ResetPassword = () => {
           </p>
         </div>
 
-        {/* Reset Password Card */}
         <Card className="border-2 shadow-lg">
           <CardHeader>
             <CardTitle className="text-xl md:text-2xl">Set New Password</CardTitle>
@@ -203,9 +201,7 @@ const ResetPassword = () => {
           <CardContent className="space-y-4 px-4 md:px-6">
             <form onSubmit={handleResetPassword} className="space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="new-password" className="text-sm">
-                  New Password
-                </Label>
+                <Label htmlFor="new-password" className="text-sm">New Password</Label>
                 <Input
                   id="new-password"
                   type="password"
@@ -220,9 +216,7 @@ const ResetPassword = () => {
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="confirm-password" className="text-sm">
-                  Confirm Password
-                </Label>
+                <Label htmlFor="confirm-password" className="text-sm">Confirm Password</Label>
                 <Input
                   id="confirm-password"
                   type="password"
@@ -234,17 +228,10 @@ const ResetPassword = () => {
                   disabled={loading}
                   className="h-11"
                 />
-                <p className="text-xs text-muted-foreground">
-                  Must be at least 6 characters
-                </p>
+                <p className="text-xs text-muted-foreground">Must be at least 6 characters</p>
               </div>
 
-              <Button
-                type="submit"
-                className="w-full h-11"
-                size="lg"
-                disabled={loading}
-              >
+              <Button type="submit" className="w-full h-11" size="lg" disabled={loading}>
                 {loading ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
@@ -255,19 +242,19 @@ const ResetPassword = () => {
                 )}
               </Button>
             </form>
+
+            <div className="text-center text-sm text-muted-foreground">
+              Remember your password?{" "}
+              <button
+                type="button"
+                onClick={() => navigate("/auth")}
+                className="text-primary hover:underline font-medium"
+              >
+                Back to Login
+              </button>
+            </div>
           </CardContent>
         </Card>
-
-        {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground px-4">
-          Remember your password?{" "}
-          <button
-            onClick={() => navigate("/auth")}
-            className="text-primary hover:underline"
-          >
-            Back to Login
-          </button>
-        </p>
       </div>
     </div>
   );
