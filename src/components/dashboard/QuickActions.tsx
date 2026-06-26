@@ -28,7 +28,7 @@ const actions = [
     href: "/dashboard/compliance",
   },
   {
-    title: "Call-In leads",
+    title: "Call-In Leads",
     icon: Phone,
     href: "https://callins.battersbox.ai/",
     external: true,
