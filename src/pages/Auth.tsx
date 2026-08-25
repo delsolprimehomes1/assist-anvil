@@ -2,17 +2,14 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, PartyPopper, CheckCircle2 } from "lucide-react";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Loader2, LogIn, ArrowRight, ClipboardCheck, ShieldCheck, LayoutDashboard } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import logo from "@/assets/batterbox-auth-logo.png";
 import { OnboardingDialog } from "@/components/auth/OnboardingDialog";
-import { motion, AnimatePresence } from "framer-motion";
-import confetti from "canvas-confetti";
+import { motion } from "framer-motion";
 const Auth = () => {
   const navigate = useNavigate();
   const {
@@ -21,9 +18,6 @@ const Auth = () => {
   const [loading, setLoading] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
-  const [phone, setPhone] = useState("");
-  const [agencyName, setAgencyName] = useState("");
   const [showOnboarding, setShowOnboarding] = useState(false);
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [showAdminResetFallback, setShowAdminResetFallback] = useState(false);
@@ -31,14 +25,6 @@ const Auth = () => {
   const [resetFullName, setResetFullName] = useState("");
   const [resetLoading, setResetLoading] = useState(false);
   const [selfResetLoading, setSelfResetLoading] = useState(false);
-  const [showSignupSuccess, setShowSignupSuccess] = useState(false);
-  const [signupName, setSignupName] = useState("");
-
-  const fireBrandConfetti = () => {
-    const colors = ["#8BBAC4", "#C98A3A"];
-    confetti({ particleCount: 80, spread: 70, origin: { x: 0, y: 0.6 }, colors });
-    confetti({ particleCount: 80, spread: 70, origin: { x: 1, y: 0.6 }, colors });
-  };
   useEffect(() => {
     supabase.auth.getSession().then(({
       data: {
@@ -60,68 +46,6 @@ const Auth = () => {
     });
     return () => subscription.unsubscribe();
   }, [navigate]);
-  const handleSignUp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!fullName.trim() || !email.trim() || !phone.trim() || !agencyName.trim() || !password.trim()) {
-      toast({
-        title: "All fields are required",
-        description: "Please fill out every field before creating your account.",
-        variant: "destructive"
-      });
-      return;
-    }
-    setLoading(true);
-    try {
-      const {
-        error
-      } = await supabase.auth.signUp({
-        email,
-        password,
-        options: {
-          emailRedirectTo: `${window.location.origin}/dashboard`,
-          data: {
-            full_name: fullName,
-            phone,
-            agency_name: agencyName
-          }
-        }
-      });
-      if (error) {
-        toast({
-          title: "Sign up failed",
-          description: error.message,
-          variant: "destructive"
-        });
-      } else {
-        setSignupName(fullName);
-        fireBrandConfetti();
-        setShowSignupSuccess(true);
-        
-        // Notify admins in background
-        try {
-          await supabase.functions.invoke("notify-admin-signup", {
-            body: { userName: fullName, userEmail: email, phone, agencyName },
-          });
-        } catch (e) {
-          console.error("Failed to notify admins:", e);
-        }
-        
-        setEmail("");
-        setPassword("");
-        setFullName("");
-        setPhone("");
-        setAgencyName("");
-      }
-    } catch (error: any) {
-      toast({
-        title: "Error",
-        description: error.message,
-        variant: "destructive"
-      });
-    } finally {
-      setLoading(false);
-    }
-  };
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -191,7 +115,7 @@ const Auth = () => {
         });
 
       if (error) throw error;
-      
+
       toast({
         title: "Request Submitted",
         description: "An administrator will reset your password shortly. Please check your email for the new password.",
@@ -210,178 +134,235 @@ const Auth = () => {
       setResetLoading(false);
     }
   };
-  return <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-primary/5 via-secondary/5 to-background">
-      <div className="w-full max-w-md space-y-6">
-        {/* Logo Section */}
-        <div className="flex flex-col items-center space-y-2">
-          <img src={logo} alt="BattersBox Logo" className="h-16 w-auto md:h-20" />
-          <h1 className="text-2xl md:text-3xl font-bold text-foreground">BattersBox Portal</h1>
-          <p className="text-sm md:text-base text-muted-foreground text-center">
-            Insurance Agent Resources & Tools
-          </p>
+  const steps = [
+    { icon: ClipboardCheck, label: "Request contracting", sub: "Quick guided application" },
+    { icon: ShieldCheck, label: "We review & approve", sub: "The BattersBox team verifies you" },
+    { icon: LayoutDashboard, label: "Access your portal", sub: "Carriers, tools, training & AI" },
+  ];
+  return <div className="min-h-screen flex flex-col lg:flex-row">
+      <style>{`
+        @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,700;0,900;1,700&display=swap');
+        @keyframes gradientShift {
+          0% { background-position: 0% 50%; }
+          50% { background-position: 100% 50%; }
+          100% { background-position: 0% 50%; }
+        }
+        @keyframes shimmer {
+          0% { transform: translateX(-100%); }
+          100% { transform: translateX(100%); }
+        }
+        @keyframes ctaPulse {
+          0%, 100% { box-shadow: 0 8px 30px -6px rgba(201,138,58,0.55), 0 0 0 0 rgba(139,186,196,0.0); }
+          50% { box-shadow: 0 8px 40px -4px rgba(139,186,196,0.6), 0 0 30px 4px rgba(201,138,58,0.25); }
+        }
+        @keyframes floatGlow {
+          0%, 100% { transform: translate(0, 0) scale(1); }
+          50% { transform: translate(20px, -20px) scale(1.08); }
+        }
+      `}</style>
+
+      {/* ───────────── LEFT — NEW AGENTS (dominant) ───────────── */}
+      <div
+        className="relative flex-1 lg:w-[58%] flex flex-col overflow-hidden"
+        style={{ background: "linear-gradient(160deg, #0A1B21 0%, #0E242D 55%, #122E33 100%)" }}
+      >
+        {/* Ambient glows */}
+        <div
+          className="pointer-events-none absolute -top-40 -left-40 h-[480px] w-[480px] rounded-full opacity-30"
+          style={{ background: "radial-gradient(circle, #8BBAC4 0%, transparent 65%)", animation: "floatGlow 9s ease-in-out infinite" }}
+        />
+        <div
+          className="pointer-events-none absolute -bottom-48 -right-32 h-[520px] w-[520px] rounded-full opacity-25"
+          style={{ background: "radial-gradient(circle, #C98A3A 0%, transparent 65%)", animation: "floatGlow 11s ease-in-out infinite reverse" }}
+        />
+        {/* Subtle grid */}
+        <div
+          className="pointer-events-none absolute inset-0 opacity-[0.05]"
+          style={{
+            backgroundImage: "linear-gradient(rgba(255,255,255,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.5) 1px, transparent 1px)",
+            backgroundSize: "56px 56px",
+          }}
+        />
+
+        {/* Brand row */}
+        <div className="relative z-10 flex items-center gap-3 px-6 pt-6 md:px-12 lg:px-16">
+          <div className="rounded-xl bg-white/95 p-1.5 shadow-lg">
+            <img src={logo} alt="BattersBox Logo" className="h-9 w-auto" />
+          </div>
+          <div>
+            <p className="text-sm font-bold tracking-wide text-white">BattersBox Portal</p>
+            <p className="text-[11px] text-white/50">Insurance Agent Resources & Tools</p>
+          </div>
         </div>
 
-        {/* Onboarding Section */}
-        <style>{`
-          @import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@700;900&display=swap');
-          @keyframes cardGlow {
-            0%, 100% { box-shadow: 0 0 20px 8px rgba(139,186,196,0.35), 0 0 40px 16px rgba(139,186,196,0.15); }
-            50% { box-shadow: 0 0 25px 10px rgba(201,138,58,0.35), 0 0 45px 20px rgba(201,138,58,0.15); }
-          }
-          @keyframes gradientShift {
-            0% { background-position: 0% 50%; }
-            50% { background-position: 100% 50%; }
-            100% { background-position: 0% 50%; }
-          }
-          @keyframes shimmer {
-            0% { transform: translateX(-100%); }
-            100% { transform: translateX(100%); }
-          }
-        `}</style>
-        <Card
-          className="border-2 shadow-lg rounded-xl"
-          style={{ animation: "cardGlow 3s ease-in-out infinite" }}
-        >
-          <CardContent className="pt-5 pb-5 px-4 md:px-6">
-            <div className="text-center space-y-3">
-              <p
-                className="text-base md:text-lg font-medium"
-                style={{
-                  fontFamily: "'Playfair Display', serif",
-                  color: "#C98A3A",
-                }}
-              >
-                Start your contracting process here 👇
-              </p>
-              <button
-                onClick={() => setShowOnboarding(true)}
-                className="relative w-full h-12 rounded-md text-base md:text-lg font-semibold text-white overflow-hidden"
-                style={{
-                  background: "linear-gradient(270deg, #8BBAC4, #C98A3A, #8BBAC4, #C98A3A)",
-                  backgroundSize: "300% 300%",
-                  animation: "gradientShift 4s ease infinite",
-                }}
-              >
-                <span className="relative z-10">Request To Be Contracted</span>
-                <div
-                  className="absolute inset-0 z-[1]"
-                  style={{
-                    background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.3) 50%, transparent 100%)",
-                    animation: "shimmer 2.5s ease-in-out infinite",
-                  }}
-                />
-              </button>
+        {/* Hero */}
+        <div className="relative z-10 flex flex-1 flex-col justify-center px-6 py-12 md:px-12 lg:px-16 xl:pr-24">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, ease: "easeOut" }}
+            className="max-w-xl space-y-7"
+          >
+            {/* Badge */}
+            <div className="inline-flex items-center gap-2 rounded-full border border-[#C98A3A]/40 bg-[#C98A3A]/10 px-4 py-1.5 backdrop-blur-sm">
+              <span className="relative flex h-2 w-2">
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#C98A3A] opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#C98A3A]" />
+              </span>
+              <span className="text-xs font-bold uppercase tracking-[0.18em] text-[#E3B378]">
+                New agents start here
+              </span>
             </div>
-          </CardContent>
-        </Card>
 
-        {/* Auth Card */}
-        <Card className="border-2 shadow-lg">
-          <Tabs defaultValue="login" className="w-full">
-            <CardHeader className="space-y-4 pb-4">
-              <TabsList className="grid w-full grid-cols-2 h-11">
-                <TabsTrigger value="login" className="text-sm md:text-base">
-                  Login
-                </TabsTrigger>
-                <TabsTrigger value="signup" className="text-sm md:text-base">
-                  Sign Up
-                </TabsTrigger>
-              </TabsList>
-              <div>
-                <CardTitle className="text-xl md:text-2xl">Welcome</CardTitle>
-                <CardDescription className="text-sm md:text-base">
-                  Sign in to access your agent dashboard
-                </CardDescription>
-              </div>
-            </CardHeader>
+            {/* Headline */}
+            <h1
+              className="text-4xl leading-[1.08] text-white md:text-5xl xl:text-6xl"
+              style={{ fontFamily: "'Playfair Display', serif", fontWeight: 900 }}
+            >
+              Step up to
+              <br />
+              the plate<span style={{ color: "#C98A3A" }}>.</span>
+            </h1>
 
-            <CardContent className="space-y-4 px-4 md:px-6">
-              {/* Login Form */}
-              <TabsContent value="login" className="space-y-4 mt-0">
-                <form onSubmit={handleSignIn} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="login-email" className="text-sm">
-                      Email Address
-                    </Label>
-                    <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} className="h-11" />
-                  </div>
-                  
-                  <div className="space-y-2">
-                    <Label htmlFor="login-password" className="text-sm">
-                      Password
-                    </Label>
-                    <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} className="h-11" />
-                  </div>
+            <p className="text-base leading-relaxed text-white/70 md:text-lg">
+              First time here? Requesting to be contracted is your{" "}
+              <span className="font-semibold text-white">required first step</span> — your
+              portal account is created automatically during the process. No separate sign-up needed.
+            </p>
 
-                  <Button type="submit" className="w-full h-11" size="lg" disabled={loading}>
-                    {loading ? <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Signing in...
-                      </> : "Sign In"}
-                  </Button>
+            {/* Dominant CTA */}
+            <button
+              onClick={() => setShowOnboarding(true)}
+              className="group relative w-full overflow-hidden rounded-2xl px-8 py-5 text-lg font-bold text-white transition-transform duration-200 hover:scale-[1.02] active:scale-[0.99] md:text-xl"
+              style={{
+                background: "linear-gradient(270deg, #8BBAC4, #C98A3A, #8BBAC4, #C98A3A)",
+                backgroundSize: "300% 300%",
+                animation: "gradientShift 4s ease infinite, ctaPulse 3s ease-in-out infinite",
+              }}
+            >
+              <span className="relative z-10 flex items-center justify-center gap-3">
+                Request To Be Contracted
+                <ArrowRight className="h-6 w-6 transition-transform duration-200 group-hover:translate-x-1.5" />
+              </span>
+              <div
+                className="absolute inset-0 z-[1]"
+                style={{
+                  background: "linear-gradient(90deg, transparent 0%, rgba(255,255,255,0.35) 50%, transparent 100%)",
+                  animation: "shimmer 2.5s ease-in-out infinite",
+                }}
+              />
+            </button>
 
-                  <Button type="button" variant="link" className="w-full text-sm" disabled={loading} onClick={() => setShowForgotPassword(true)}>
-                    Forgot password?
-                  </Button>
-                </form>
-              </TabsContent>
-
-              {/* Sign Up Form */}
-              <TabsContent value="signup" className="space-y-4 mt-0">
-                <form onSubmit={handleSignUp} className="space-y-4">
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-name" className="text-sm">
-                      Full Name
-                    </Label>
-                    <Input id="signup-name" type="text" placeholder="John Doe" value={fullName} onChange={e => setFullName(e.target.value)} required disabled={loading} className="h-11" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-email" className="text-sm">
-                      Email Address
-                    </Label>
-                    <Input id="signup-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} className="h-11" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-phone" className="text-sm">
-                      Phone Number
-                    </Label>
-                    <Input id="signup-phone" type="tel" placeholder="(555) 123-4567" value={phone} onChange={e => setPhone(e.target.value)} required disabled={loading} className="h-11" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-agency" className="text-sm">
-                      Agency Name
-                    </Label>
-                    <Input id="signup-agency" type="text" placeholder="Acme Insurance Agency" value={agencyName} onChange={e => setAgencyName(e.target.value)} required disabled={loading} className="h-11" />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label htmlFor="signup-password" className="text-sm">
-                      Password
-                    </Label>
-                    <Input id="signup-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required minLength={6} disabled={loading} className="h-11" />
-                    <p className="text-xs text-muted-foreground">
-                      Must be at least 6 characters
+            {/* Steps */}
+            <div className="grid gap-3 pt-2 sm:grid-cols-3">
+              {steps.map((step, i) => (
+                <motion.div
+                  key={step.label}
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.5, delay: 0.25 + i * 0.12 }}
+                  className="rounded-xl border border-white/10 bg-white/[0.04] p-4 backdrop-blur-sm"
+                >
+                  <div className="flex items-center gap-2">
+                    <step.icon className="h-4 w-4 shrink-0" style={{ color: "#8BBAC4" }} />
+                    <p className="text-[11px] font-bold uppercase tracking-wider text-white/40">
+                      Step {i + 1}
                     </p>
                   </div>
+                  <p className="mt-1.5 text-sm font-semibold text-white">{step.label}</p>
+                  <p className="mt-0.5 text-xs leading-snug text-white/50">{step.sub}</p>
+                </motion.div>
+              ))}
+            </div>
+          </motion.div>
+        </div>
+      </div>
 
-                  <Button type="submit" className="w-full h-11" size="lg" disabled={loading}>
-                    {loading ? <>
-                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                        Creating account...
-                      </> : "Create Account"}
-                  </Button>
-                </form>
-              </TabsContent>
-            </CardContent>
-          </Tabs>
-        </Card>
-        {/* Footer */}
-        <p className="text-center text-xs text-muted-foreground px-4">
-          By continuing, you agree to our Terms of Service and Privacy Policy
-        </p>
+      {/* ───────────── RIGHT — SIGN IN ───────────── */}
+      <div className="relative flex items-center justify-center bg-background px-6 py-14 lg:w-[42%] lg:px-12">
+        <motion.div
+          initial={{ opacity: 0, y: 16 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, delay: 0.15, ease: "easeOut" }}
+          className="w-full max-w-sm space-y-8"
+        >
+          <div className="space-y-2">
+            <div className="flex items-center gap-2 text-muted-foreground">
+              <LogIn className="h-4 w-4" />
+              <p className="text-xs font-bold uppercase tracking-[0.18em]">Returning agents</p>
+            </div>
+            <h2 className="text-3xl font-bold text-foreground">
+              Are you already contracted?
+            </h2>
+            <p className="text-sm text-muted-foreground">
+              <span className="font-semibold text-foreground">Yes?</span> Sign in below to access
+              your agent dashboard.{" "}
+              <span className="font-semibold text-foreground">Not yet?</span> Start with{" "}
+              <button
+                type="button"
+                className="font-semibold underline underline-offset-2"
+                style={{ color: "#C98A3A" }}
+                onClick={() => setShowOnboarding(true)}
+              >
+                Request To Be Contracted
+              </button>
+              .
+            </p>
+          </div>
+
+          <form onSubmit={handleSignIn} className="space-y-5">
+            <div className="space-y-2">
+              <Label htmlFor="login-email" className="text-sm font-medium">
+                Email Address
+              </Label>
+              <Input id="login-email" type="email" placeholder="you@example.com" value={email} onChange={e => setEmail(e.target.value)} required disabled={loading} className="h-12 rounded-xl" />
+            </div>
+
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label htmlFor="login-password" className="text-sm font-medium">
+                  Password
+                </Label>
+                <button
+                  type="button"
+                  className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
+                  onClick={() => setShowForgotPassword(true)}
+                  disabled={loading}
+                >
+                  Forgot password?
+                </button>
+              </div>
+              <Input id="login-password" type="password" placeholder="••••••••" value={password} onChange={e => setPassword(e.target.value)} required disabled={loading} className="h-12 rounded-xl" />
+            </div>
+
+            <Button type="submit" className="h-12 w-full rounded-xl text-base font-semibold" size="lg" disabled={loading}>
+              {loading ? <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Signing in...
+                </> : "Sign In"}
+            </Button>
+          </form>
+
+          {/* Redirect for lost new users */}
+          <div className="rounded-xl border border-dashed p-4 text-center" style={{ borderColor: "#C98A3A66", background: "#C98A3A0D" }}>
+            <p className="text-sm text-muted-foreground">
+              New to BattersBox and not contracted yet?
+            </p>
+            <button
+              type="button"
+              className="mt-1 inline-flex items-center gap-1.5 text-sm font-bold underline-offset-2 hover:underline"
+              style={{ color: "#C98A3A" }}
+              onClick={() => setShowOnboarding(true)}
+            >
+              Request to be contracted first
+              <ArrowRight className="h-3.5 w-3.5" />
+            </button>
+          </div>
+
+          <p className="text-center text-xs text-muted-foreground">
+            By continuing, you agree to our Terms of Service and Privacy Policy
+          </p>
+        </motion.div>
       </div>
 
       <OnboardingDialog open={showOnboarding} onOpenChange={setShowOnboarding} />
@@ -494,65 +475,6 @@ const Auth = () => {
           )}
         </DialogContent>
       </Dialog>
-
-      {/* Sign-Up Success Modal */}
-      <AnimatePresence>
-        {showSignupSuccess && (
-          <Dialog open={showSignupSuccess} onOpenChange={setShowSignupSuccess}>
-            <DialogContent className="sm:max-w-md border-0 bg-transparent shadow-none p-0">
-              <motion.div
-                initial={{ opacity: 0, scale: 0.9, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                exit={{ opacity: 0, scale: 0.9, y: 20 }}
-                transition={{ duration: 0.4, ease: "easeOut" }}
-                className="bg-card rounded-2xl p-8 shadow-2xl border text-center space-y-5"
-              >
-                <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ delay: 0.2, type: "spring", stiffness: 200 }}
-                  className="mx-auto w-20 h-20 rounded-full flex items-center justify-center"
-                  style={{ background: "linear-gradient(135deg, #8BBAC4 0%, #C98A3A 100%)" }}
-                >
-                  <PartyPopper className="h-10 w-10 text-white" />
-                </motion.div>
-                
-                <div className="space-y-2">
-                  <h2 className="text-2xl font-bold text-foreground">
-                    You're in{signupName ? `, ${signupName}` : ""}! 🎉
-                  </h2>
-                  <p className="text-muted-foreground text-base leading-relaxed">
-                    Your sign-up is complete! The <span className="font-semibold text-foreground">BattersBox team</span> is reviewing your portal access — you'll be notified once you're approved.
-                  </p>
-                </div>
-
-                <motion.div
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.4 }}
-                  className="rounded-lg border bg-muted/30 p-4"
-                >
-                  <div className="flex items-center gap-2 justify-center text-sm text-muted-foreground">
-                    <CheckCircle2 className="h-4 w-4" style={{ color: "#8BBAC4" }} />
-                    <span>No action needed — we'll reach out when you're all set</span>
-                  </div>
-                </motion.div>
-
-                <Button 
-                  className="w-full h-11 text-base font-semibold"
-                  style={{ background: "linear-gradient(135deg, #8BBAC4 0%, #6a9aa5 100%)" }}
-                  onClick={() => {
-                    setShowSignupSuccess(false);
-                    navigate("/pending-approval");
-                  }}
-                >
-                  Got it!
-                </Button>
-              </motion.div>
-            </DialogContent>
-          </Dialog>
-        )}
-      </AnimatePresence>
     </div>;
 
 };
