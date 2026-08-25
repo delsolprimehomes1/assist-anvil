@@ -6,43 +6,50 @@ export const HeroSection = () => {
   const navigate = useNavigate();
 
   return (
-    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-primary/10 via-background to-background overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-primary/20 rounded-full blur-3xl" />
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-[hsl(var(--accent-gold))]/20 rounded-full blur-3xl" />
-      </div>
+    <section className="relative min-h-[90vh] flex items-center justify-center bg-gradient-to-br from-primary/5 via-background to-background overflow-hidden">
+      <div className="relative z-10 max-w-5xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
+        {/* Decorative gold accent */}
+        <div className="flex justify-center mb-8">
+          <div className="h-1.5 w-12 rounded-full bg-gold" />
+        </div>
 
-      <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center py-20">
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-bold text-foreground leading-tight">
-          Your Complete Insurance Business{" "}
-          <span className="text-primary">Command Center</span>
+        <h1 className="font-display text-5xl sm:text-6xl md:text-7xl lg:text-8xl font-extrabold tracking-tighter text-foreground leading-[0.9] md:leading-[0.85]">
+          Your Complete <br className="hidden sm:block" />
+          Insurance Business <br className="hidden sm:block" />
+          <span className="text-primary inline-block transform -rotate-1 italic">
+            Command Center
+          </span>
         </h1>
-        
-        <p className="mt-6 text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto">
-          Access carriers, tools, training, and AI assistance — all in one powerful 
-          platform built for modern insurance agents.
+
+        <p className="font-body mt-10 text-lg sm:text-xl md:text-2xl text-muted-foreground font-light max-w-2xl mx-auto leading-relaxed">
+          Access carriers, tools, training, and AI assistance —{" "}
+          <br className="hidden sm:block" />
+          <span className="font-medium text-foreground">all in one powerful platform</span>{" "}
+          built for modern insurance agents.
         </p>
 
-        <div className="mt-10 flex flex-col sm:flex-row items-center justify-center gap-4">
+        <div className="mt-12 flex flex-col items-center gap-4">
           <Button
             size="lg"
             onClick={() => navigate("/auth")}
-            className="bg-[hsl(var(--accent-gold))] hover:bg-[hsl(var(--accent-gold-dark))] text-white min-w-[200px] text-lg h-14"
+            className="font-body bg-gold hover:bg-gold-dark text-white px-10 py-6 h-auto text-lg font-semibold rounded-full shadow-lg hover:shadow-xl transition-all duration-300 group"
           >
             Get Started
-            <ArrowRight className="ml-2 h-5 w-5" />
+            <ArrowRight className="ml-2 h-5 w-5 transition-transform duration-300 group-hover:translate-x-1" />
           </Button>
-        </div>
 
-        <div className="mt-16 flex items-center justify-center gap-8 text-sm text-muted-foreground">
-          <div className="flex items-center gap-2">
-            <div className="w-2 h-2 bg-[hsl(var(--success))] rounded-full" />
-            <span>Trusted by 1,000+ agents</span>
-          </div>
-          <div className="hidden sm:flex items-center gap-2">
-            <div className="w-2 h-2 bg-primary rounded-full" />
-            <span>No credit card required</span>
+          <div className="flex items-center gap-2 mt-4">
+            <div className="flex -space-x-2">
+              <div className="h-8 w-8 rounded-full border-2 border-background bg-primary flex items-center justify-center text-[10px] text-primary-foreground font-bold">
+                AI
+              </div>
+              <div className="h-8 w-8 rounded-full border-2 border-background bg-primary flex items-center justify-center">
+                <div className="h-3 w-3 rounded-full bg-primary-foreground animate-pulse" />
+              </div>
+            </div>
+            <span className="font-body text-xs text-muted-foreground font-medium tracking-wide uppercase">
+              System fully operational
+            </span>
           </div>
         </div>
       </div>

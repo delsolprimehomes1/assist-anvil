@@ -20,6 +20,8 @@ const config = {
     extend: {
       fontFamily: {
         sans: ['Inter', 'system-ui', '-apple-system', 'sans-serif'],
+        display: ['Bricolage Grotesque', 'system-ui', '-apple-system', 'sans-serif'],
+        body: ['Outfit', 'Inter', 'system-ui', '-apple-system', 'sans-serif'],
       },
       colors: {
         border: "hsl(var(--border))",
