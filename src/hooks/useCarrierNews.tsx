@@ -39,6 +39,18 @@ export interface NewsFilters {
   includeArchived?: boolean;
 }
 
+// Form inputs use "" for "no value", but carrier_id is a UUID column and
+// Postgres rejects "" ("invalid input syntax for type uuid"). Convert empty
+// optional fields to null before every insert/update.
+const normalizeNewsPayload = <T extends Partial<CarrierNews>>(news: T): T => {
+  const normalized = { ...news };
+  if ("carrier_id" in normalized && !normalized.carrier_id) normalized.carrier_id = null;
+  if ("carrier_name" in normalized && !normalized.carrier_name) normalized.carrier_name = null;
+  if ("attachment_url" in normalized && !normalized.attachment_url) normalized.attachment_url = null;
+  if ("archive_date" in normalized && !normalized.archive_date) normalized.archive_date = null;
+  return normalized;
+};
+
 export const useCarrierNews = (filters?: NewsFilters) => {
   return useQuery({
     queryKey: ["carrier-news", filters],
@@ -104,7 +116,7 @@ export const useCreateCarrierNews = () => {
       
       const { data, error } = await supabase
         .from("carrier_news")
-        .insert({ ...news, created_by: user?.id })
+        .insert({ ...normalizeNewsPayload(news), created_by: user?.id })
         .select()
         .single();
 
@@ -129,7 +141,7 @@ export const useUpdateCarrierNews = () => {
     mutationFn: async ({ id, ...updates }: Partial<CarrierNews> & { id: string }) => {
       const { data, error } = await supabase
         .from("carrier_news")
-        .update(updates)
+        .update(normalizeNewsPayload(updates))
         .eq("id", id)
         .select()
         .single();

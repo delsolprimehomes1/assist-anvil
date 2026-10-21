@@ -101,6 +101,8 @@ export const NewsFormDialog = ({ open, onOpenChange, news }: NewsFormDialogProps
   const onSubmit = async (data: any) => {
     const newsData = {
       ...data,
+      carrier_id: data.carrier_id || null,
+      attachment_url: data.attachment_url || null,
       carrier_name: data.carrier_id
         ? carriers?.find((c) => c.id === data.carrier_id)?.name
         : null,
