@@ -65,10 +65,10 @@ interface StatsDisplayProps {
 
 const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
   const funnelData = [
-    { name: "Leads", value: stats.leadsWorked, color: "#3B82F6" },
+    { name: "Contacts", value: stats.leadsWorked, color: "#3B82F6" },
     { name: "Dials", value: stats.dialsMade, color: "#8B5CF6" },
     { name: "Set", value: stats.appointmentsSet, color: "#F59E0B" },
-    { name: "Held", value: stats.appointmentsHeld, color: "#10B981" },
+    { name: "Pres.", value: stats.appointmentsHeld, color: "#10B981" },
     { name: "Closed", value: stats.clientsClosed, color: "#EF4444" },
   ];
 
@@ -183,7 +183,7 @@ const StatsDisplay = ({ stats, period }: StatsDisplayProps) => {
       <div className="grid grid-cols-3 gap-2 sm:gap-4">
         <div className="bg-accent/50 rounded-xl p-2.5 sm:p-3 text-center">
           <p className="text-lg sm:text-2xl font-bold">{stats.leadsWorked}</p>
-          <p className="text-[10px] sm:text-xs text-muted-foreground">Leads</p>
+          <p className="text-[10px] sm:text-xs text-muted-foreground">Contacts</p>
         </div>
         <div className="bg-accent/50 rounded-xl p-2.5 sm:p-3 text-center">
           <p className="text-lg sm:text-2xl font-bold">{stats.dialsMade}</p>
