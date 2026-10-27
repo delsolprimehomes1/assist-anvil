@@ -28,8 +28,7 @@ interface EditEntryDialogProps {
   onSave: (id: string, updates: Partial<PerformanceEntry>) => Promise<void>;
 }
 
-const COMP_LEVELS = [70, 80, 90, 100, 115, 125, 140];
-const ADVANCEMENT_LEVELS = [75, 80, 85, 90, 100];
+const ADVANCEMENT_PERCENT = 75;
 
 export function EditEntryDialog({ entry, open, onClose, onSave }: EditEntryDialogProps) {
   const [saving, setSaving] = useState(false);
@@ -138,40 +137,26 @@ export function EditEntryDialog({ entry, open, onClose, onSave }: EditEntryDialo
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label htmlFor="compLevel">Comp Level %</Label>
-                <Select
-                  value={compLevelPercent.toString()}
-                  onValueChange={(val) => setCompLevelPercent(parseInt(val))}
-                >
-                  <SelectTrigger id="compLevel">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {COMP_LEVELS.map((level) => (
-                      <SelectItem key={level} value={level.toString()}>
-                        {level}%
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="compLevel"
+                  type="number"
+                  min="0"
+                  step="1"
+                  placeholder="e.g. 100"
+                  value={compLevelPercent}
+                  onChange={(e) => setCompLevelPercent(parseFloat(e.target.value) || 0)}
+                />
               </div>
 
               <div className="space-y-2">
                 <Label htmlFor="advancement">Advancement %</Label>
-                <Select
-                  value={advancementPercent.toString()}
-                  onValueChange={(val) => setAdvancementPercent(parseInt(val))}
-                >
-                  <SelectTrigger id="advancement">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {ADVANCEMENT_LEVELS.map((level) => (
-                      <SelectItem key={level} value={level.toString()}>
-                        {level}%
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                <Input
+                  id="advancement"
+                  type="text"
+                  value="75%"
+                  disabled
+                  className="bg-muted"
+                />
               </div>
             </div>
           </div>
