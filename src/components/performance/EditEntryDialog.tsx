@@ -11,13 +11,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { PerformanceEntry } from "@/hooks/useAgentPerformance";
 import { Loader2, DollarSign, TrendingUp, TrendingDown } from "lucide-react";
 
@@ -44,7 +37,7 @@ export function EditEntryDialog({ entry, open, onClose, onSave }: EditEntryDialo
       setClientsClosed(entry.clientsClosed);
       setRevenue(entry.revenue);
       setCompLevelPercent(entry.compLevelPercent);
-      setAdvancementPercent(entry.advancementPercent);
+      setAdvancementPercent(ADVANCEMENT_PERCENT);
       setNotes(entry.notes || "");
     }
   }, [entry]);
