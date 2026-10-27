@@ -101,13 +101,36 @@ SelectLabel.displayName = SelectPrimitive.Label.displayName;
 const SelectItem = React.forwardRef<
   React.ElementRef<typeof SelectPrimitive.Item>,
   React.ComponentPropsWithoutRef<typeof SelectPrimitive.Item>
->(({ className, children, ...props }, ref) => (
+>(({ className, children, onTouchStart, onTouchMove, onClick, ...props }, ref) => {
+  // On touch devices, a swipe to scroll the list must not select the item under the finger.
+  const touchStartRef = React.useRef<{ x: number; y: number } | null>(null);
+  const movedRef = React.useRef(false);
+  return (
   <SelectPrimitive.Item
     ref={ref}
     className={cn(
       "relative flex w-full cursor-default select-none items-center rounded-sm py-1.5 pl-8 pr-2 text-sm outline-none data-[disabled]:pointer-events-none data-[disabled]:opacity-50 focus:bg-accent focus:text-accent-foreground",
       className,
     )}
+    onTouchStart={(e) => {
+      const t = e.touches[0];
+      touchStartRef.current = { x: t.clientX, y: t.clientY };
+      movedRef.current = false;
+      onTouchStart?.(e);
+    }}
+    onTouchMove={(e) => {
+      const t = e.touches[0];
+      const s = touchStartRef.current;
+      if (s && (Math.abs(t.clientY - s.y) > 8 || Math.abs(t.clientX - s.x) > 8)) movedRef.current = true;
+      onTouchMove?.(e);
+    }}
+    onClick={(e) => {
+      onClick?.(e);
+      if (movedRef.current) {
+        e.preventDefault(); // skips Radix's select-on-click
+        movedRef.current = false;
+      }
+    }}
     {...props}
   >
     <span className="absolute left-2 flex h-3.5 w-3.5 items-center justify-center">
@@ -118,7 +141,8 @@ const SelectItem = React.forwardRef<
 
     <SelectPrimitive.ItemText>{children}</SelectPrimitive.ItemText>
   </SelectPrimitive.Item>
-));
+  );
+});
 SelectItem.displayName = SelectPrimitive.Item.displayName;
 
 const SelectSeparator = React.forwardRef<
