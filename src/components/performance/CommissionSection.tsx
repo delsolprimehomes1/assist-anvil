@@ -1,5 +1,5 @@
 import { Label } from "@/components/ui/label";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Input } from "@/components/ui/input";
 import { BadgeDollarSign, TrendingUp, Clock } from "lucide-react";
 import { Progress } from "@/components/ui/progress";
 
@@ -13,8 +13,7 @@ interface CommissionSectionProps {
   onAdvancementChange: (value: number) => void;
 }
 
-const COMP_LEVELS = [70, 80, 90, 100, 115, 125, 140];
-const ADVANCEMENT_LEVELS = [75, 80, 85, 90, 100];
+const ADVANCEMENT_PERCENT = 75;
 
 export const CommissionSection = ({
   revenue,
@@ -37,40 +36,27 @@ export const CommissionSection = ({
       <div className="grid grid-cols-2 gap-4">
         <div className="space-y-2">
           <Label htmlFor="compLevel">Comp Level %</Label>
-          <Select
-            value={compLevelPercent.toString()}
-            onValueChange={(v) => onCompLevelChange(parseFloat(v))}
-          >
-            <SelectTrigger id="compLevel">
-              <SelectValue placeholder="Select level" />
-            </SelectTrigger>
-            <SelectContent>
-              {COMP_LEVELS.map((level) => (
-                <SelectItem key={level} value={level.toString()}>
-                  {level}%
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input
+            id="compLevel"
+            type="number"
+            inputMode="decimal"
+            min="0"
+            step="1"
+            placeholder="e.g. 100"
+            value={compLevelPercent}
+            onChange={(e) => onCompLevelChange(parseFloat(e.target.value) || 0)}
+          />
         </div>
-        
+
         <div className="space-y-2">
           <Label htmlFor="advancement">Advancement %</Label>
-          <Select
-            value={advancementPercent.toString()}
-            onValueChange={(v) => onAdvancementChange(parseFloat(v))}
-          >
-            <SelectTrigger id="advancement">
-              <SelectValue placeholder="Select %" />
-            </SelectTrigger>
-            <SelectContent>
-              {ADVANCEMENT_LEVELS.map((level) => (
-                <SelectItem key={level} value={level.toString()}>
-                  {level}%
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Input
+            id="advancement"
+            type="text"
+            value="75%"
+            disabled
+            className="bg-muted"
+          />
         </div>
       </div>
 

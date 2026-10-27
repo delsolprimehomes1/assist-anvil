@@ -162,7 +162,7 @@ export const PerformanceForm = () => {
             </div>
             <div className="grid grid-cols-2 gap-3 sm:gap-4">
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="leadsWorked" className="text-xs sm:text-sm">Leads Worked</Label>
+                <Label htmlFor="leadsWorked" className="text-xs sm:text-sm">Contacts Made</Label>
                 <Input
                   id="leadsWorked"
                   type="number"
@@ -208,7 +208,7 @@ export const PerformanceForm = () => {
                 />
               </div>
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="appointmentsHeld" className="text-xs sm:text-sm">Appts Held</Label>
+                <Label htmlFor="appointmentsHeld" className="text-xs sm:text-sm">Presentation Made</Label>
                 <Input
                   id="appointmentsHeld"
                   type="number"
@@ -242,7 +242,7 @@ export const PerformanceForm = () => {
                 />
               </div>
               <div className="space-y-1.5 sm:space-y-2">
-                <Label htmlFor="revenue" className="text-xs sm:text-sm">Revenue ($)</Label>
+                <Label htmlFor="revenue" className="text-xs sm:text-sm">Annual Premium ($)</Label>
                 <Input
                   id="revenue"
                   type="number"
