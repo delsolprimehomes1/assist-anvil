@@ -94,21 +94,8 @@ const fireBrandConfetti = () => {
 type AgencyCodeRow = { id: string; code: string; label: string | null; display_order: number };
 type AgencyManagerRow = { id: string; manager_name: string; display_order: number };
 
-// License-conditional refinement: when isLicensed === "yes", certain fields are required.
-const licensedRefine = (data: any, ctx: z.RefinementCtx) => {
-  if (data.isLicensed !== "yes") return;
-  if (!data.residentLicenseExp) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseExp"], message: "Resident license expiration is required" });
-  } else if (data.residentLicenseExp <= new Date()) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseExp"], message: "Expiration must be in the future" });
-  }
-  if (!data.residentLicenseState) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseState"], message: "Resident state is required" });
-  }
-  if (!data.residentLicenseNumber || data.residentLicenseNumber.trim().length === 0) {
-    ctx.addIssue({ code: z.ZodIssueCode.custom, path: ["residentLicenseNumber"], message: "License number is required" });
-  }
-};
+// License detail fields are no longer collected at signup.
+const licensedRefine = (_data: any, _ctx: z.RefinementCtx) => {};
 
 const baseShape = {
   firstName: z.string().min(2, "First name must be at least 2 characters"),
@@ -162,7 +149,7 @@ const allSteps = [
   { id: 4, question: "Select your manager", icon: UserCheck, fields: ["assignedManager"] as const },
   { id: 5, question: "What's your email address?", icon: Mail, fields: ["email"] as const },
   { id: 6, question: "What's your phone number?", icon: Phone, fields: ["phone"] as const },
-  { id: 7, question: "Are you licensed?", icon: Award, fields: ["isLicensed", "residentLicenseExp", "residentLicenseState", "residentLicenseNumber", "npnNumber", "otherLicenseStates", "ceDueDate"] as const },
+  { id: 7, question: "Are you licensed?", icon: Award, fields: ["isLicensed"] as const },
   { id: 8, question: "Create a secure password", icon: Lock, fields: ["password", "confirmPassword"] as const },
 ];
 
@@ -743,150 +730,6 @@ export const OnboardingDialog = ({ open, onOpenChange }: OnboardingDialogProps) 
                             </FormItem>
                           )} />
 
-                          {form.watch("isLicensed") === "yes" && (
-                            <motion.div
-                              initial={{ opacity: 0, y: 10 }}
-                              animate={{ opacity: 1, y: 0 }}
-                              transition={{ duration: 0.25 }}
-                              className="space-y-5 pt-2"
-                            >
-                              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                {/* Resident license exp */}
-                                <FormField control={form.control} name="residentLicenseExp" render={({ field }) => (
-                                  <FormItem className="flex flex-col">
-                                    <Label className="mb-1">Resident license expiration *</Label>
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <FormControl>
-                                          <Button type="button" variant="outline" disabled={loading}
-                                            className={cn("h-12 justify-start text-left font-normal", !field.value && "text-muted-foreground")}>
-                                            <CalendarIcon className="mr-2 h-4 w-4" />
-                                            {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                          </Button>
-                                        </FormControl>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
-                                        <Calendar mode="single" selected={field.value} onSelect={field.onChange}
-                                          disabled={(d) => d <= new Date()} initialFocus className={cn("p-3 pointer-events-auto")} />
-                                      </PopoverContent>
-                                    </Popover>
-                                    <FormMessage />
-                                  </FormItem>
-                                )} />
-
-                                {/* Resident state */}
-                                <FormField control={form.control} name="residentLicenseState" render={({ field }) => (
-                                  <FormItem className="flex flex-col">
-                                    <Label className="mb-1">Resident state *</Label>
-                                    <Select onValueChange={field.onChange} value={field.value} disabled={loading}>
-                                      <FormControl>
-                                        <SelectTrigger className="h-12 bg-background">
-                                          <SelectValue placeholder="Select state" />
-                                        </SelectTrigger>
-                                      </FormControl>
-                                      <SelectContent className="bg-background z-50 max-h-72">
-                                        {US_STATES.map((s) => (
-                                          <SelectItem key={s.code} value={s.code}>{s.name}</SelectItem>
-                                        ))}
-                                      </SelectContent>
-                                    </Select>
-                                    <FormMessage />
-                                  </FormItem>
-                                )} />
-
-                                {/* License number */}
-                                <FormField control={form.control} name="residentLicenseNumber" render={({ field }) => (
-                                  <FormItem>
-                                    <Label className="mb-1">License number *</Label>
-                                    <FormControl>
-                                      <Input {...field} placeholder="e.g. P123456" disabled={loading} className="h-12" />
-                                    </FormControl>
-                                    <FormMessage />
-                                  </FormItem>
-                                )} />
-
-                                {/* NPN */}
-                                <FormField control={form.control} name="npnNumber" render={({ field }) => (
-                                  <FormItem>
-                                    <Label className="mb-1">NPN number</Label>
-                                    <FormControl>
-                                      <Input {...field} placeholder="National Producer Number" disabled={loading} className="h-12" />
-                                    </FormControl>
-                                    <p className="text-xs text-muted-foreground mt-1">Your National Producer Number from NIPR</p>
-                                    <FormMessage />
-                                  </FormItem>
-                                )} />
-                              </div>
-
-                              {/* CE due date */}
-                              <FormField control={form.control} name="ceDueDate" render={({ field }) => (
-                                <FormItem className="flex flex-col">
-                                  <Label className="mb-1">CE due date <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                                  <Popover>
-                                    <PopoverTrigger asChild>
-                                      <FormControl>
-                                        <Button type="button" variant="outline" disabled={loading}
-                                          className={cn("h-12 justify-start text-left font-normal max-w-xs", !field.value && "text-muted-foreground")}>
-                                          <CalendarIcon className="mr-2 h-4 w-4" />
-                                          {field.value ? format(field.value, "PPP") : <span>Pick a date</span>}
-                                        </Button>
-                                      </FormControl>
-                                    </PopoverTrigger>
-                                    <PopoverContent className="w-auto p-0 bg-background z-50" align="start">
-                                      <Calendar mode="single" selected={field.value} onSelect={field.onChange}
-                                        initialFocus className={cn("p-3 pointer-events-auto")} />
-                                    </PopoverContent>
-                                  </Popover>
-                                  <FormMessage />
-                                </FormItem>
-                              )} />
-
-                              {/* Other licensed states */}
-                              <FormField control={form.control} name="otherLicenseStates" render={({ field }) => {
-                                const selected: string[] = field.value || [];
-                                const toggle = (code: string) => {
-                                  if (selected.includes(code)) field.onChange(selected.filter((c) => c !== code));
-                                  else field.onChange([...selected, code]);
-                                };
-                                return (
-                                  <FormItem>
-                                    <Label className="mb-1">Other states you're licensed in <span className="text-muted-foreground font-normal">(optional)</span></Label>
-                                    <Popover>
-                                      <PopoverTrigger asChild>
-                                        <FormControl>
-                                          <Button type="button" variant="outline" disabled={loading}
-                                            className="h-12 w-full justify-start text-left font-normal">
-                                            {selected.length === 0 ? <span className="text-muted-foreground">Select states</span> : `${selected.length} state${selected.length === 1 ? "" : "s"} selected`}
-                                          </Button>
-                                        </FormControl>
-                                      </PopoverTrigger>
-                                      <PopoverContent className="w-[320px] p-0 bg-background z-50" align="start">
-                                        <div className="max-h-72 overflow-y-auto p-2">
-                                          {US_STATES.map((s) => (
-                                            <label key={s.code} className="flex items-center gap-2 p-2 rounded hover:bg-muted cursor-pointer">
-                                              <Checkbox checked={selected.includes(s.code)} onCheckedChange={() => toggle(s.code)} />
-                                              <span className="text-sm">{s.name}</span>
-                                            </label>
-                                          ))}
-                                        </div>
-                                      </PopoverContent>
-                                    </Popover>
-                                    {selected.length > 0 && (
-                                      <div className="flex flex-wrap gap-1 mt-2">
-                                        {selected.map((c) => (
-                                          <span key={c} className="inline-flex items-center gap-1 px-2 py-1 text-xs rounded-md bg-[hsl(var(--brand-teal))]/15 text-foreground">
-                                            {c}
-                                            <button type="button" onClick={() => toggle(c)} className="text-muted-foreground hover:text-foreground" aria-label={`Remove ${c}`}>×</button>
-                                          </span>
-                                        ))}
-                                      </div>
-                                    )}
-                                    <FormMessage />
-                                  </FormItem>
-                                );
-                              }} />
-                            </motion.div>
-                          )}
                         </div>
                       )}
 
