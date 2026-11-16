@@ -1,21 +1,25 @@
-## Add "Callin Leads" entry to Sidebar and Dashboard
+# Remove license detail fields from signup "Are you licensed?" step
 
-Both buttons open `https://callins.battersbox.ai/` in a new tab.
+## What the request means
+The person wants the six license-detail questions removed from the signup step "Are you licensed?" (Step 7 of 7). These show after tapping "Yes":
+1. Resident license expiration
+2. Resident state (the dropdown that won't scroll on some phones)
+3. License number
+4. NPN number
+5. CE due date
+6. Other states you're licensed in
 
-### 1. `src/components/layout/Sidebar.tsx`
-- Add `Phone` (or similar) icon to the lucide-react imports.
-- Insert a new nav item directly after "Order Leads":
-  ```ts
-  { name: "Callin Leads", href: "https://callins.battersbox.ai/", icon: Phone, external: true },
-  ```
-- Existing external-link rendering logic already handles `external: true`, so no further changes needed.
+Removing them also removes the scrolling problem.
 
-### 2. `src/components/dashboard/QuickActions.tsx`
-- Add `Phone` to the lucide-react imports.
-- Add a new entry to the `actions` array:
-  ```ts
-  { title: "Callin Leads", icon: Phone, href: "https://callins.battersbox.ai/", external: true }
-  ```
-- Update the render to use an `<a target="_blank" rel="noopener noreferrer">` when `action.external` is true, instead of `<Link>`. Internal items keep using `<Link>`.
+## What stays
+- The Yes / No "Are you licensed?" choice stays and is still required and saved.
+- Back and Submit Request buttons stay.
 
-No backend or routing changes required.
+## What changes
+- After tapping Yes or No, no extra fields appear; the user can submit right away.
+- The six fields are no longer required or sent with the signup.
+- Past answers already saved stay untouched; the Compliance page and admin views keep working (they'll just be empty for new signups, and agents can still fill license info later in Compliance).
+
+## Technical details
+- `src/components/auth/OnboardingDialog.tsx`: remove the six fields from the schema, `licensedRefine`, step 7 `fields`, default values, JSX block under `isLicensed === "yes"`, and the submit payload (send nulls / omit).
+- No database changes.
